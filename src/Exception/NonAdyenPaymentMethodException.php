@@ -16,7 +16,7 @@ use Throwable;
 
 class NonAdyenPaymentMethodException extends \InvalidArgumentException
 {
-    public function __construct(PaymentMethodInterface $paymentMethod, Throwable $previous = null)
+    public function __construct(PaymentMethodInterface $paymentMethod, ?Throwable $previous = null)
     {
         parent::__construct(
             sprintf(

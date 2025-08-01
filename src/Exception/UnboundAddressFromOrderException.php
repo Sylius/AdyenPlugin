@@ -16,7 +16,7 @@ use Throwable;
 
 class UnboundAddressFromOrderException extends \InvalidArgumentException
 {
-    public function __construct(OrderInterface $order, Throwable $previous = null)
+    public function __construct(OrderInterface $order, ?Throwable $previous = null)
     {
         parent::__construct(
             sprintf('Unbound billing address for order #%d', (int) $order->getId()),

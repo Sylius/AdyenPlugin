@@ -15,7 +15,7 @@ use Throwable;
 
 class RefundNotFoundException extends \InvalidArgumentException
 {
-    public function __construct(string $reference, Throwable $previous = null)
+    public function __construct(string $reference, ?Throwable $previous = null)
     {
         parent::__construct(sprintf('Cannot find reference for refund "%s"', $reference), 0, $previous);
     }
