@@ -13,6 +13,7 @@ namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Resolver\Address;
 
 use BitBag\SyliusAdyenPlugin\Resolver\Address\StreetAddressResolver;
 use BitBag\SyliusAdyenPlugin\Resolver\Address\StreetAddressResolverInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class StreetAddressResolverTest extends TestCase
@@ -29,7 +30,7 @@ final class StreetAddressResolverTest extends TestCase
         $this->streetAddressResolver = new StreetAddressResolver();
     }
 
-    /** @dataProvider provideHouseNumberFirst */
+    #[DataProvider('provideHouseNumberFirst')]
     public function testResolveHouseNumberFirst(
         string $streetAddress,
         string $street,
@@ -41,7 +42,7 @@ final class StreetAddressResolverTest extends TestCase
         self::assertEquals($houseNumber, $model->getHouseNumber());
     }
 
-    /** @dataProvider provideHouseNumberLast */
+    #[DataProvider('provideHouseNumberLast')]
     public function testResolveHouseNumberLast(
         string $streetAddress,
         string $street,

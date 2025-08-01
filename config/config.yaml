@@ -1,0 +1,5 @@
+imports:
+  - { resource: "@BitBagSyliusAdyenPlugin/config/sylius/blocks.yml" }
+  - { resource: "@BitBagSyliusAdyenPlugin/config/sylius/state_machine.yml" }
+  - { resource: "@BitBagSyliusAdyenPlugin/config/sylius/resources.yml" }
+  - { resource: "@BitBagSyliusAdyenPlugin/config/sylius/grids.yml" }

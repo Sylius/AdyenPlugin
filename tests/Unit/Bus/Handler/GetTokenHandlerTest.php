@@ -17,6 +17,7 @@ use BitBag\SyliusAdyenPlugin\Bus\Handler\GetTokenHandler;
 use BitBag\SyliusAdyenPlugin\Bus\Query\GetToken;
 use BitBag\SyliusAdyenPlugin\Entity\AdyenToken;
 use BitBag\SyliusAdyenPlugin\Repository\AdyenTokenRepositoryInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -121,9 +122,7 @@ class GetTokenHandlerTest extends TestCase
         ;
     }
 
-    /**
-     * @dataProvider provideForTestQuery
-     */
+    #[DataProvider('provideForTestQuery')]
     public function testQuery(bool $existingToken = false): void
     {
         $customer = $this->createMock(CustomerInterface::class);

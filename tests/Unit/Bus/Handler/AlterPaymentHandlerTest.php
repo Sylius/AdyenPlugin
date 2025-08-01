@@ -17,6 +17,7 @@ use BitBag\SyliusAdyenPlugin\Bus\Command\RequestCapture;
 use BitBag\SyliusAdyenPlugin\Bus\Handler\AlterPaymentHandler;
 use BitBag\SyliusAdyenPlugin\Provider\AdyenClientProvider;
 use Payum\Core\Model\GatewayConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderItem;
@@ -73,9 +74,7 @@ class AlterPaymentHandlerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForTestForNonApplicablePayment
-     */
+    #[DataProvider('provideForTestForNonApplicablePayment')]
     public function testForNonApplicablePayment(?PaymentInterface $payment = null, ?string $orderPaymentState = null): void
     {
         $this->adyenClientProvider
@@ -133,9 +132,7 @@ class AlterPaymentHandlerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForTestForValidPayment
-     */
+    #[DataProvider('provideForTestForValidPayment')]
     public function testForValidPayment(string $commandClass, callable $setupMocker): void
     {
         $config = new GatewayConfig();

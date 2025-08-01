@@ -23,6 +23,7 @@ final class BitBagSyliusAdyenPlugin extends Bundle
 {
     use SyliusPluginTrait;
 
+    // TODO: Delete when renaming plugin
     public function getContainerExtension(): ?ExtensionInterface
     {
         $this->containerExtension = $this->createContainerExtension() ?? false;
@@ -43,5 +44,10 @@ final class BitBagSyliusAdyenPlugin extends Bundle
             PassConfig::TYPE_BEFORE_OPTIMIZATION,
             1,
         );
+    }
+
+    public function getPath(): string
+    {
+        return \dirname(__DIR__);
     }
 }

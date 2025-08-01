@@ -13,6 +13,7 @@ namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Client;
 
 use BitBag\SyliusAdyenPlugin\Client\PaymentMethodsFilter;
 use BitBag\SyliusAdyenPlugin\Client\PaymentMethodsFilterInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class PaymentMethodsFilterTest extends TestCase
@@ -51,9 +52,7 @@ class PaymentMethodsFilterTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForTestFilter
-     */
+    #[DataProvider('provideForTestFilter')]
     public function testFilter(
         array $paymentMethodsResponseList,
         ?array $supportedMethodsList,
