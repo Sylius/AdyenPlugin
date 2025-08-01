@@ -1,10 +1,12 @@
 parameters:
     reportUnmatchedIgnoredErrors: false
-    checkMissingIterableValueType: false
-    checkGenericClassInNonGenericObjectType: false
     treatPhpDocTypesAsCertain: false
 
-    excludes_analyse:
+    level: 5
+    paths:
+        - src
+
+    excludePaths:
         # Makes PHPStan crash
         - 'src/DependencyInjection/Configuration.php'
         - 'src/DependencyInjection/BitBagSyliusAdyenExtension.php'

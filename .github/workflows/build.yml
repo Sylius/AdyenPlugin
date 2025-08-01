@@ -32,7 +32,7 @@ jobs:
 
         steps:
             -
-                uses: actions/checkout@v3
+                uses: actions/checkout@v4
 
             -
                 name: Setup PHP
@@ -138,6 +138,12 @@ jobs:
                 name: Validate composer.json
                 run: composer validate --ansi --strict
 
+            -   name: Run PHPStan
+                run: vendor/bin/phpstan analyse
+
+            -   name: Run ECS
+                run: vendor/bin/ecs check
+
             -
                 name: Validate database schema
                 run: vendor/bin/console doctrine:schema:validate
@@ -164,22 +170,9 @@ jobs:
 
             -
                 name: Upload Behat logs
-                uses: actions/upload-artifact@v3
+                uses: actions/upload-artifact@v4
                 if: failure()
                 with:
                     name: Behat logs
                     path: etc/build/
                     if-no-files-found: ignore
-
-            -
-                name: Failed build Slack notification
-                uses: rtCamp/action-slack-notify@v2
-                if: ${{ failure() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master') }}
-                env:
-                    SLACK_CHANNEL: ${{ secrets.FAILED_BUILD_SLACK_CHANNEL }}
-                    SLACK_COLOR: ${{ job.status }}
-                    SLACK_ICON: https://github.com/rtCamp.png?size=48
-                    SLACK_MESSAGE: ':x:'
-                    SLACK_TITLE: Failed build on ${{ github.event.repository.name }} repository
-                    SLACK_USERNAME: ${{ secrets.FAILED_BUILD_SLACK_USERNAME }}
-                    SLACK_WEBHOOK: ${{ secrets.FAILED_BUILD_SLACK_WEBHOOK }}
