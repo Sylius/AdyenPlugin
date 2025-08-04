@@ -14,6 +14,7 @@ namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Normalizer;
 use BitBag\SyliusAdyenPlugin\Normalizer\AbstractPaymentNormalizer;
 use BitBag\SyliusAdyenPlugin\Normalizer\OrderItemToLineItemNormalizer;
 use BitBag\SyliusAdyenPlugin\Resolver\Product\ThumbnailUrlResolverInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\OrderItem;
 use Sylius\Component\Core\Model\OrderItemInterface;
@@ -62,9 +63,7 @@ class OrderItemToLineItemNormalizerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForSupportsNormalization
-     */
+    #[DataProvider('provideForSupportsNormalization')]
     public function testSupportsNormalization(
         array $context,
         ?OrderItemInterface $order,

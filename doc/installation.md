@@ -54,7 +54,7 @@ Import required config in your `config/packages/_sylius.yaml` file:
 
 imports:
     ...
-    - { resource: "@BitBagSyliusAdyenPlugin/Resources/config/config.yaml" }
+    - { resource: "@BitBagSyliusAdyenPlugin/config/config.yaml" }
 ```
 
 Add Adyen payment method as a supported refund gateway in `config/packages/_sylius.yaml`:
@@ -72,7 +72,7 @@ Import routing in your `config/routes.yaml` file:
 # config/routes.yaml
 
 bitbag_sylius_adyen_plugin:
-    resource: "@BitBagSyliusAdyenPlugin/Resources/config/routing.yaml"
+    resource: "@BitBagSyliusAdyenPlugin/config/routing.yaml"
 ```
 
 Add logging to your environment in config/packages/{dev, prod, staging}/monolog.yaml

@@ -15,7 +15,7 @@ use Throwable;
 
 class PaymentMethodForReferenceNotFoundException extends \InvalidArgumentException
 {
-    public function __construct(string $reference, Throwable $previous = null)
+    public function __construct(string $reference, ?Throwable $previous = null)
     {
         parent::__construct(sprintf('Payment not found for reference "%s"', $reference), 0, $previous);
     }

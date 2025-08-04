@@ -1,0 +1,28 @@
+imports:
+    - { resource: "@BitBagSyliusAdyenPlugin/config/config.yaml" }
+    - { resource: "@SyliusRefundPlugin/Resources/config/app/config.yml" }
+    - { resource: "services_test.php" }
+
+parameters:
+    sylius_refund.supported_gateways:
+        - offline
+        - adyen
+
+bitbag_sylius_adyen:
+    logger: true
+    supported_types: ~
+
+monolog:
+    channels: [adyen]
+    handlers:
+        main:
+            type: stream
+            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            level: debug
+        firephp:
+            type: firephp
+            level: info
+        doctrine:
+            type: service
+            channels: [adyen]
+            id: bitbag.sylius_adyen_plugin.logging.monolog.doctrine_handler

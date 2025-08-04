@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Processor\PaymentResponseProcessor;
 
 use BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\ProcessorInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
@@ -47,9 +48,7 @@ abstract class AbstractProcessor extends KernelTestCase
         return $router;
     }
 
-    /**
-     * @dataProvider provideForTestAccepts
-     */
+    #[DataProvider('provideForTestAccepts')]
     public function testAccepts(string $code, bool $accepts): void
     {
         $payment = $this->getPayment($code);

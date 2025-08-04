@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Processor\PaymentResponseProcessor;
 
 use BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\BitBag\SyliusAdyenPlugin\Unit\Mock\RequestMother;
@@ -52,9 +53,7 @@ class SuccessfulResponseProcessorTest extends AbstractProcessor
         ];
     }
 
-    /**
-     * @dataProvider provideForTestRedirect
-     */
+    #[DataProvider('provideForTestRedirect')]
     public function testRedirect(
         Request $request,
         string $expectedUrlEnding,

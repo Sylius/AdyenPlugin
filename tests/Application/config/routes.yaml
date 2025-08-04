@@ -1,2 +1,0 @@
-bitbag_adyen_plugin:
-    resource: "@BitBagSyliusAdyenPlugin/Resources/config/routing.yaml"

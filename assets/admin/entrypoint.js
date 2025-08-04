@@ -1,0 +1,1 @@
+// Admin entrypoint - no admin-specific assets for this plugin

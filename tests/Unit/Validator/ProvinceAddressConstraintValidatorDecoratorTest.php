@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Validator;
 
 use BitBag\SyliusAdyenPlugin\Validator\Constraint\ProvinceAddressConstraintValidatorDecorator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraint;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraintValidator;
 use Symfony\Component\Validator\ConstraintValidatorInterface;
@@ -65,9 +66,7 @@ class ProvinceAddressConstraintValidatorDecoratorTest extends ConstraintValidato
         ];
     }
 
-    /**
-     * @dataProvider provideTestRelatedCountryAndEmptyProvinceWithAlreadyViolatedConstraint
-     */
+    #[DataProvider('provideTestRelatedCountryAndEmptyProvinceWithAlreadyViolatedConstraint')]
     public function testRelatedCountryAndEmptyProvinceWithAlreadyViolatedConstraint(
         string $violationMessage,
         int $expectedCount,

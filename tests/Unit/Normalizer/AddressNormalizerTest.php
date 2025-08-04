@@ -16,6 +16,7 @@ use BitBag\SyliusAdyenPlugin\Model\StreetAddressModel;
 use BitBag\SyliusAdyenPlugin\Normalizer\AbstractPaymentNormalizer;
 use BitBag\SyliusAdyenPlugin\Normalizer\AddressNormalizer;
 use BitBag\SyliusAdyenPlugin\Resolver\Address\StreetAddressResolverInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\Address;
 use Sylius\Component\Core\Model\AddressInterface;
@@ -54,9 +55,7 @@ class AddressNormalizerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForSupportsNormalization
-     */
+    #[DataProvider('provideForSupportsNormalization')]
     public function testSupportsNormalization(
         array $context,
         ?AddressInterface $order,
@@ -83,9 +82,7 @@ class AddressNormalizerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForTestNormalize
-     */
+    #[DataProvider('provideForTestNormalize')]
     public function testNormalize(AddressInterface $address, string $expectedCountryCode): void
     {
         $result = $this->normalizer->normalize($address);

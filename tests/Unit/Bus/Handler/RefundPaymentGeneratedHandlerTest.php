@@ -19,6 +19,7 @@ use BitBag\SyliusAdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use BitBag\SyliusAdyenPlugin\Repository\PaymentRepositoryInterface;
 use BitBag\SyliusAdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Payum\Core\Model\GatewayConfig;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
@@ -93,9 +94,7 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForTestUnacceptable
-     */
+    #[DataProvider('provideForTestUnacceptable')]
     public function testUnacceptable(?PaymentInterface $payment = null): void
     {
         $this->paymentRepository

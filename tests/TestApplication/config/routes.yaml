@@ -1,0 +1,5 @@
+bitbag_sylius_adyen_plugin:
+    resource: "@BitBagSyliusAdyenPlugin/config/routing.yaml"
+
+sylius_refund:
+    resource: "@SyliusRefundPlugin/Resources/config/routing.yml"

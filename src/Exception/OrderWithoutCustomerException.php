@@ -16,7 +16,7 @@ use Throwable;
 
 class OrderWithoutCustomerException extends \InvalidArgumentException
 {
-    public function __construct(OrderInterface $order, Throwable $previous = null)
+    public function __construct(OrderInterface $order, ?Throwable $previous = null)
     {
         parent::__construct(
             sprintf('An order %d has no customer associated', (int) $order->getId()),

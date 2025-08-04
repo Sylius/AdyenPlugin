@@ -14,6 +14,7 @@ namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Bus\Handler;
 use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentStatusReceived;
 use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
 use BitBag\SyliusAdyenPlugin\Bus\Handler\PaymentStatusReceivedHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\Order;
@@ -75,9 +76,7 @@ class PaymentStatusReceivedHandlerTest extends TestCase
         return $result;
     }
 
-    /**
-     * @dataProvider provideForTestFlow
-     */
+    #[DataProvider('provideForTestFlow')]
     public function testFlow(string $resultCode, bool $shouldPass): void
     {
         $order = new Order();

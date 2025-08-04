@@ -9,15 +9,15 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.0 || ^8.1",
+        "php": "^8.1",
         "adyen/php-api-library": "^11.0",
         "composer/package-versions-deprecated": "^1.11",
         "nyholm/psr7": "^1.4",
-        "sylius/refund-plugin": "~1.0.0 || ^1.1",
-        "sylius/sylius": "~1.12.0 || ~1.13.0",
-        "symfony/messenger": "^5.4 || ^6.0",
-        "symfony/serializer": "^5.4 || ^6.0",
-        "symfony/webpack-encore-bundle": "^1.14"
+        "sylius/refund-plugin": "^1.6",
+        "sylius/sylius": "~1.14.0",
+        "symfony/messenger": "^5.4.21 || ^6.4",
+        "symfony/serializer": "^5.4.21 || ^6.4",
+        "symfony/webpack-encore-bundle": "^1.15"
     },
     "require-dev": {
         "behat/behat": "^3.6.1",
@@ -41,19 +41,22 @@
         "phpstan/phpstan-webmozart-assert": "^1.0",
         "phpunit/phpunit": ">=8.5",
         "polishsymfonycommunity/symfony-mocker-container": "^1.0",
+        "sylius/test-application": "^1.14.x-dev",
         "symfony/browser-kit": "^5.4 || 6.0",
-        "symfony/debug-bundle": "^5.4 || ^6.0",
-        "symfony/dotenv": "^5.4 || ^6.0",
-        "symfony/intl": "^5.4 || ^6.0",
-        "symfony/web-profiler-bundle": "^5.4 || ^6.0",
+        "symfony/debug-bundle": "^5.4.21 || ^6.4",
+        "symfony/dotenv": "^5.4.21 || ^6.4",
+        "symfony/intl": "^5.4.21 || ^6.4",
+        "symfony/web-profiler-bundle": "^5.4.21 || ^6.4",
         "symplify/easy-coding-standard": "^10.0 || ^11.0"
     },
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "symfony/thanks": true,
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "symfony/flex": true,
+            "symfony/runtime": true,
+            "symfony/thanks": true
         }
     },
     "conflict": {
@@ -62,7 +65,8 @@
     "extra": {
         "branch-alias": {
             "dev-master": "1.8-dev"
-        }
+        },
+        "public-dir": "vendor/sylius/test-application/public"
     },
     "autoload": {
         "psr-4": {
@@ -71,21 +75,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\BitBag\\SyliusAdyenPlugin\\": "tests/"
-        },
-        "classmap": [
-            "tests/Application/Kernel.php"
-        ]
-    },
-    "scripts": {
-        "post-install-cmd": [
-            "php bin/create_node_symlink.php"
-        ],
-        "post-update-cmd": [
-            "php bin/create_node_symlink.php"
-        ],
-        "post-create-project-cmd": [
-            "php bin/create_node_symlink.php"
-        ]
+            "Tests\\BitBag\\SyliusAdyenPlugin\\": ["tests/", "tests/TestApplication/src/"]
+        }
     }
 }

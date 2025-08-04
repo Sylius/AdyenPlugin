@@ -14,6 +14,7 @@ namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Normalizer;
 use BitBag\SyliusAdyenPlugin\Normalizer\AbstractPaymentNormalizer;
 use BitBag\SyliusAdyenPlugin\Normalizer\AdditionalDetailsNormalizer;
 use BitBag\SyliusAdyenPlugin\Normalizer\ShippingLineGeneratorInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -60,9 +61,7 @@ class AdditionalDetailsNormalizerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForSupportsNormalization
-     */
+    #[DataProvider('provideForSupportsNormalization')]
     public function testSupportsNormalization(
         array $context,
         ?OrderInterface $order,

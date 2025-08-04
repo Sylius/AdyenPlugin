@@ -15,6 +15,7 @@ use BitBag\SyliusAdyenPlugin\Bus\Command\AuthorizePayment;
 use BitBag\SyliusAdyenPlugin\Bus\Command\CapturePayment;
 use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentFinalizationCommand;
 use BitBag\SyliusAdyenPlugin\Bus\Handler\PaymentFinalizationHandler;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\Order;
@@ -72,9 +73,7 @@ class PaymentFinalizationHandlerTest extends TestCase
         ];
     }
 
-    /**
-     * @dataProvider provideForTestForApplicable
-     */
+    #[DataProvider('provideForTestForApplicable')]
     public function testApplicable(string $class): void
     {
         $order = new Order();
