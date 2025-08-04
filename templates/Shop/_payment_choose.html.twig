@@ -18,14 +18,14 @@
         {% endif %}
 
         {% if payment_configuration is not defined and order.tokenValue is not empty %}
-            {% include '@BitBagSyliusAdyenPlugin/Shop/_dropin.html.twig' %}
+            {% include '@SyliusAdyenPlugin/Shop/_dropin.html.twig' %}
         {% else %}
             <div class="adyen-method-grid">
             {% for method in available_methods.vars.payment_methods -%}
 
                 {% set to_render = [] %}
 
-                {% if method.brands is defined and method.type == constant('BitBag\\SyliusAdyenPlugin\\Client\\AdyenClientInterface::CREDIT_CARD_TYPE') %}
+                {% if method.brands is defined and method.type == constant('Sylius\\AdyenPlugin\\Client\\AdyenClientInterface::CREDIT_CARD_TYPE') %}
                     {% for sub_brand in method.brands %}
                         {% set to_render = to_render|merge([["https://checkoutshopper-" ~ available_methods.vars.environment ~ ".adyen.com/checkoutshopper/images/logos/medium/" ~ sub_brand ~ ".png"]]) %}
                     {% endfor %}
@@ -46,5 +46,3 @@
         {% endif %}
     </div>
 </div>
-
-<script src="{{ asset('/bundles/bitbagsyliusadyenplugin/js/checkout.js') }}"></script>

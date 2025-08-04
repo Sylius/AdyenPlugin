@@ -1,22 +1,24 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Validator\Constraint;
+namespace Sylius\AdyenPlugin\Validator\Constraint;
 
 use Adyen\AdyenException;
 use Adyen\Service\Checkout;
-use BitBag\SyliusAdyenPlugin\Client\AdyenTransportFactory;
-use BitBag\SyliusAdyenPlugin\Exception\AuthenticationException;
-use BitBag\SyliusAdyenPlugin\Exception\InvalidApiKeyException;
-use BitBag\SyliusAdyenPlugin\Exception\InvalidMerchantAccountException;
+use Sylius\AdyenPlugin\Client\AdyenTransportFactory;
+use Sylius\AdyenPlugin\Exception\AuthenticationException;
+use Sylius\AdyenPlugin\Exception\InvalidApiKeyException;
+use Sylius\AdyenPlugin\Exception\InvalidMerchantAccountException;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;

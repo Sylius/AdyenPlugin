@@ -1,0 +1,8 @@
+winzou_state_machine:
+    sylius_order:
+        callbacks:
+            before:
+                sylius_cancel_payment:
+                    on: ["cancel"]
+                    do: [ "@sylius_adyen.callback.request_cancel", "__invoke" ]
+                    args: [ "object" ]

@@ -1,19 +1,21 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Resolver\Notification;
+namespace Sylius\AdyenPlugin\Resolver\Notification;
 
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver\CommandResolver;
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\CommandResolver;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
+use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 
 final class NotificationToCommandResolver implements NotificationToCommandResolverInterface
 {

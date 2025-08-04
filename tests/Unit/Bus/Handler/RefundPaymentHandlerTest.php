@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Bus\Handler;
+namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\RefundPayment;
-use BitBag\SyliusAdyenPlugin\Bus\Handler\RefundPaymentHandler;
-use BitBag\SyliusAdyenPlugin\RefundPaymentTransitions;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Bus\Command\RefundPayment;
+use Sylius\AdyenPlugin\Bus\Handler\RefundPaymentHandler;
+use Sylius\AdyenPlugin\RefundPaymentTransitions;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\RefundPlugin\Entity\RefundPayment as RefundPaymentEntity;

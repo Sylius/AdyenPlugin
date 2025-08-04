@@ -1,23 +1,25 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Validator;
+namespace Tests\Sylius\AdyenPlugin\Unit\Validator;
 
-use BitBag\SyliusAdyenPlugin\Validator\Constraint\ProvinceAddressConstraintValidatorDecorator;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Sylius\AdyenPlugin\Validator\Constraint\ProvinceAddressConstraintValidatorDecorator;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraint;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraintValidator;
 use Symfony\Component\Validator\ConstraintValidatorInterface;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
-use Tests\BitBag\SyliusAdyenPlugin\Unit\AddressMother;
+use Tests\Sylius\AdyenPlugin\Unit\AddressMother;
 
 class ProvinceAddressConstraintValidatorDecoratorTest extends ConstraintValidatorTestCase
 {

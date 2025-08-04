@@ -1,17 +1,19 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Resolver\Notification\Serializer;
+namespace Sylius\AdyenPlugin\Resolver\Notification\Serializer;
 
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareInterface;
 use Symfony\Component\Serializer\Normalizer\DenormalizerAwareTrait;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
@@ -29,7 +31,7 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
     public function denormalize(
         $data,
         string $type,
-        string $format = null,
+        ?string $format = null,
         array $context = [],
     ) {
         if (!isset($data[self::DENORMALIZATION_PROCESSED_FLAG]) && is_array($data)) {
@@ -44,7 +46,7 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
     public function supportsDenormalization(
         mixed $data,
         ?string $type,
-        string $format = null,
+        ?string $format = null,
     ): bool {
         return
             NotificationItemData::class === $type &&
@@ -70,7 +72,7 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
      */
     public function normalize(
         $object,
-        string $format = null,
+        ?string $format = null,
         array $context = [],
     ) {
         if (!isset($context[$this->getNormalizationMarking($object)])) {

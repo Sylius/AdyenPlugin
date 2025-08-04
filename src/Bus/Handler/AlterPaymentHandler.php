@@ -1,22 +1,24 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Bus\Handler;
+namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\AlterPaymentCommand;
-use BitBag\SyliusAdyenPlugin\Bus\Command\CancelPayment;
-use BitBag\SyliusAdyenPlugin\Bus\Command\RequestCapture;
-use BitBag\SyliusAdyenPlugin\Client\AdyenClientInterface;
-use BitBag\SyliusAdyenPlugin\Provider\AdyenClientProviderInterface;
-use BitBag\SyliusAdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
+use Sylius\AdyenPlugin\Bus\Command\AlterPaymentCommand;
+use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
+use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
+use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;

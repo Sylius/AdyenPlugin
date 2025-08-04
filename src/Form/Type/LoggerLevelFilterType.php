@@ -1,15 +1,17 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Form\Type;
+namespace Sylius\AdyenPlugin\Form\Type;
 
 use Monolog\Logger;
 use Symfony\Component\Form\AbstractType;
@@ -24,9 +26,9 @@ final class LoggerLevelFilterType extends AbstractType
             ->add('loggerLevel', ChoiceType::class, [
                 'label' => false,
                 'choices' => [
-                    'bitbag_sylius_adyen_plugin.ui.logging.info' => Logger::INFO,
-                    'bitbag_sylius_adyen_plugin.ui.logging.debug' => Logger::DEBUG,
-                    'bitbag_sylius_adyen_plugin.ui.logging.error' => Logger::ERROR,
+                    'sylius_adyen.ui.logging.info' => Logger::INFO,
+                    'sylius_adyen.ui.logging.debug' => Logger::DEBUG,
+                    'sylius_adyen.ui.logging.error' => Logger::ERROR,
                 ],
             ]);
     }

@@ -6,54 +6,54 @@
         <defaults public="true"/>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\FailedResponseProcessor"
-            id="bitbag.sylius_adyen_plugin.processor.payment_response_processor.failed_response_processor"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FailedResponseProcessor"
+            id="sylius_adyen.processor.payment_response_processor.failed_response"
         >
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.bus.dispatcher"/>
+            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
 
-            <tag name="bitbag.sylius_adyen_plugin.processor.payment_response"/>
+            <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor"
-            id="bitbag.sylius_adyen_plugin.processor.payment_response_processor.successful_response_processor"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor"
+            id="sylius_adyen.processor.payment_response_processor.successful_response"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.bus.dispatcher"/>
+            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
 
-            <tag name="bitbag.sylius_adyen_plugin.processor.payment_response"/>
+            <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor"
-            id="bitbag.sylius_adyen_plugin.processor.payment_response_processor"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor"
+            id="sylius_adyen.processor.payment_response"
         >
-            <argument type="tagged_iterator" tag="bitbag.sylius_adyen_plugin.processor.payment_response"/>
+            <argument type="tagged_iterator" tag="sylius_adyen.processor.payment_response"/>
             <argument type="service" id="router"/>
             <argument type="service" id="sylius.context.cart.composite"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\PaymentProcessingResponseProcessor"
-            id="bitbag.sylius_adyen_plugin.processor.payment_response_processor.payment_processing_response_processor"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\PaymentProcessingResponseProcessor"
+            id="sylius_adyen.processor.payment_response_processor.payment_processing_response"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.bus.dispatcher"/>
+            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
 
-            <tag name="bitbag.sylius_adyen_plugin.processor.payment_response"/>
+            <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\FallbackResponseProcessor"
-            id="bitbag.sylius_adyen_plugin.processor.payment_response_processor.fallback_response_processor"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FallbackResponseProcessor"
+            id="sylius_adyen.processor.payment_response_processor.fallback_response"
         >
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
-            <tag name="bitbag.sylius_adyen_plugin.processor.payment_response" priority="-100"/>
+            <tag name="sylius_adyen.processor.payment_response" priority="-100"/>
         </service>
 
     </services>

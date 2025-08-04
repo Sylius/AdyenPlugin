@@ -1,0 +1,13 @@
+sylius_adyen_admin_log:
+    resource: |
+        alias: sylius_adyen.log
+        section: admin
+        path: /adyen/log
+        permission: true
+        templates: "@SyliusAdmin\\Crud"
+        redirect: update
+        grid: sylius_adyen_admin_log
+        vars:
+            all:
+                hook_prefix: 'sylius_adyen.admin.log'
+    type: sylius.resource

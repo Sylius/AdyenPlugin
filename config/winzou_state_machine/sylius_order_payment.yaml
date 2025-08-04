@@ -1,0 +1,5 @@
+winzou_state_machine:
+    sylius_order_payment:
+        transitions:
+            pay:
+                from: [awaiting_payment, partially_paid, authorized, processing]

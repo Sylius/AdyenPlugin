@@ -1,15 +1,17 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Behat\Context\Ui\Admin;
+namespace Tests\Sylius\AdyenPlugin\Behat\Context\Ui\Admin;
 
 use Adyen\AdyenException;
 use Adyen\Service;
@@ -20,8 +22,8 @@ use FriendsOfBehat\PageObjectExtension\Page\UnexpectedPageException;
 use Sylius\Behat\Service\Resolver\CurrentPageResolverInterface;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\KernelInterface;
-use Tests\BitBag\SyliusAdyenPlugin\Behat\Page\Admin\PaymentMethod\CreatePageInterface;
-use Tests\BitBag\SyliusAdyenPlugin\Behat\Page\Admin\PaymentMethod\UpdatePage;
+use Tests\Sylius\AdyenPlugin\Behat\Page\Admin\PaymentMethod\CreatePageInterface;
+use Tests\Sylius\AdyenPlugin\Behat\Page\Admin\PaymentMethod\UpdatePage;
 
 final class ManagingPaymentMethodAdyenContext extends MinkContext implements Context
 {
@@ -67,7 +69,7 @@ final class ManagingPaymentMethodAdyenContext extends MinkContext implements Con
     {
         $this->kernel
             ->getContainer()
-            ->get('tests.bitbag.sylius_adyen_plugin.behat.context.api_mock_client')
+            ->get('tests.sylius_adyen.behat.context.api_mock_client')
             ->setJsonHandler(function (
                 Service $service,
                 string $url,

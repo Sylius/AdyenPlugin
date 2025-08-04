@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Form\Extension;
+namespace Sylius\AdyenPlugin\Form\Extension;
 
-use BitBag\SyliusAdyenPlugin\Client\AdyenClientInterface;
-use BitBag\SyliusAdyenPlugin\Form\Type\PaymentMethodChoiceType;
-use BitBag\SyliusAdyenPlugin\Provider\AdyenClientProviderInterface;
-use BitBag\SyliusAdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use BitBag\SyliusAdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Form\Type\PaymentMethodChoiceType;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Bundle\CoreBundle\Form\Type\Checkout\PaymentType;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Symfony\Component\Form\AbstractTypeExtension;

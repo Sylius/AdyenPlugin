@@ -1,25 +1,27 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Provider;
+namespace Sylius\AdyenPlugin\Provider;
 
-use BitBag\SyliusAdyenPlugin\Client\AdyenClient;
-use BitBag\SyliusAdyenPlugin\Client\AdyenClientInterface;
-use BitBag\SyliusAdyenPlugin\Client\AdyenTransportFactory;
-use BitBag\SyliusAdyenPlugin\Client\ClientPayloadFactoryInterface;
-use BitBag\SyliusAdyenPlugin\Client\PaymentMethodsFilterInterface;
-use BitBag\SyliusAdyenPlugin\Exception\NonAdyenPaymentMethodException;
-use BitBag\SyliusAdyenPlugin\Exception\UnprocessablePaymentException;
-use BitBag\SyliusAdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use BitBag\SyliusAdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
+use Sylius\AdyenPlugin\Client\AdyenClient;
+use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Client\AdyenTransportFactory;
+use Sylius\AdyenPlugin\Client\ClientPayloadFactoryInterface;
+use Sylius\AdyenPlugin\Client\PaymentMethodsFilterInterface;
+use Sylius\AdyenPlugin\Exception\NonAdyenPaymentMethodException;
+use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
+use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Resource\Exception\UpdateHandlingException;

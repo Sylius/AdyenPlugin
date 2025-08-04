@@ -9,17 +9,17 @@
     <services>
         <defaults public="true" />
         <service
-                class="Tests\BitBag\SyliusAdyenPlugin\HttpClientStub"
-                id="tests.bitbag.sylius_adyen_plugin.behat.context.api_mock_client"
+                class="Tests\Sylius\AdyenPlugin\HttpClientStub"
+                id="tests.sylius_adyen.behat.context.api_mock_client"
         />
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Client\AdyenTransportFactory"
-                decorates="bitbag.sylius_adyen_plugin.client.adyen_transport_factory"
-                id="bitbag.sylius_adyen_plugin.client.adyen_transport_factory.decorator"
+                class="Sylius\AdyenPlugin\Client\AdyenTransportFactory"
+                decorates="sylius_adyen.client.adyen_transport_factory"
+                id="sylius_adyen.client.adyen_transport_factory.decorator"
         >
             <argument>null</argument>
-            <argument type="service" id="tests.bitbag.sylius_adyen_plugin.behat.context.api_mock_client"/>
+            <argument type="service" id="tests.sylius_adyen.behat.context.api_mock_client"/>
         </service>
 
     </services>

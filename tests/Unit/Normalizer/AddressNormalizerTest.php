@@ -1,26 +1,28 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Normalizer;
+namespace Tests\Sylius\AdyenPlugin\Unit\Normalizer;
 
-use BitBag\SyliusAdyenPlugin\Client\ClientPayloadFactoryInterface;
-use BitBag\SyliusAdyenPlugin\Model\StreetAddressModel;
-use BitBag\SyliusAdyenPlugin\Normalizer\AbstractPaymentNormalizer;
-use BitBag\SyliusAdyenPlugin\Normalizer\AddressNormalizer;
-use BitBag\SyliusAdyenPlugin\Resolver\Address\StreetAddressResolverInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Client\ClientPayloadFactoryInterface;
+use Sylius\AdyenPlugin\Model\StreetAddressModel;
+use Sylius\AdyenPlugin\Normalizer\AbstractPaymentNormalizer;
+use Sylius\AdyenPlugin\Normalizer\AddressNormalizer;
+use Sylius\AdyenPlugin\Resolver\Address\StreetAddressResolverInterface;
 use Sylius\Component\Core\Model\Address;
 use Sylius\Component\Core\Model\AddressInterface;
-use Tests\BitBag\SyliusAdyenPlugin\Unit\AddressMother;
+use Tests\Sylius\AdyenPlugin\Unit\AddressMother;
 
 class AddressNormalizerTest extends TestCase
 {

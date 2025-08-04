@@ -1,5 +1,5 @@
 imports:
-    - { resource: "@BitBagSyliusAdyenPlugin/config/config.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/config.yaml" }
     - { resource: "@SyliusRefundPlugin/Resources/config/app/config.yml" }
     - { resource: "services_test.php" }
 
@@ -8,7 +8,7 @@ parameters:
         - offline
         - adyen
 
-bitbag_sylius_adyen:
+sylius_adyen:
     logger: true
     supported_types: ~
 
@@ -25,4 +25,4 @@ monolog:
         doctrine:
             type: service
             channels: [adyen]
-            id: bitbag.sylius_adyen_plugin.logging.monolog.doctrine_handler
+            id: sylius_adyen.logging.monolog.doctrine_handler

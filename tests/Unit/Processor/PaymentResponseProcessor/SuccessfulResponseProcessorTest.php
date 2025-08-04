@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Processor\PaymentResponseProcessor;
+namespace Tests\Sylius\AdyenPlugin\Unit\Processor\PaymentResponseProcessor;
 
-use BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Tests\BitBag\SyliusAdyenPlugin\Unit\Mock\RequestMother;
+use Tests\Sylius\AdyenPlugin\Unit\Mock\RequestMother;
 
 class SuccessfulResponseProcessorTest extends AbstractProcessor
 {
@@ -24,7 +26,7 @@ class SuccessfulResponseProcessorTest extends AbstractProcessor
         parent::setUp();
 
         $this->processor = new SuccessfulResponseProcessor(
-            $this->getContainer()->get('tests.bitbag.sylius_adyen_plugin.bus.dispatcher'),
+            $this->getContainer()->get('tests.sylius_adyen.bus.dispatcher'),
             self::getRouter($this->getContainer()),
             $this->getContainer()->get('translator'),
         );
@@ -75,7 +77,7 @@ class SuccessfulResponseProcessorTest extends AbstractProcessor
 
     private function assertIsPaymentScheduledForFinalization(): void
     {
-        $messenger = $this->getContainer()->get('tests.bitbag.sylius_adyen_plugin.message_bus');
+        $messenger = $this->getContainer()->get('tests.sylius_adyen.message_bus');
         $commands = $messenger->getDispatchedMessages();
 
         $this->assertNotEmpty($commands);

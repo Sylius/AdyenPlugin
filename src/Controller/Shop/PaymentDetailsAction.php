@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Controller\Shop;
+namespace Sylius\AdyenPlugin\Controller\Shop;
 
-use BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessorInterface;
-use BitBag\SyliusAdyenPlugin\Provider\AdyenClientProviderInterface;
-use BitBag\SyliusAdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
-use BitBag\SyliusAdyenPlugin\Traits\PayableOrderPaymentTrait;
-use BitBag\SyliusAdyenPlugin\Traits\PaymentFromOrderTrait;
+use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
+use Sylius\AdyenPlugin\Traits\PaymentFromOrderTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

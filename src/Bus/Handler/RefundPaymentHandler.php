@@ -1,20 +1,22 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Bus\Handler;
+namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\RefundPayment;
-use BitBag\SyliusAdyenPlugin\RefundPaymentTransitions as BitBagRefundPaymentTransitions;
 use Doctrine\ORM\EntityManagerInterface;
 use SM\Factory\FactoryInterface;
+use Sylius\AdyenPlugin\Bus\Command\RefundPayment;
+use Sylius\AdyenPlugin\RefundPaymentTransitions as AdyenRefundPaymentTransitions;
 use Sylius\RefundPlugin\StateResolver\RefundPaymentTransitions;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
@@ -38,7 +40,7 @@ final class RefundPaymentHandler
     public function __invoke(RefundPayment $command): void
     {
         $machine = $this->stateMachineFactory->get($command->getRefundPayment(), RefundPaymentTransitions::GRAPH);
-        $machine->apply(BitBagRefundPaymentTransitions::TRANSITION_CONFIRM, true);
+        $machine->apply(AdyenRefundPaymentTransitions::TRANSITION_CONFIRM, true);
 
         $this->refundPaymentManager->persist($command->getRefundPayment());
         $this->refundPaymentManager->flush();
