@@ -155,7 +155,6 @@ The plug-in provides a configuration that can be overrided:
 
 ```yaml
 bitbag_sylius_adyen:
-  logger: ~
   supported_types: ~
 ```
 

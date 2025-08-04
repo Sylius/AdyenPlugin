@@ -26,11 +26,9 @@
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Client\AdyenTransportFactory"
-                id="sylius_adyen.client.adyen_transport_factory"
-        >
-            <argument type="service" on-invalid="null" id="sylius_adyen.logger" />
-        </service>
+            id="sylius_adyen.client.adyen_transport_factory"
+            class="Sylius\AdyenPlugin\Client\AdyenTransportFactory"
+        />
 
         <service
                 class="Sylius\AdyenPlugin\Client\AdyenClient"
