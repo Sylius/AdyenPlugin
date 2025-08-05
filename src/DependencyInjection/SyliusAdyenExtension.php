@@ -47,7 +47,6 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
         $loader->load('services.xml');
 
         $container->setParameter(self::SUPPORTED_PAYMENT_METHODS_LIST, (array) $config['supported_types']);
-
     }
 
     public function getConfiguration(array $config, ContainerBuilder $container): ConfigurationInterface
