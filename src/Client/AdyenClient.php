@@ -61,27 +61,6 @@ final class AdyenClient implements AdyenClientInterface
         $this->paymentMethodsFilter = $paymentMethodsFilter;
     }
 
-    private function getCheckout(): Checkout
-    {
-        return new Checkout(
-            $this->transport,
-        );
-    }
-
-    private function getModification(): Modification
-    {
-        return new Modification(
-            $this->transport,
-        );
-    }
-
-    private function getRecurring(): Recurring
-    {
-        return new Recurring(
-            $this->transport,
-        );
-    }
-
     public function getAvailablePaymentMethods(
         OrderInterface $order,
         ?AdyenTokenInterface $adyenToken = null,
@@ -165,5 +144,26 @@ final class AdyenClient implements AdyenClientInterface
     public function getEnvironment(): string
     {
         return (string) $this->options['environment'];
+    }
+
+    private function getCheckout(): Checkout
+    {
+        return new Checkout(
+            $this->transport,
+        );
+    }
+
+    private function getModification(): Modification
+    {
+        return new Modification(
+            $this->transport,
+        );
+    }
+
+    private function getRecurring(): Recurring
+    {
+        return new Recurring(
+            $this->transport,
+        );
     }
 }

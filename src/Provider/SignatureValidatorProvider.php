@@ -22,13 +22,9 @@ final class SignatureValidatorProvider implements SignatureValidatorProviderInte
 {
     use GatewayConfigFromPaymentTrait;
 
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
     public function __construct(
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
     ) {
-        $this->paymentMethodRepository = $paymentMethodRepository;
     }
 
     public function getValidatorForCode(string $code): SignatureValidator

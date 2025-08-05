@@ -14,13 +14,14 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\AdyenPlugin\Bus\Command\CreateToken;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Exception\OrderWithoutCustomerException;
 use Sylius\AdyenPlugin\Repository\AdyenTokenRepositoryInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\HandleTrait;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Webmozart\Assert\Assert;
@@ -28,36 +29,14 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class GetTokenHandler
 {
-    /** @var AdyenTokenRepositoryInterface */
-    private $adyenTokenRepository;
-
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
-    /** @var TokenStorageInterface */
-    private $tokenStorage;
+    use HandleTrait;
 
     public function __construct(
-        AdyenTokenRepositoryInterface $adyenTokenRepository,
-        DispatcherInterface $dispatcher,
-        TokenStorageInterface $tokenStorage,
+        private readonly AdyenTokenRepositoryInterface $adyenTokenRepository,
+        private readonly TokenStorageInterface $tokenStorage,
+        MessageBusInterface $messageBus,
     ) {
-        $this->adyenTokenRepository = $adyenTokenRepository;
-        $this->dispatcher = $dispatcher;
-        $this->tokenStorage = $tokenStorage;
-    }
-
-    private function getUser(): ?UserInterface
-    {
-        $token = $this->tokenStorage->getToken();
-
-        if (null === $token) {
-            return null;
-        }
-
-        $user = $token->getUser();
-
-        return $user instanceof UserInterface ? $user : null;
+        $this->messageBus = $messageBus;
     }
 
     public function __invoke(GetToken $getTokenQuery): ?AdyenTokenInterface
@@ -86,8 +65,21 @@ final class GetTokenHandler
             return $token;
         }
 
-        return $this->dispatcher->dispatch(
+        return $this->handle(
             new CreateToken($getTokenQuery->getPaymentMethod(), $customer),
         );
+    }
+
+    private function getUser(): ?UserInterface
+    {
+        $token = $this->tokenStorage->getToken();
+
+        if (null === $token) {
+            return null;
+        }
+
+        $user = $token->getUser();
+
+        return $user instanceof UserInterface ? $user : null;
     }
 }

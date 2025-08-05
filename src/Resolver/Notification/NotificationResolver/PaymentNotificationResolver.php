@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver;
 
 use Doctrine\ORM\NoResultException;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
@@ -23,18 +23,29 @@ use Webmozart\Assert\Assert;
 
 final class PaymentNotificationResolver implements CommandResolver
 {
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
-    /** @var AdyenReferenceRepositoryInterface */
-    private $adyenReferenceRepository;
-
     public function __construct(
-        DispatcherInterface $dispatcher,
-        AdyenReferenceRepositoryInterface $adyenReferenceRepository,
+        private readonly AdyenReferenceRepositoryInterface $adyenReferenceRepository,
+        private readonly PaymentCommandFactoryInterface $commandFactory,
     ) {
-        $this->dispatcher = $dispatcher;
-        $this->adyenReferenceRepository = $adyenReferenceRepository;
+    }
+
+    public function resolve(string $paymentCode, NotificationItemData $notificationData): object
+    {
+        try {
+            $payment = $this->fetchPayment(
+                $paymentCode,
+                (string) $notificationData->pspReference,
+                $notificationData->originalReference,
+            );
+
+            return $this->commandFactory->createForEvent(
+                (string) $notificationData->eventCode,
+                $payment,
+                $notificationData,
+            );
+        } catch (UnmappedAdyenActionException $ex) {
+            throw new NoCommandResolvedException();
+        }
     }
 
     private function fetchPayment(
@@ -53,25 +64,6 @@ final class PaymentNotificationResolver implements CommandResolver
 
             return $result;
         } catch (NoResultException $ex) {
-            throw new NoCommandResolvedException();
-        }
-    }
-
-    public function resolve(string $paymentCode, NotificationItemData $notificationData): object
-    {
-        try {
-            $payment = $this->fetchPayment(
-                $paymentCode,
-                (string) $notificationData->pspReference,
-                $notificationData->originalReference,
-            );
-
-            return $this->dispatcher->getCommandFactory()->createForEvent(
-                (string) $notificationData->eventCode,
-                $payment,
-                $notificationData,
-            );
-        } catch (UnmappedAdyenActionException $ex) {
             throw new NoCommandResolvedException();
         }
     }

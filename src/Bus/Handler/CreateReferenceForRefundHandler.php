@@ -21,18 +21,10 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class CreateReferenceForRefundHandler
 {
-    /** @var RepositoryInterface */
-    private $adyenReferenceRepository;
-
-    /** @var AdyenReferenceFactoryInterface */
-    private $adyenReferenceFactory;
-
     public function __construct(
-        RepositoryInterface $adyenReferenceRepository,
-        AdyenReferenceFactoryInterface $adyenReferenceFactory,
+        private readonly RepositoryInterface $adyenReferenceRepository,
+        private readonly AdyenReferenceFactoryInterface $adyenReferenceFactory,
     ) {
-        $this->adyenReferenceRepository = $adyenReferenceRepository;
-        $this->adyenReferenceFactory = $adyenReferenceFactory;
     }
 
     public function __invoke(CreateReferenceForRefund $referenceCommand): void

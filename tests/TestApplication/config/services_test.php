@@ -10,6 +10,5 @@ return function (ContainerConfigurator $container) {
     if (str_starts_with($env, 'test')) {
         $container->import('../../../vendor/sylius/sylius/src/Sylius/Behat/Resources/config/services.xml');
         $container->import('@SyliusAdyenPlugin/tests/Behat/Resources/services.xml');
-        $container->import('@SyliusAdyenPlugin/tests/Unit/Resources/services.xml');
     }
 };

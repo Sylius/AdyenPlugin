@@ -30,12 +30,23 @@ final class AlterPaymentHandler
 {
     use GatewayConfigFromPaymentTrait;
 
-    /** @var AdyenClientProviderInterface */
-    private $adyenClientProvider;
-
-    public function __construct(AdyenClientProviderInterface $adyenClientProvider)
+    public function __construct(private readonly AdyenClientProviderInterface $adyenClientProvider)
     {
-        $this->adyenClientProvider = $adyenClientProvider;
+    }
+
+    public function __invoke(AlterPaymentCommand $alterPaymentCommand): void
+    {
+        $payment = $this->getPayment($alterPaymentCommand->getOrder());
+
+        if (null === $payment || !$this->isAdyenPayment($payment)) {
+            return;
+        }
+
+        $method = $payment->getMethod();
+        Assert::isInstanceOf($method, PaymentMethodInterface::class);
+
+        $client = $this->adyenClientProvider->getForPaymentMethod($method);
+        $this->dispatchRemoteAction($payment, $alterPaymentCommand, $client);
     }
 
     private function isCompleted(OrderInterface $order): bool
@@ -88,20 +99,5 @@ final class AlterPaymentHandler
         if ($alterPaymentCommand instanceof CancelPayment) {
             $adyenClient->requestCancellation($payment);
         }
-    }
-
-    public function __invoke(AlterPaymentCommand $alterPaymentCommand): void
-    {
-        $payment = $this->getPayment($alterPaymentCommand->getOrder());
-
-        if (null === $payment || !$this->isAdyenPayment($payment)) {
-            return;
-        }
-
-        $method = $payment->getMethod();
-        Assert::isInstanceOf($method, PaymentMethodInterface::class);
-
-        $client = $this->adyenClientProvider->getForPaymentMethod($method);
-        $this->dispatchRemoteAction($payment, $alterPaymentCommand, $client);
     }
 }

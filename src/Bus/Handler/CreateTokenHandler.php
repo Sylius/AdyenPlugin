@@ -22,18 +22,10 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class CreateTokenHandler
 {
-    /** @var AdyenTokenFactoryInterface */
-    private $tokenFactory;
-
-    /** @var RepositoryInterface */
-    private $tokenRepository;
-
     public function __construct(
-        AdyenTokenFactoryInterface $tokenFactory,
-        RepositoryInterface $tokenRepository,
+        private readonly AdyenTokenFactoryInterface $tokenFactory,
+        private readonly RepositoryInterface $tokenRepository,
     ) {
-        $this->tokenFactory = $tokenFactory;
-        $this->tokenRepository = $tokenRepository;
     }
 
     public function __invoke(CreateToken $createToken): AdyenTokenInterface

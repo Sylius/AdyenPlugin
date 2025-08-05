@@ -15,7 +15,6 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use SM\Factory\FactoryInterface;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
-use Sylius\AdyenPlugin\Traits\OrderFromPaymentTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Payment\PaymentTransitions;
@@ -25,20 +24,22 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class PaymentFinalizationHandler
 {
-    use OrderFromPaymentTrait;
-
-    /** @var FactoryInterface */
-    private $stateMachineFactory;
-
-    /** @var RepositoryInterface */
-    private $orderRepository;
-
     public function __construct(
-        FactoryInterface $stateMachineFactory,
-        RepositoryInterface $orderRepository,
+        private readonly FactoryInterface $stateMachineFactory,
+        private readonly RepositoryInterface $orderRepository,
     ) {
-        $this->stateMachineFactory = $stateMachineFactory;
-        $this->orderRepository = $orderRepository;
+    }
+
+    public function __invoke(PaymentFinalizationCommand $command): void
+    {
+        $payment = $command->getPayment();
+
+        if (!$this->isAccepted($payment)) {
+            return;
+        }
+
+        $this->updatePaymentState($payment, $command->getPaymentTransition());
+        $this->updatePayment($payment);
     }
 
     private function updatePaymentState(PaymentInterface $payment, string $transition): void
@@ -57,20 +58,8 @@ final class PaymentFinalizationHandler
         $this->orderRepository->add($order);
     }
 
-    public function __invoke(PaymentFinalizationCommand $command): void
-    {
-        $payment = $command->getPayment();
-
-        if (!$this->isAccepted($payment)) {
-            return;
-        }
-
-        $this->updatePaymentState($payment, $command->getPaymentTransition());
-        $this->updatePayment($payment);
-    }
-
     private function isAccepted(PaymentInterface $payment): bool
     {
-        return OrderPaymentStates::STATE_PAID !== $this->getOrderFromPayment($payment)->getPaymentState();
+        return OrderPaymentStates::STATE_PAID !== $payment->getOrder()?->getPaymentState();
     }
 }

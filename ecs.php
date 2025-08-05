@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the Sylius Mollie Plugin package.
+ * This file is part of the Sylius Adyen Plugin package.
  *
  * (c) Sylius Sp. z o.o.
  *

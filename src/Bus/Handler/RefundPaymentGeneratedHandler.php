@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\PaymentRepositoryInterface;
@@ -24,6 +23,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
 #[AsMessageHandler]
@@ -31,33 +31,29 @@ final class RefundPaymentGeneratedHandler
 {
     use GatewayConfigFromPaymentTrait;
 
-    /** @var AdyenClientProviderInterface */
-    private $adyenClientProvider;
-
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var PaymentRepositoryInterface */
-    private $paymentRepository;
-
-    /** @var RefundPaymentRepositoryInterface */
-    private $refundPaymentRepository;
-
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
     public function __construct(
-        AdyenClientProviderInterface $adyenClientProvider,
-        PaymentRepositoryInterface $paymentRepository,
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        RefundPaymentRepositoryInterface $refundPaymentRepository,
-        DispatcherInterface $dispatcher,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly PaymentRepositoryInterface $paymentRepository,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly RefundPaymentRepositoryInterface $refundPaymentRepository,
+        private readonly MessageBusInterface $messageBus,
     ) {
-        $this->adyenClientProvider = $adyenClientProvider;
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->paymentRepository = $paymentRepository;
-        $this->refundPaymentRepository = $refundPaymentRepository;
-        $this->dispatcher = $dispatcher;
+    }
+
+    public function __invoke(RefundPaymentGenerated $refundPaymentGenerated): void
+    {
+        $payment = $this->paymentRepository->find($refundPaymentGenerated->paymentId());
+        $paymentMethod = $this->paymentMethodRepository->find($refundPaymentGenerated->paymentMethodId());
+
+        if (null === $payment ||
+            null === $paymentMethod ||
+            !isset($this->getGatewayConfig($paymentMethod)->getConfig()[AdyenClientProviderInterface::FACTORY_NAME])
+        ) {
+            return;
+        }
+
+        $adyenReference = $this->sendRefundRequest($refundPaymentGenerated, $paymentMethod, $payment);
+        $this->createReference($adyenReference, $refundPaymentGenerated, $payment);
     }
 
     private function createReference(
@@ -70,7 +66,7 @@ final class RefundPaymentGeneratedHandler
             return;
         }
 
-        $this->dispatcher->dispatch(new CreateReferenceForRefund($newReference, $refund, $payment));
+        $this->messageBus->dispatch(new CreateReferenceForRefund($newReference, $refund, $payment));
     }
 
     private function sendRefundRequest(
@@ -94,21 +90,5 @@ final class RefundPaymentGeneratedHandler
         Assert::keyExists($result, 'pspReference');
 
         return (string) $result['pspReference'];
-    }
-
-    public function __invoke(RefundPaymentGenerated $refundPaymentGenerated): void
-    {
-        $payment = $this->paymentRepository->find($refundPaymentGenerated->paymentId());
-        $paymentMethod = $this->paymentMethodRepository->find($refundPaymentGenerated->paymentMethodId());
-
-        if (null === $payment ||
-            null === $paymentMethod ||
-            !isset($this->getGatewayConfig($paymentMethod)->getConfig()[AdyenClientProviderInterface::FACTORY_NAME])
-        ) {
-            return;
-        }
-
-        $adyenReference = $this->sendRefundRequest($refundPaymentGenerated, $paymentMethod, $payment);
-        $this->createReference($adyenReference, $refundPaymentGenerated, $payment);
     }
 }

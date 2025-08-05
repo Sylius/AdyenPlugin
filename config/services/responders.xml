@@ -19,24 +19,23 @@
                 class="Sylius\AdyenPlugin\Controller\Shop\PaymentsAction"
                 id="sylius_adyen.controller.shop.payments"
         >
-
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="router"/>
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="sylius_adyen.processor.payment_response"/>
+            <argument type="service" id="sylius.command_bus"/>
 
             <tag name="controller.service_arguments"/>
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction"
-                id="sylius_adyen.controller.shop.process_notifications"
+            class="Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction"
+            id="sylius_adyen.controller.shop.process_notifications"
         >
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="sylius_adyen.resolver.notification.notification_command"/>
             <argument type="service" id="sylius_adyen.resolver.notification.notification"/>
             <argument type="service" id="monolog.logger.adyen"/>
+            <argument type="service" id="sylius.command_bus"/>
 
             <tag name="controller.service_arguments"/>
         </service>

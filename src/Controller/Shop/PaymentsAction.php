@@ -16,79 +16,34 @@ namespace Sylius\AdyenPlugin\Controller\Shop;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
-use Sylius\AdyenPlugin\Traits\PaymentFromOrderTrait;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PaymentsAction
 {
     use PayableOrderPaymentTrait;
-    use PaymentFromOrderTrait;
 
     public const REDIRECT_TARGET_ACTION = 'sylius_adyen_shop_thank_you';
 
     public const ORDER_ID_KEY = 'sylius_order_id';
 
-    /** @var AdyenClientProviderInterface */
-    private $adyenClientProvider;
-
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
-    /** @var PaymentCheckoutOrderResolverInterface */
-    private $paymentCheckoutOrderResolver;
-
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
-    /** @var PaymentResponseProcessorInterface */
-    private $paymentResponseProcessor;
-
     public function __construct(
-        AdyenClientProviderInterface $adyenClientProvider,
-        UrlGeneratorInterface $urlGenerator,
-        PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        DispatcherInterface $dispatcher,
-        PaymentResponseProcessorInterface $paymentResponseProcessor,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
+        private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
+        private readonly MessageBusInterface $messageBus,
     ) {
-        $this->adyenClientProvider = $adyenClientProvider;
-        $this->urlGenerator = $urlGenerator;
-        $this->paymentCheckoutOrderResolver = $paymentCheckoutOrderResolver;
-        $this->dispatcher = $dispatcher;
-        $this->paymentResponseProcessor = $paymentResponseProcessor;
-    }
-
-    private function prepareTargetUrl(OrderInterface $order): string
-    {
-        $method = $this->getMethod(
-            $this->getPayment($order),
-        );
-
-        return $this->urlGenerator->generate(
-            self::REDIRECT_TARGET_ACTION,
-            [
-                'code' => $method->getCode(),
-            ],
-            UrlGeneratorInterface::ABSOLUTE_URL,
-        );
-    }
-
-    private function prepareOrder(Request $request, OrderInterface $order): void
-    {
-        if (null === $request->get('tokenValue')) {
-            $request->getSession()->set(self::ORDER_ID_KEY, $order->getId());
-        }
-
-        $this->dispatcher->dispatch(new PrepareOrderForPayment($order));
     }
 
     public function __invoke(Request $request, ?string $code = null): JsonResponse
@@ -97,16 +52,17 @@ class PaymentsAction
         $this->prepareOrder($request, $order);
 
         if (null !== $code) {
-            $this->dispatcher->dispatch(new TakeOverPayment($order, $code));
+            $this->messageBus->dispatch(new TakeOverPayment($order, $code));
         }
 
         $payment = $this->getPayablePayment($order);
-        $url = $this->prepareTargetUrl($order);
-        $paymentMethod = $this->getMethod($payment);
+        /** @var PaymentMethodInterface $paymentMethod */
+        $paymentMethod = $payment->getMethod();
+        $url = $this->prepareTargetUrl($paymentMethod);
         /**
          * @var AdyenTokenInterface $customerIdentifier
          */
-        $customerIdentifier = $this->dispatcher->dispatch(new GetToken($paymentMethod, $order));
+        $customerIdentifier = $this->messageBus->dispatch(new GetToken($paymentMethod, $order));
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
         $result = $client->submitPayment(
@@ -117,7 +73,7 @@ class PaymentsAction
         );
 
         $payment->setDetails($result);
-        $this->dispatcher->dispatch(new PaymentStatusReceived($payment));
+        $this->messageBus->dispatch(new PaymentStatusReceived($payment));
 
         return new JsonResponse(
             $payment->getDetails()
@@ -130,5 +86,25 @@ class PaymentsAction
                 ),
             ],
         );
+    }
+
+    private function prepareTargetUrl(PaymentMethodInterface $paymentMethod): string
+    {
+        return $this->urlGenerator->generate(
+            self::REDIRECT_TARGET_ACTION,
+            [
+                'code' => $paymentMethod->getCode(),
+            ],
+            UrlGeneratorInterface::ABSOLUTE_URL,
+        );
+    }
+
+    private function prepareOrder(Request $request, OrderInterface $order): void
+    {
+        if (null === $request->get('tokenValue')) {
+            $request->getSession()->set(self::ORDER_ID_KEY, $order->getId());
+        }
+
+        $this->messageBus->dispatch(new PrepareOrderForPayment($order));
     }
 }

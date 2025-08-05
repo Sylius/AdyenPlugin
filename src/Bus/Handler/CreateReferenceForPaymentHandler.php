@@ -24,18 +24,23 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class CreateReferenceForPaymentHandler
 {
-    /** @var AdyenReferenceRepositoryInterface */
-    private $adyenReferenceRepository;
-
-    /** @var AdyenReferenceFactoryInterface */
-    private $adyenReferenceFactory;
-
     public function __construct(
-        AdyenReferenceRepositoryInterface $adyenReferenceRepository,
-        AdyenReferenceFactoryInterface $adyenReferenceFactory,
+        private readonly AdyenReferenceRepositoryInterface $adyenReferenceRepository,
+        private readonly AdyenReferenceFactoryInterface $adyenReferenceFactory,
     ) {
-        $this->adyenReferenceRepository = $adyenReferenceRepository;
-        $this->adyenReferenceFactory = $adyenReferenceFactory;
+    }
+
+    public function __invoke(CreateReferenceForPayment $referenceCommand): void
+    {
+        $object = $this->adyenReferenceFactory->createForPayment($referenceCommand->getPayment());
+        $existing = $this->getExisting($object);
+
+        if (null !== $existing) {
+            $existing->touch();
+            $object = $existing;
+        }
+
+        $this->adyenReferenceRepository->add($object);
     }
 
     private function getExisting(AdyenReferenceInterface $adyenReference): ?AdyenReferenceInterface
@@ -56,18 +61,5 @@ final class CreateReferenceForPaymentHandler
         } catch (NoResultException $ex) {
             return null;
         }
-    }
-
-    public function __invoke(CreateReferenceForPayment $referenceCommand): void
-    {
-        $object = $this->adyenReferenceFactory->createForPayment($referenceCommand->getPayment());
-        $existing = $this->getExisting($object);
-
-        if (null !== $existing) {
-            $existing->touch();
-            $object = $existing;
-        }
-
-        $this->adyenReferenceRepository->add($object);
     }
 }

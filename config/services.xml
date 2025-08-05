@@ -10,23 +10,23 @@
         <defaults public="true"/>
 
         <service
-                class="Sylius\AdyenPlugin\Callback\RequestCancelCallback"
-                id="sylius_adyen.callback.request_cancel"
+            class="Sylius\AdyenPlugin\Callback\RequestCancelCallback"
+            id="sylius_adyen.callback.request_cancel"
         >
             <argument type="service" id="sm.factory"/>
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
+            <argument type="service" id="sylius.command_bus"/>
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback"
-                id="sylius_adyen.callback.preserve_order_token_upon_redirection"
+            class="Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback"
+            id="sylius_adyen.callback.preserve_order_token_upon_redirection"
         >
             <argument type="service" id="request_stack"/>
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\DropinConfigurationAction"
-                id="sylius_adyen.controller.shop.dropin_configuration"
+            class="Sylius\AdyenPlugin\Controller\Shop\DropinConfigurationAction"
+            id="sylius_adyen.controller.shop.dropin_configuration"
         >
 
             <argument type="service" id="sylius.context.cart.composite"/>
@@ -44,7 +44,7 @@
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius_adyen.repository.payment_method"/>
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
+            <argument type="service" id="sylius.command_bus"/>
         </service>
 
     </services>

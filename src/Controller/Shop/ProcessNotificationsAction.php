@@ -14,39 +14,23 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Psr\Log\LoggerInterface;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver;
 use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
 use Sylius\AdyenPlugin\Resolver\Notification\NotificationToCommandResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class ProcessNotificationsAction
 {
     public const EXPECTED_ADYEN_RESPONSE = '[accepted]';
 
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
-    /** @var NotificationToCommandResolver */
-    private $notificationCommandResolver;
-
-    /** @var NotificationResolver */
-    private $notificationResolver;
-
-    /** @var LoggerInterface */
-    private $logger;
-
     public function __construct(
-        DispatcherInterface $dispatcher,
-        NotificationToCommandResolver $notificationCommandResolver,
-        NotificationResolver $notificationResolver,
-        LoggerInterface $logger,
+        private readonly NotificationToCommandResolver $notificationCommandResolver,
+        private readonly NotificationResolver $notificationResolver,
+        private readonly LoggerInterface $logger,
+        private readonly MessageBusInterface $messageBus,
     ) {
-        $this->dispatcher = $dispatcher;
-        $this->notificationCommandResolver = $notificationCommandResolver;
-        $this->notificationResolver = $notificationResolver;
-        $this->logger = $logger;
     }
 
     public function __invoke(string $code, Request $request): Response
@@ -67,7 +51,7 @@ class ProcessNotificationsAction
 
             try {
                 $command = $this->notificationCommandResolver->resolve($code, $notificationItem);
-                $this->dispatcher->dispatch($command);
+                $this->messageBus->dispatch($command);
             } catch (NoCommandResolvedException $ex) {
                 $this->logger->error('Tried to dispatch an unknown command');
             }

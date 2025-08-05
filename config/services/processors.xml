@@ -11,7 +11,8 @@
         >
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
 
             <tag name="sylius_adyen.processor.payment_response"/>
         </service>
@@ -20,9 +21,10 @@
             class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor"
             id="sylius_adyen.processor.payment_response_processor.successful_response"
         >
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
 
             <tag name="sylius_adyen.processor.payment_response"/>
         </service>
@@ -40,9 +42,10 @@
             class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\PaymentProcessingResponseProcessor"
             id="sylius_adyen.processor.payment_response_processor.payment_processing_response"
         >
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="router"/>
             <argument type="service" id="translator"/>
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
 
             <tag name="sylius_adyen.processor.payment_response"/>
         </service>

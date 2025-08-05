@@ -21,18 +21,10 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class PrepareOrderForPaymentHandler
 {
-    /** @var OrderNumberAssignerInterface */
-    private $orderNumberAssigner;
-
-    /** @var RepositoryInterface */
-    private $orderRepository;
-
     public function __construct(
-        OrderNumberAssignerInterface $orderNumberAssigner,
-        RepositoryInterface $orderRepository,
+        private readonly OrderNumberAssignerInterface $orderNumberAssigner,
+        private readonly RepositoryInterface $orderRepository,
     ) {
-        $this->orderNumberAssigner = $orderNumberAssigner;
-        $this->orderRepository = $orderRepository;
     }
 
     public function __invoke(PrepareOrderForPayment $command): void

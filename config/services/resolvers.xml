@@ -19,8 +19,8 @@
             id="sylius_adyen.resolver.notification.notification_resolver.payment_notification"
         >
             <tag name="sylius_adyen.resolver.notification.command_resolver"/>
-            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
             <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
         </service>
 
         <service
