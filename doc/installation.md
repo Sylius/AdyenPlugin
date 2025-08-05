@@ -72,7 +72,7 @@ Import routing in your `config/routes.yaml` file:
 # config/routes.yaml
 
 sylius_adyen_plugin:
-    resource: "@SyliusAdyenPlugin/config/routing.yaml"
+    resource: "@SyliusAdyenPlugin/config/routes.yaml"
 ```
 
 Add logging to your environment in config/packages/{dev, prod, staging}/monolog.yaml
@@ -140,7 +140,7 @@ import '../../vendor/sylius/adyen-plugin/assets/shop/entrypoint';
 
 ### Install assets
 ```bash
-php bin/console assets:install public
+bin/console assets:install public
 ```
 
 ## Webpack
