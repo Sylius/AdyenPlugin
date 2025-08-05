@@ -1,10 +1,9 @@
 sylius_adyen_shop_process_notifications:
-  path: /payment/adyen/{code}/notifications
-  controller: sylius_adyen.controller.shop.process_notifications
+    path: /payment/adyen/{code}/notifications
+    controller: sylius_adyen.controller.shop.process_notifications
 
 sylius_adyen_localized:
-  resource: "@SyliusAdyenPlugin/config/routes/shop_localized.yaml"
-  prefix: /{_locale}
-  requirements:
-    _locale: ^[a-z]{2}(?:_[A-Z]{2})?$
-
+    resource: "@SyliusAdyenPlugin/config/routes/shop_localized.yaml"
+    prefix: /{_locale}
+    requirements:
+        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
