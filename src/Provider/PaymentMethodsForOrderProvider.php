@@ -20,12 +20,14 @@ use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Symfony\Component\Messenger\HandleTrait;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
 final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProviderInterface
 {
     use GatewayConfigFromPaymentTrait;
+    use HandleTrait;
 
     public const CONFIGURATION_KEYS_WHITELIST = [
         'environment', 'merchantAccount', 'clientKey',
@@ -34,8 +36,9 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
-        private readonly MessageBusInterface $messageBus,
+        MessageBusInterface $messageBus,
     ) {
+        $this->messageBus = $messageBus;
     }
 
     public function provideConfiguration(OrderInterface $order, ?string $code = null): ?array
@@ -70,7 +73,7 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
         /**
          * @var AdyenTokenInterface $token
          */
-        $token = $this->messageBus->dispatch(new GetToken($paymentMethod, $order));
+        $token = $this->handle(new GetToken($paymentMethod, $order));
 
         return $token;
     }
