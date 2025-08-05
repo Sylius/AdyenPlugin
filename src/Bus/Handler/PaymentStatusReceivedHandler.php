@@ -16,63 +16,44 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use SM\Factory\FactoryInterface;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
-use Sylius\AdyenPlugin\Traits\OrderFromPaymentTrait;
+use Sylius\Bundle\ApiBundle\Command\Checkout\SendOrderConfirmation;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Webmozart\Assert\Assert;
 
 #[AsMessageHandler]
 final class PaymentStatusReceivedHandler
 {
-    use OrderFromPaymentTrait;
-
     public const ALLOWED_EVENT_NAMES = ['authorised', 'redirectshopper', 'received'];
 
-    /** @var FactoryInterface */
-    private $stateMachineFactory;
-
-    /** @var RepositoryInterface */
-    private $paymentRepository;
-
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
-    /** @var RepositoryInterface */
-    private $orderRepository;
-
-    /** @var MessageBusInterface */
-    private $commandBus;
-
     public function __construct(
-        FactoryInterface $stateMachineFactory,
-        RepositoryInterface $paymentRepository,
-        RepositoryInterface $orderRepository,
-        DispatcherInterface $dispatcher,
-        MessageBusInterface $commandBus,
+        private readonly FactoryInterface $stateMachineFactory,
+        private readonly RepositoryInterface $paymentRepository,
+        private readonly RepositoryInterface $orderRepository,
+        private readonly MessageBusInterface $commandBus,
+        private readonly PaymentCommandFactoryInterface $commandFactory,
     ) {
-        $this->stateMachineFactory = $stateMachineFactory;
-        $this->paymentRepository = $paymentRepository;
-        $this->dispatcher = $dispatcher;
-        $this->orderRepository = $orderRepository;
-        $this->commandBus = $commandBus;
     }
 
     public function __invoke(PaymentStatusReceived $command): void
     {
         $payment = $command->getPayment();
         $resultCode = $this->getResultCode($command->getPayment());
+        $order = $payment->getOrder();
+        Assert::isInstanceOf($order, OrderInterface::class);
 
         if ($this->isAccepted($resultCode)) {
-            $this->updateOrderState($this->getOrderFromPayment($payment));
+            $this->updateOrderState($order);
         }
 
         try {
-            $this->dispatcher->dispatch(new CreateReferenceForPayment($payment));
+            $this->commandBus->dispatch(new CreateReferenceForPayment($payment));
             $this->paymentRepository->add($payment);
 
             $this->processCode($resultCode, $command);
@@ -84,8 +65,8 @@ final class PaymentStatusReceivedHandler
     private function processCode(string $resultCode, PaymentStatusReceived $command): void
     {
         try {
-            $subcommand = $this->dispatcher->getCommandFactory()->createForEvent($resultCode, $command->getPayment());
-            $this->dispatcher->dispatch($subcommand);
+            $subcommand = $this->commandFactory->createForEvent($resultCode, $command->getPayment());
+            $this->commandBus->dispatch($subcommand);
         } catch (UnmappedAdyenActionException $ex) {
             // nothing here
         }
@@ -101,13 +82,8 @@ final class PaymentStatusReceivedHandler
 
             $token = $order->getTokenValue();
 
-            // This is necessary because in Sylius 1.11 namespace of SendOrderConfirmation has been changed
             if (null !== $token) {
-                if (class_exists('\Sylius\Bundle\ApiBundle\Command\SendOrderConfirmation')) {
-                    $this->commandBus->dispatch(new \Sylius\Bundle\ApiBundle\Command\SendOrderConfirmation($token));
-                } elseif (class_exists('\Sylius\Bundle\ApiBundle\Command\Checkout\SendOrderConfirmation')) {
-                    $this->commandBus->dispatch(new \Sylius\Bundle\ApiBundle\Command\Checkout\SendOrderConfirmation($token));
-                }
+                $this->commandBus->dispatch(new SendOrderConfirmation($token));
             }
         }
     }

@@ -16,12 +16,14 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Bus\Handler\PaymentStatusReceivedHandler;
+use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
+use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 class PaymentStatusReceivedHandlerTest extends TestCase
 {
@@ -35,14 +37,14 @@ class PaymentStatusReceivedHandlerTest extends TestCase
     /** @var mixed|\PHPUnit\Framework\MockObject\MockObject|EntityRepository */
     private $paymentRepository;
 
-    /** @var DispatcherInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
-    private $dispatcher;
-
     /** @var \PHPUnit\Framework\MockObject\MockObject|EntityRepository */
     private $orderRepository;
 
     /** @var mixed|\Symfony\Component\Messenger\MessageBusInterface */
     private $commandBus;
+
+    /** @var PaymentCommandFactoryInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
+    private $commandFactory;
 
     protected function setUp(): void
     {
@@ -50,14 +52,14 @@ class PaymentStatusReceivedHandlerTest extends TestCase
 
         $this->paymentRepository = $this->createMock(EntityRepository::class);
         $this->orderRepository = $this->createMock(EntityRepository::class);
-        $this->dispatcher = $this->createMock(DispatcherInterface::class);
         $this->commandBus = $this->createMock(MessageBusInterface::class);
+        $this->commandFactory = $this->createMock(PaymentCommandFactoryInterface::class);
         $this->handler = new PaymentStatusReceivedHandler(
             $this->stateMachineFactory,
             $this->paymentRepository,
             $this->orderRepository,
-            $this->dispatcher,
             $this->commandBus,
+            $this->commandFactory,
         );
     }
 
@@ -96,9 +98,10 @@ class PaymentStatusReceivedHandlerTest extends TestCase
             ->method('can')
         ;
 
-        $this->dispatcher
+        $this->commandBus
             ->expects($this->atLeastOnce())
             ->method('dispatch')
+            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
         ;
 
         $command = new PaymentStatusReceived($payment);

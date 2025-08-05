@@ -13,16 +13,15 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SuccessfulResponseProcessor extends AbstractProcessor
 {
-    use ProcessableResponseTrait;
-
     public const MY_ORDERS_ROUTE_NAME = 'sylius_shop_account_order_index';
 
     public const THANKS_ROUTE_NAME = 'sylius_shop_order_thank_you';
@@ -35,16 +34,12 @@ class SuccessfulResponseProcessor extends AbstractProcessor
 
     public const LABEL_PAYMENT_COMPLETED = 'sylius.payment.completed';
 
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
     public function __construct(
-        DispatcherInterface $dispatcher,
-        UrlGeneratorInterface $urlGenerator,
+        private readonly UrlGeneratorInterface $urlGenerator,
         TranslatorInterface $translator,
+        private readonly MessageBusInterface $messageBus,
+        private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
     ) {
-        $this->dispatcher = $dispatcher;
-        $this->urlGenerator = $urlGenerator;
         $this->translator = $translator;
     }
 
@@ -60,7 +55,8 @@ class SuccessfulResponseProcessor extends AbstractProcessor
     ): string {
         $targetRoute = self::THANKS_ROUTE_NAME;
 
-        $this->dispatchPaymentStatusReceived($payment);
+        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
+        $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
         if ($this->shouldTheAlternativeThanksPageBeShown($request)) {
             $this->addFlash($request, self::FLASH_INFO, self::LABEL_PAYMENT_COMPLETED);

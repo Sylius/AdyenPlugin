@@ -13,42 +13,29 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
-use Sylius\AdyenPlugin\Traits\PaymentFromOrderTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Webmozart\Assert\Assert;
 
 final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProviderInterface
 {
-    use PaymentFromOrderTrait;
     use GatewayConfigFromPaymentTrait;
 
     public const CONFIGURATION_KEYS_WHITELIST = [
         'environment', 'merchantAccount', 'clientKey',
     ];
 
-    /** @var AdyenClientProviderInterface */
-    private $adyenClientProvider;
-
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
     public function __construct(
-        AdyenClientProviderInterface $adyenClientProvider,
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        DispatcherInterface $dispatcher,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly MessageBusInterface $messageBus,
     ) {
-        $this->adyenClientProvider = $adyenClientProvider;
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->dispatcher = $dispatcher;
     }
 
     public function provideConfiguration(OrderInterface $order, ?string $code = null): ?array
@@ -83,7 +70,7 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
         /**
          * @var AdyenTokenInterface $token
          */
-        $token = $this->dispatcher->dispatch(new GetToken($paymentMethod, $order));
+        $token = $this->messageBus->dispatch(new GetToken($paymentMethod, $order));
 
         return $token;
     }
@@ -118,6 +105,9 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
             return $this->paymentMethodRepository->getOneForAdyenAndCode($code);
         }
 
-        return $this->getMethod($this->getPayment($order));
+        $method = $order->getLastPayment()?->getMethod();
+        Assert::isInstanceOf($method, PaymentMethodInterface::class);
+
+        return $method;
     }
 }

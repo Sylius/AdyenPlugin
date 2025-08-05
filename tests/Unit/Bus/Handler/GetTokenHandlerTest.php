@@ -16,7 +16,6 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\CreateToken;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Bus\Handler\GetTokenHandler;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
 use Sylius\AdyenPlugin\Entity\AdyenToken;
@@ -25,6 +24,9 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\User\Model\UserInterface;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 
@@ -33,8 +35,8 @@ class GetTokenHandlerTest extends TestCase
     /** @var AdyenTokenRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject */
     private $adyenTokenRepository;
 
-    /** @var DispatcherInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $dispatcher;
+    /** @var MessageBusInterface|\PHPUnit\Framework\MockObject\MockObject */
+    private $messageBus;
 
     /** @var GetTokenHandler */
     private $handler;
@@ -45,10 +47,10 @@ class GetTokenHandlerTest extends TestCase
     protected function setUp(): void
     {
         $this->adyenTokenRepository = $this->createMock(AdyenTokenRepositoryInterface::class);
-        $this->dispatcher = $this->createMock(DispatcherInterface::class);
         $this->tokenStorage = $this->createMock(TokenStorageInterface::class);
+        $this->messageBus = $this->createMock(MessageBusInterface::class);
 
-        $this->handler = new GetTokenHandler($this->adyenTokenRepository, $this->dispatcher, $this->tokenStorage);
+        $this->handler = new GetTokenHandler($this->adyenTokenRepository, $this->tokenStorage, $this->messageBus);
     }
 
     public function testForTokenWithoutCustomer(): void
@@ -106,21 +108,21 @@ class GetTokenHandlerTest extends TestCase
         if ($existingToken) {
             $repositoryMethod->willReturn(new AdyenToken());
 
-            $this->dispatcher
+            $this->messageBus
                 ->expects($this->never())
                 ->method('dispatch');
 
             return;
         }
 
-        $this->dispatcher
+        $this->messageBus
             ->expects($this->once())
             ->method('dispatch')
             ->with($this->callback(function (CreateToken $command) use ($paymentMethod, $customer) {
                 return $command->getPaymentMethod() === $paymentMethod &&
                     $command->getCustomer() === $customer;
             }))
-            ->willReturn(new AdyenToken())
+            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(new AdyenToken(), static::class)]))
         ;
     }
 

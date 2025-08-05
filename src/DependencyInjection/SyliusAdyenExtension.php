@@ -48,10 +48,6 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
 
         $container->setParameter(self::SUPPORTED_PAYMENT_METHODS_LIST, (array) $config['supported_types']);
 
-        // fallback for previous version
-        if (!$container->has('sylius.command_bus')) {
-            $container->setAlias('sylius_adyen.command_bus', 'sylius_default.bus');
-        }
     }
 
     public function getConfiguration(array $config, ContainerBuilder $container): ConfigurationInterface

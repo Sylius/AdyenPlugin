@@ -26,23 +26,35 @@ final class NotificationResolver implements NotificationResolverInterface
      */
     private const DENORMALIZATION_FORMAT = 'json';
 
-    /** @var DenormalizerInterface */
-    private $denormalizer;
-
-    /** @var ValidatorInterface */
-    private $validator;
-
-    /** @var LoggerInterface */
-    private $logger;
-
     public function __construct(
-        DenormalizerInterface $denormalizer,
-        ValidatorInterface $validator,
-        LoggerInterface $logger,
+        private readonly DenormalizerInterface $denormalizer,
+        private readonly ValidatorInterface $validator,
+        private readonly LoggerInterface $logger,
     ) {
-        $this->denormalizer = $denormalizer;
-        $this->validator = $validator;
-        $this->logger = $logger;
+    }
+
+    /**
+     * @return NotificationItemData[]
+     */
+    public function resolve(string $paymentCode, Request $request): array
+    {
+        $result = [];
+        foreach ($this->denormalizeRequestData($request) as $item) {
+            $item->paymentCode = $paymentCode;
+
+            $validationResult = $this->validator->validate($item);
+            if (0 < $validationResult->count()) {
+                $this->logger->error(
+                    'Denormalization violations: ' . \var_export($validationResult, true),
+                );
+
+                continue;
+            }
+
+            $result[] = $item;
+        }
+
+        return $result;
     }
 
     /**
@@ -66,30 +78,6 @@ final class NotificationResolver implements NotificationResolverInterface
                 NotificationItemData::class,
                 self::DENORMALIZATION_FORMAT,
             );
-        }
-
-        return $result;
-    }
-
-    /**
-     * @return NotificationItemData[]
-     */
-    public function resolve(string $paymentCode, Request $request): array
-    {
-        $result = [];
-        foreach ($this->denormalizeRequestData($request) as $item) {
-            $item->paymentCode = $paymentCode;
-
-            $validationResult = $this->validator->validate($item);
-            if (0 < $validationResult->count()) {
-                $this->logger->error(
-                    'Denormalization violations: ' . \var_export($validationResult, true),
-                );
-
-                continue;
-            }
-
-            $result[] = $item;
         }
 
         return $result;

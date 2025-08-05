@@ -17,40 +17,26 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
-use Sylius\AdyenPlugin\Traits\PaymentFromOrderTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
 final class TakeOverPaymentHandler
 {
     use PayableOrderPaymentTrait;
-    use PaymentFromOrderTrait;
-
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var EntityManagerInterface */
-    private $paymentManager;
 
     public function __construct(
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        EntityManagerInterface $paymentManager,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly EntityManagerInterface $paymentManager,
     ) {
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->paymentManager = $paymentManager;
-    }
-
-    private function persistPayment(PaymentInterface $payment): void
-    {
-        $this->paymentManager->persist($payment);
-        $this->paymentManager->flush();
     }
 
     public function __invoke(TakeOverPayment $command): void
     {
         $payment = $this->getPayablePayment($command->getOrder());
-        $method = $this->getMethod($payment);
+        /** @var PaymentMethodInterface $method */
+        $method = $payment->getMethod();
 
         if ($method->getCode() === $command->getPaymentCode()) {
             return;
@@ -60,5 +46,11 @@ final class TakeOverPaymentHandler
         $payment->setMethod($paymentMethod);
 
         $this->persistPayment($payment);
+    }
+
+    private function persistPayment(PaymentInterface $payment): void
+    {
+        $this->paymentManager->persist($payment);
+        $this->paymentManager->flush();
     }
 }

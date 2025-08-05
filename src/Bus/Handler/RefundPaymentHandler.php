@@ -23,18 +23,10 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 #[AsMessageHandler]
 final class RefundPaymentHandler
 {
-    /** @var FactoryInterface */
-    private $stateMachineFactory;
-
-    /** @var EntityManagerInterface */
-    private $refundPaymentManager;
-
     public function __construct(
-        FactoryInterface $stateMachineFactory,
-        EntityManagerInterface $refundPaymentManager,
+        private readonly FactoryInterface $stateMachineFactory,
+        private readonly EntityManagerInterface $refundPaymentManager,
     ) {
-        $this->stateMachineFactory = $stateMachineFactory;
-        $this->refundPaymentManager = $refundPaymentManager;
     }
 
     public function __invoke(RefundPayment $command): void

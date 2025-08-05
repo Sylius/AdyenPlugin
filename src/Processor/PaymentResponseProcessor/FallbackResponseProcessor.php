@@ -22,12 +22,10 @@ final class FallbackResponseProcessor extends AbstractProcessor
 {
     public const REDIRECT_TARGET_ACTION = 'sylius_adyen_shop_thank_you';
 
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
-    public function __construct(UrlGeneratorInterface $urlGenerator, TranslatorInterface $translator)
-    {
-        $this->urlGenerator = $urlGenerator;
+    public function __construct(
+        private readonly UrlGeneratorInterface $urlGenerator,
+        TranslatorInterface $translator,
+    ) {
         $this->translator = $translator;
     }
 

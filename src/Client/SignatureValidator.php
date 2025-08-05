@@ -18,12 +18,13 @@ use Adyen\Util\HmacSignature;
 
 final class SignatureValidator implements SignatureValidatorInterface
 {
-    /** @var string */
-    private $key;
-
-    public function __construct(string $key)
+    public function __construct(private readonly string $key)
     {
-        $this->key = $key;
+    }
+
+    public function isValid(array $params): bool
+    {
+        return $this->getReceiver()->validateHmac($params, $this->key);
     }
 
     private function getReceiver(): WebhookReceiver
@@ -31,10 +32,5 @@ final class SignatureValidator implements SignatureValidatorInterface
         return new WebhookReceiver(
             new HmacSignature(),
         );
-    }
-
-    public function isValid(array $params): bool
-    {
-        return $this->getReceiver()->validateHmac($params, $this->key);
     }
 }

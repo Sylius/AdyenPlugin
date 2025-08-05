@@ -17,7 +17,6 @@ use Payum\Core\Model\GatewayConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Bus\Handler\RefundPaymentGeneratedHandler;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepository;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
@@ -29,6 +28,9 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\RefundPlugin\Entity\RefundPayment;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
+use Symfony\Component\Messenger\Envelope;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Messenger\Stamp\HandledStamp;
 
 class RefundPaymentGeneratedHandlerTest extends TestCase
 {
@@ -52,8 +54,8 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
     /** @var RefundPaymentRepositoryInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
     private $refundPaymentRepository;
 
-    /** @var DispatcherInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
-    private $dispatcher;
+    /** @var MessageBusInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
+    private $messageBus;
 
     protected function setUp(): void
     {
@@ -62,14 +64,14 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
         $this->paymentRepository = $this->createMock(PaymentRepositoryInterface::class);
         $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
         $this->refundPaymentRepository = $this->createMock(RefundPaymentRepositoryInterface::class);
-        $this->dispatcher = $this->createMock(DispatcherInterface::class);
+        $this->messageBus = $this->createMock(MessageBusInterface::class);
 
         $this->handler = new RefundPaymentGeneratedHandler(
             $this->adyenClientProvider,
             $this->paymentRepository,
             $this->paymentMethodRepository,
             $this->refundPaymentRepository,
-            $this->dispatcher,
+            $this->messageBus,
         );
     }
 
@@ -181,12 +183,14 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
             ->willReturn($this->createMock(RefundPayment::class))
         ;
 
-        $this->dispatcher
+        $this->messageBus
             ->expects($this->once())
             ->method('dispatch')
             ->with($this->callback(static function (CreateReferenceForRefund $command) {
                 return self::NEW_PSP_REFERENCE === $command->getRefundReference();
-            }));
+            }))
+            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
+        ;
 
         ($this->handler)($command);
     }

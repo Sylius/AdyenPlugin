@@ -15,24 +15,16 @@ namespace Sylius\AdyenPlugin\Callback;
 
 use SM\Factory\FactoryInterface;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
-use Sylius\AdyenPlugin\Bus\Dispatcher;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\OrderPaymentTransitions;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 final class RequestCancelCallback
 {
-    /** @var Dispatcher */
-    private $dispatcher;
-
-    /** @var FactoryInterface */
-    private $factory;
-
     public function __construct(
-        FactoryInterface $factory,
-        Dispatcher $dispatcher,
+        private readonly FactoryInterface $factory,
+        private readonly MessageBusInterface $messageBus,
     ) {
-        $this->dispatcher = $dispatcher;
-        $this->factory = $factory;
     }
 
     public function __invoke(OrderInterface $order): void
@@ -43,7 +35,7 @@ final class RequestCancelCallback
             return;
         }
 
-        $this->dispatcher->dispatch(
+        $this->messageBus->dispatch(
             new CancelPayment($order),
         );
     }

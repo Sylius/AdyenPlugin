@@ -16,24 +16,17 @@ namespace Sylius\AdyenPlugin\EventSubscriber;
 use SM\Event\SMEvents;
 use SM\Event\TransitionEvent;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
-use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
 use Sylius\AdyenPlugin\PaymentTransitions;
-use Sylius\AdyenPlugin\Traits\OrderFromPaymentTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberInterface
 {
-    use OrderFromPaymentTrait;
-
-    /** @var DispatcherInterface */
-    private $dispatcher;
-
     public function __construct(
-        DispatcherInterface $dispatcher,
+        private readonly MessageBusInterface $messageBus,
     ) {
-        $this->dispatcher = $dispatcher;
     }
 
     public static function getSubscribedEvents(): array
@@ -42,6 +35,32 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
             SMEvents::PRE_TRANSITION => 'doFilter',
             SMEvents::TEST_TRANSITION => 'canComplete',
         ];
+    }
+
+    public function canComplete(TransitionEvent $event): void
+    {
+        if (
+            !$this->isProcessableAdyenPayment($event) ||
+            PaymentInterface::STATE_PROCESSING !== $event->getState() ||
+            PaymentTransitions::TRANSITION_CAPTURE === $event->getTransition()
+        ) {
+            return;
+        }
+
+        $event->setRejected();
+    }
+
+    public function doFilter(TransitionEvent $event): void
+    {
+        if (!$this->isProcessableAdyenPayment($event)) {
+            return;
+        }
+
+        $order = $this->getObject($event)->getOrder();
+        $this->messageBus->dispatch(new RequestCapture($order));
+
+        $event->setRejected();
+        $event->getStateMachine()->apply(PaymentTransitions::TRANSITION_PROCESS, true);
     }
 
     private function isProcessableAdyenPayment(TransitionEvent $event): bool
@@ -71,36 +90,5 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
         }
 
         return $object;
-    }
-
-    public function canComplete(TransitionEvent $event): void
-    {
-        if (
-            !$this->isProcessableAdyenPayment($event) ||
-            PaymentInterface::STATE_PROCESSING !== $event->getState() ||
-            PaymentTransitions::TRANSITION_CAPTURE === $event->getTransition()
-        ) {
-            return;
-        }
-
-        $event->setRejected();
-    }
-
-    public function doFilter(TransitionEvent $event): void
-    {
-        if (!$this->isProcessableAdyenPayment($event)) {
-            return;
-        }
-
-        $this->dispatcher->dispatch(
-            new RequestCapture(
-                $this->getOrderFromPayment(
-                    $this->getObject($event),
-                ),
-            ),
-        );
-
-        $event->setRejected();
-        $event->getStateMachine()->apply(PaymentTransitions::TRANSITION_PROCESS, true);
     }
 }
