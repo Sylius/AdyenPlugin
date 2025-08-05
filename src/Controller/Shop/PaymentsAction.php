@@ -26,11 +26,13 @@ use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\HandleTrait;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class PaymentsAction
 {
+    use HandleTrait;
     use PayableOrderPaymentTrait;
 
     public const REDIRECT_TARGET_ACTION = 'sylius_adyen_shop_thank_you';
@@ -42,8 +44,9 @@ class PaymentsAction
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
-        private readonly MessageBusInterface $messageBus,
+        MessageBusInterface $messageBus,
     ) {
+        $this->messageBus = $messageBus;
     }
 
     public function __invoke(Request $request, ?string $code = null): JsonResponse
@@ -62,7 +65,7 @@ class PaymentsAction
         /**
          * @var AdyenTokenInterface $customerIdentifier
          */
-        $customerIdentifier = $this->messageBus->dispatch(new GetToken($paymentMethod, $order));
+        $customerIdentifier = $this->handle(new GetToken($paymentMethod, $order));
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
         $result = $client->submitPayment(
