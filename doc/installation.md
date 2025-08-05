@@ -113,12 +113,15 @@ bin/console cache:clear
 mkdir -p templates/bundles/SyliusAdminBundle/Order/Show \
          templates/bundles/SyliusShopBundle/Checkout/Complete \
          templates/bundles/SyliusShopBundle/Checkout/SelectPayment && \
-cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusAdminBundle/Order/Show/_payment.html.twig templates/bundles/SyliusAdminBundle/Order/Show/ && \
-cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusAdminBundle/Order/Show/_payments.html.twig templates/bundles/SyliusAdminBundle/Order/Show/ && \
-cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusShopBundle/Checkout/Complete/_navigation.html.twig templates/bundles/SyliusShopBundle/Checkout/Complete/ && \
-cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig templates/bundles/SyliusShopBundle/Checkout/SelectPayment/ && \
-php bin/console assets:install public --symlink
-
+cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusAdminBundle/Order/Show/_payment.html.twig \
+   templates/bundles/SyliusAdminBundle/Order/Show/ && \
+cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusAdminBundle/Order/Show/_payments.html.twig \
+   templates/bundles/SyliusAdminBundle/Order/Show/ && \
+cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/Complete/_navigation.html.twig \
+   templates/bundles/SyliusShopBundle/Checkout/Complete/ && \
+cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig \
+   templates/bundles/SyliusShopBundle/Checkout/SelectPayment/ && \
+php bin/console assets:install public
 ```
 
 ## Webpack
