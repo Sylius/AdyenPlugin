@@ -5,6 +5,8 @@
         let configuration = {};
         let $form = $container.closest('form');
 
+        const { AdyenCheckout, Dropin, Card } = window.AdyenWeb;
+
         const _toggleLoader = (show) => {
             const $form = $container.closest('form');
             show ? $form.classList.add('loading') : $form.classList.remove('loading');
@@ -99,57 +101,68 @@
             ;
         };
 
-        const init = () => {
+        const init = async () => {
             injectOnSubmitHandler();
 
-            return new AdyenCheckout({
+            return await AdyenCheckout({
                 paymentMethodsResponse: configuration.paymentMethods,
-                paymentMethodsConfiguration: {
-                    card: {
-                        hasHolderName: true,
-                        holderNameRequired: true,
-                        enableStoreDetails: configuration.canBeStored,
-                    },
-                    paypal: {
-                        environment: configuration.environment,
-                        countryCode: configuration.billingAddress.countryCode,
-                        amount: {
-                            currency: configuration.amount.currency,
-                            value: configuration.amount.value
-                        }
-                    },
-                    applepay: {
-                        countryCode: configuration.billingAddress.countryCode,
-                        amount: {
-                            currency: configuration.amount.currency,
-                            value: configuration.amount.value
-                        }
-                    }
-                },
                 clientKey: configuration.clientKey,
                 locale: configuration.locale,
                 environment: configuration.environment,
-                showRemovePaymentMethodButton: true,
+                countryCode: configuration.billingAddress.countryCode,
 
-                onSubmit: (state, dropin) => {
-                    submitHandler(state, dropin, configuration.path.payments)
+                onSubmit: (state, dropin, actions) => {
+                    submitHandler(state, dropin, configuration.path.payments, actions)
                 },
-                onAdditionalDetails: (state, dropin) => {
-                    submitHandler(state, dropin, configuration.path.paymentDetails)
+                onAdditionalDetails: (state, dropin, actions) => {
+                    submitHandler(state, dropin, configuration.path.paymentDetails, actions)
+                },
+                onPaymentCompleted: (result, component) => {
+                    _toggleLoader(false);
+                    console.info(result, component);
+                },
+                onPaymentFailed: (result, component) => {
+                    _toggleLoader(false);
+                    console.error('Payment failed:', result);
                 },
                 onError: (error, component) => {
+                    _toggleLoader(false);
+                    console.error(error.name, error.message, error.stack, component);
                 }
             });
         };
 
         configuration = await _loadConfiguration($container.attributes['data-config-url'].value);
-        checkout = init();
-        checkout
-            .create('dropin', {
-                showRemovePaymentMethodButton: true,
-                onDisableStoredPaymentMethod: disableStoredPaymentMethodHandler
-            })
-            .mount($container);
+        checkout = await init();
+
+        const dropin = new Dropin(checkout, {
+            paymentMethodsConfiguration: {
+                card: {
+                    hasHolderName: true,
+                    holderNameRequired: true,
+                    enableStoreDetails: configuration.canBeStored,
+                },
+                paypal: {
+                    environment: configuration.environment,
+                    countryCode: configuration.billingAddress.countryCode,
+                    amount: {
+                        currency: configuration.amount.currency,
+                        value: configuration.amount.value
+                    }
+                },
+                applepay: {
+                    countryCode: configuration.billingAddress.countryCode,
+                    amount: {
+                        currency: configuration.amount.currency,
+                        value: configuration.amount.value
+                    }
+                }
+            },
+            showRemovePaymentMethodButton: true,
+            onDisableStoredPaymentMethod: disableStoredPaymentMethodHandler
+        });
+
+        dropin.mount($container);
     };
 
     document.addEventListener('DOMContentLoaded', (e) => {
