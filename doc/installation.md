@@ -121,6 +121,25 @@ cp vendor/sylius/adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/Comple
    templates/bundles/SyliusShopBundle/Checkout/Complete/ && \
 cp vendor/sylius/adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig \
    templates/bundles/SyliusShopBundle/Checkout/SelectPayment/ && \
+```
+
+## Assets
+
+### Add the plugin's assets to your entrypoint files:
+```js
+// assets/admin/entrypoint.js
+
+import '../../vendor/sylius/adyen-plugin/assets/admin/entrypoint';
+```
+and:
+```js
+// assets/shop/entrypoint.js
+
+import '../../vendor/sylius/adyen-plugin/assets/shop/entrypoint';
+```
+
+### Install assets
+```bash
 php bin/console assets:install public
 ```
 
