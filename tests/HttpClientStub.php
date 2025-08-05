@@ -25,6 +25,9 @@ class HttpClientStub implements ClientInterface
     /** @var ?callable */
     private static $postHandler;
 
+    /** @var ?callable */
+    private static $httpHandler;
+
     public function setJsonHandler(?callable $jsonHandler): void
     {
         self::$jsonHandler = $jsonHandler;
@@ -33,6 +36,11 @@ class HttpClientStub implements ClientInterface
     public function setPostHandler(?callable $postHandler): void
     {
         self::$postHandler = $postHandler;
+    }
+
+    public function setHttpHandler(?callable $httpHandler): void
+    {
+        self::$httpHandler = $httpHandler;
     }
 
     public function requestJson(
@@ -61,5 +69,21 @@ class HttpClientStub implements ClientInterface
         $client = new CurlClient();
 
         return $client->requestPost($service, $requestUrl, $params);
+    }
+
+    public function requestHttp(
+        Service $service,
+        $requestUrl,
+        $params,
+        $method,
+        $requestOptions = null,
+    ) {
+        if (null !== self::$httpHandler) {
+            return call_user_func(static::$httpHandler, $service, $requestUrl, $params, $method, $requestOptions);
+        }
+
+        $client = new CurlClient();
+
+        return $client->requestHttp($service, $requestUrl, $params, $method, $requestOptions);
     }
 }

@@ -9,7 +9,6 @@ parameters:
         - adyen
 
 sylius_adyen:
-    logger: true
     supported_types: ~
 
 monolog:
