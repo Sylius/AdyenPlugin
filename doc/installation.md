@@ -16,10 +16,10 @@ ADDITIONAL
 ---
 
 ## Requirements:
-### Installed BitBagRefundPlugin
-Complete installation instructions for the BitBagRefundPlugin can be found here:
+### Installed Refund Plugin
+Complete installation instructions for the RefundPlugin can be found here:
 
-- [BitBagRefundPlugin installation](https://github.com/Sylius/RefundPlugin)
+- [RefundPlugin installation](https://github.com/Sylius/RefundPlugin)
 
 We work on stable, supported and up-to-date versions of packages. We recommend you to do the same.
 
@@ -32,7 +32,7 @@ We work on stable, supported and up-to-date versions of packages. We recommend y
 
 ## Composer:
 ```bash
-composer require bitbag/sylius-adyen-plugin --no-scripts
+composer require sylius/adyen-plugin --no-scripts
 ```
 
 ## Basic configuration:
@@ -43,7 +43,7 @@ Add plugin dependencies to your `config/bundles.php` file:
 
 return [
     ...
-    BitBag\SyliusAdyenPlugin\SyliusAdyenPlugin::class => ['all' => true],
+    Sylius\AdyenPlugin\SyliusAdyenPlugin::class => ['all' => true],
 ];
 ```
 
@@ -71,7 +71,7 @@ Import routing in your `config/routes.yaml` file:
 ```yaml
 # config/routes.yaml
 
-bitbag_sylius_adyen_plugin:
+sylius_adyen_plugin:
     resource: "@SyliusAdyenPlugin/config/routing.yaml"
 ```
 
@@ -85,7 +85,7 @@ monolog:
         doctrine:
             type: service
             channels: [adyen]
-            id: bitbag.sylius_adyen_plugin.logging.monolog.doctrine_handler
+            id: sylius_adyen.logging.monolog.doctrine_handler
 ```
 
 ### Update your database
@@ -113,13 +113,13 @@ bin/console cache:clear
 mkdir -p templates/bundles/SyliusAdminBundle/Order/Show \
          templates/bundles/SyliusShopBundle/Checkout/Complete \
          templates/bundles/SyliusShopBundle/Checkout/SelectPayment && \
-cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusAdminBundle/Order/Show/_payment.html.twig \
+cp vendor/sylius/adyen-plugin/templates/bundles/SyliusAdminBundle/Order/Show/_payment.html.twig \
    templates/bundles/SyliusAdminBundle/Order/Show/ && \
-cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusAdminBundle/Order/Show/_payments.html.twig \
+cp vendor/sylius/adyen-plugin/templates/bundles/SyliusAdminBundle/Order/Show/_payments.html.twig \
    templates/bundles/SyliusAdminBundle/Order/Show/ && \
-cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/Complete/_navigation.html.twig \
+cp vendor/sylius/adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/Complete/_navigation.html.twig \
    templates/bundles/SyliusShopBundle/Checkout/Complete/ && \
-cp vendor/bitbag/sylius-adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig \
+cp vendor/sylius/adyen-plugin/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig \
    templates/bundles/SyliusShopBundle/Checkout/SelectPayment/ && \
 php bin/console assets:install public
 ```
