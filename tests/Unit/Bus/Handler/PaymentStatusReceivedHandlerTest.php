@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Bus\Handler;
+namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentStatusReceived;
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
-use BitBag\SyliusAdyenPlugin\Bus\Handler\PaymentStatusReceivedHandler;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\Handler\PaymentStatusReceivedHandler;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;

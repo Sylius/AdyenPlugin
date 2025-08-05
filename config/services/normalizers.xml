@@ -6,39 +6,39 @@
         <defaults public="true"/>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Normalizer\AdditionalDetailsNormalizer"
-                id="bitbag.sylius_adyen_plugin.normalizer.additional_details_normalizer"
+                class="Sylius\AdyenPlugin\Normalizer\AdditionalDetailsNormalizer"
+                id="sylius_adyen.normalizer.additional_details"
         >
             <argument type="service" id="request_stack"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.normalizer.shipping_line_generator"/>
+            <argument type="service" id="sylius_adyen.normalizer.shipping_line_generator"/>
 
             <tag name="serializer.normalizer" priority="100"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Normalizer\AddressNormalizer"
-            id="bitbag.sylius_adyen_plugin.normalizer.address_normalizer"
+            class="Sylius\AdyenPlugin\Normalizer\AddressNormalizer"
+            id="sylius_adyen.normalizer.address"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.resolver.address.street_address_resolver"/>
+            <argument type="service" id="sylius_adyen.resolver.address.street_address"/>
 
             <tag name="serializer.normalizer" priority="100"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Normalizer\OrderItemToLineItemNormalizer"
-            id="bitbag.sylius_adyen_plugin.normalizer.order_item_to_line_item_normalizer"
+            class="Sylius\AdyenPlugin\Normalizer\OrderItemToLineItemNormalizer"
+            id="sylius_adyen.normalizer.order_item_to_line_item"
         >
 
             <argument type="service" id="request_stack"/>
             <argument type="service" id="router"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.resolver.product.thumbnail_url_resolver"/>
+            <argument type="service" id="sylius_adyen.resolver.product.thumbnail_url"/>
 
             <tag name="serializer.normalizer" priority="100"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Normalizer\ShippingLineGenerator"
-            id="bitbag.sylius_adyen_plugin.normalizer.shipping_line_generator"
+            class="Sylius\AdyenPlugin\Normalizer\ShippingLineGenerator"
+            id="sylius_adyen.normalizer.shipping_line_generator"
         >
             <argument type="service" id="translator"/>
         </service>

@@ -1,18 +1,20 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Processor\PaymentResponseProcessor;
+namespace Tests\Sylius\AdyenPlugin\Unit\Processor\PaymentResponseProcessor;
 
-use BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor\ProcessorInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\ProcessorInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;

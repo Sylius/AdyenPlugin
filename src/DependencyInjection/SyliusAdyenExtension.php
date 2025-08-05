@@ -1,15 +1,17 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\DependencyInjection;
+namespace Sylius\AdyenPlugin\DependencyInjection;
 
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\FileLocator;
@@ -18,23 +20,23 @@ use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
-final class BitBagSyliusAdyenExtension extends ConfigurableExtension implements PrependExtensionInterface
+final class SyliusAdyenExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
-    public const TRANSPORT_FACTORY_ID = 'bitbag.sylius_adyen_plugin.client.adyen_transport_factory';
+    public const TRANSPORT_FACTORY_ID = 'sylius_adyen.client.adyen_transport_factory';
 
-    public const SUPPORTED_PAYMENT_METHODS_LIST = 'bitbag.sylius_adyen_plugin.supported_payment_methods';
+    public const SUPPORTED_PAYMENT_METHODS_LIST = 'sylius_adyen.supported_payment_methods';
 
     public function prepend(ContainerBuilder $container): void
     {
         $container->prependExtensionConfig('doctrine_migrations', [
             'migrations_paths' => [
-                'BitBag\SyliusAdyenPlugin\Migrations' => __DIR__ . '/../Migrations',
+                'Sylius\AdyenPlugin\Migrations' => __DIR__ . '/../Migrations',
             ],
         ]);
 
         $container->prependExtensionConfig('sylius_labs_doctrine_migrations_extra', [
             'migrations' => [
-                'BitBag\SyliusAdyenPlugin\Migrations' => ['Sylius\Bundle\CoreBundle\Migrations', 'Sylius\RefundPlugin\Migrations'],
+                'Sylius\AdyenPlugin\Migrations' => ['Sylius\Bundle\CoreBundle\Migrations', 'Sylius\RefundPlugin\Migrations'],
             ],
         ]);
     }
@@ -47,12 +49,12 @@ final class BitBagSyliusAdyenExtension extends ConfigurableExtension implements 
         $container->setParameter(self::SUPPORTED_PAYMENT_METHODS_LIST, (array) $config['supported_types']);
 
         if (null !== $config['logger']) {
-            $container->setAlias('bitbag.sylius_adyen_plugin.logger', (string) $config['logger']);
+            $container->setAlias('sylius_adyen.logger', (string) $config['logger']);
         }
 
         // fallback for previous version
         if (!$container->has('sylius.command_bus')) {
-            $container->setAlias('bitbag.sylius_adyen_plugin.command_bus', 'sylius_default.bus');
+            $container->setAlias('sylius_adyen.command_bus', 'sylius_default.bus');
         }
     }
 
@@ -63,6 +65,6 @@ final class BitBagSyliusAdyenExtension extends ConfigurableExtension implements 
 
     public function getAlias(): string
     {
-        return 'bitbag_sylius_adyen';
+        return 'sylius_adyen';
     }
 }

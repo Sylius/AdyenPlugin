@@ -5,22 +5,28 @@
     <services>
         <defaults public="true"/>
 
-        <service id="bitbag.sylius_adyen_plugin.factory.adyen_token_factory"
-                 class="BitBag\SyliusAdyenPlugin\Factory\AdyenTokenFactory"
-                 decorates="bitbag_sylius_adyen_plugin.factory.adyen_token">
-            <argument type="service" id="bitbag.sylius_adyen_plugin.factory.adyen_token_factory.inner"/>
+        <service
+            id="sylius_adyen.custom_factory.adyen_token"
+            class="Sylius\AdyenPlugin\Factory\AdyenTokenFactory"
+            decorates="sylius_adyen.factory.adyen_token"
+        >
+            <argument type="service" id=".inner"/>
         </service>
 
-        <service id="bitbag.sylius_adyen_plugin.factory.adyen_reference_factory"
-                 class="BitBag\SyliusAdyenPlugin\Factory\AdyenReferenceFactory"
-                 decorates="bitbag_sylius_adyen_plugin.factory.adyen_reference">
-            <argument type="service" id="bitbag.sylius_adyen_plugin.factory.adyen_reference_factory.inner"/>
+        <service
+            id="sylius_adyen.custom_factory.adyen_reference"
+            class="Sylius\AdyenPlugin\Factory\AdyenReferenceFactory"
+            decorates="sylius_adyen.factory.adyen_reference"
+        >
+            <argument type="service" id=".inner"/>
         </service>
 
-        <service id="bitbag.sylius_adyen_plugin.factory.log_factory"
-                 class="BitBag\SyliusAdyenPlugin\Factory\LogFactory"
-                 decorates="bitbag_sylius_adyen_plugin.factory.log">
-            <argument type="service" id="bitbag.sylius_adyen_plugin.factory.log_factory.inner"/>
+        <service
+            id="sylius_adyen.custom_factory.log"
+            class="Sylius\AdyenPlugin\Factory\LogFactory"
+            decorates="sylius_adyen.factory.log"
+        >
+            <argument type="service" id=".inner"/>
         </service>
     </services>
 </container>

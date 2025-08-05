@@ -4,10 +4,10 @@
     {% set debug = constant('Monolog\\Logger::DEBUG') %}
 
     {% if data == info %}
-        <div class="ui info horizontal label">{{'bitbag_sylius_adyen_plugin.ui.logging.info'|trans}}</div>
+        <div class="ui info horizontal label">{{'sylius_adyen.ui.logging.info'|trans}}</div>
     {% elseif data == error %}
-        <div class="ui red horizontal label">{{'bitbag_sylius_adyen_plugin.ui.logging.error'|trans}}</div>
+        <div class="ui red horizontal label">{{'sylius_adyen.ui.logging.error'|trans}}</div>
     {% elseif data == debug %}
-        <div class="ui info horizontal label">{{'bitbag_sylius_adyen_plugin.ui.logging.debug'|trans}}</div>
+        <div class="ui info horizontal label">{{'sylius_adyen.ui.logging.debug'|trans}}</div>
     {% endif %}
 {% endif %}

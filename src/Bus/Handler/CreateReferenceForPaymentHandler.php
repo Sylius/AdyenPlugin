@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Bus\Handler;
+namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\CreateReferenceForPayment;
-use BitBag\SyliusAdyenPlugin\Entity\AdyenReferenceInterface;
-use BitBag\SyliusAdyenPlugin\Factory\AdyenReferenceFactoryInterface;
-use BitBag\SyliusAdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Doctrine\ORM\NoResultException;
+use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
+use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
+use Sylius\AdyenPlugin\Factory\AdyenReferenceFactoryInterface;
+use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Webmozart\Assert\Assert;
 

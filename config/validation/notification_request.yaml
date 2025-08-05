@@ -1,23 +1,23 @@
-BitBag\SyliusAdyenPlugin\Resolver\Notification\Struct\NotificationRequest:
+Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationRequest:
   properties:
     notificationItems:
       - Valid: ~
 
-BitBag\SyliusAdyenPlugin\Resolver\Notification\Struct\NotificationItem:
+Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItem:
   properties:
     notificationRequestItem:
       - Valid: ~
 
-BitBag\SyliusAdyenPlugin\Resolver\Notification\Struct\Amount:
+Sylius\AdyenPlugin\Resolver\Notification\Struct\Amount:
   properties:
     currency:
       - NotBlank: ~
     value:
       - GreaterThanOrEqual: 0
 
-BitBag\SyliusAdyenPlugin\Resolver\Notification\Struct\NotificationItemData:
+Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData:
   constraints:
-    - BitBag\SyliusAdyenPlugin\Validator\Constraint\HmacSignature: ~
+    - Sylius\AdyenPlugin\Validator\Constraint\HmacSignature: ~
   properties:
     eventCode:
       - NotBlank: ~

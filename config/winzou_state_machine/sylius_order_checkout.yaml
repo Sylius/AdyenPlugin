@@ -1,0 +1,8 @@
+winzou_state_machine:
+    sylius_order_checkout:
+        callbacks:
+            after:
+                sylius_preserve_cart_upon_redirect:
+                    on: ["complete"]
+                    args: ["object"]
+                    do: ["sylius_adyen.callback.preserve_order_token_upon_redirection", "__invoke"]

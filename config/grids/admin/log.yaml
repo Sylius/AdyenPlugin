@@ -1,0 +1,43 @@
+sylius_grid:
+    templates:
+        filter:
+            adyen_log_level: "@SyliusAdyenPlugin/Admin/Logger/Grid/_theme.html.twig"
+    grids:
+        sylius_adyen_admin_log:
+            driver:
+                name: doctrine/orm
+                options:
+                    class: "%sylius_adyen.model.log.class%"
+            sorting:
+                dateTime: desc
+            fields:
+                level:
+                    type: twig
+                    label: sylius_adyen.ui.logging.level
+                    sortable: ~
+                    options:
+                        template: "@SyliusAdyenPlugin/Admin/Logger/_level.html.twig"
+                errorCode:
+                    type: string
+                    label: sylius_adyen.ui.logging.error_code
+                    sortable: ~
+                message:
+                    type: string
+                    label: sylius_adyen.ui.logging.message
+                    sortable: ~
+                dateTime:
+                    type: datetime
+                    label: sylius_adyen.ui.logging.date_time
+                    sortable: ~
+                    options:
+                        format: 'Y-m-d H:i:s'
+            filters:
+                date:
+                    type: date
+                    label: sylius_adyen.ui.logging.search
+                    options:
+                        field: dateTime
+                        label: test
+                level:
+                    type: adyen_log_level
+                    label: sylius_adyen.ui.logging.level

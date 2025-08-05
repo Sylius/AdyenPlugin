@@ -1,0 +1,13 @@
+winzou_state_machine:
+    sylius_payment:
+        transitions:
+            capture:
+              from: [ new, processing, authorized ]
+              to: completed
+            process:
+              from: [ authorized ]
+              to: processing
+        callbacks:
+            after:
+                sylius_resolve_state:
+                    on: [ "complete", "process", "refund", "authorize", "capture" ]

@@ -1,0 +1,7 @@
+winzou_state_machine:
+    sylius_refund_refund_payment:
+        class: Sylius\RefundPlugin\Entity\RefundPayment
+        transitions:
+            confirm:
+                from: [new]
+                to: completed

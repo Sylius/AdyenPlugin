@@ -1,22 +1,24 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Bus\Handler;
+namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\CreateReferenceForPayment;
-use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentStatusReceived;
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
-use BitBag\SyliusAdyenPlugin\Exception\UnmappedAdyenActionException;
-use BitBag\SyliusAdyenPlugin\Traits\OrderFromPaymentTrait;
 use SM\Factory\FactoryInterface;
+use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
+use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
+use Sylius\AdyenPlugin\Traits\OrderFromPaymentTrait;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;

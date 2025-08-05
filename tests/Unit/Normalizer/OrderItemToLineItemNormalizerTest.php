@@ -1,27 +1,29 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Normalizer;
+namespace Tests\Sylius\AdyenPlugin\Unit\Normalizer;
 
-use BitBag\SyliusAdyenPlugin\Normalizer\AbstractPaymentNormalizer;
-use BitBag\SyliusAdyenPlugin\Normalizer\OrderItemToLineItemNormalizer;
-use BitBag\SyliusAdyenPlugin\Resolver\Product\ThumbnailUrlResolverInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Normalizer\AbstractPaymentNormalizer;
+use Sylius\AdyenPlugin\Normalizer\OrderItemToLineItemNormalizer;
+use Sylius\AdyenPlugin\Resolver\Product\ThumbnailUrlResolverInterface;
 use Sylius\Component\Core\Model\OrderItem;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Tests\BitBag\SyliusAdyenPlugin\Unit\Mock\RequestMother;
-use Tests\BitBag\SyliusAdyenPlugin\Unit\OrderMother;
+use Tests\Sylius\AdyenPlugin\Unit\Mock\RequestMother;
+use Tests\Sylius\AdyenPlugin\Unit\OrderMother;
 
 class OrderItemToLineItemNormalizerTest extends TestCase
 {

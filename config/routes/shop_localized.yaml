@@ -1,0 +1,31 @@
+sylius_adyen_shop_payment_details:
+  path: /payment/adyen/details
+  methods: [POST]
+  controller: sylius_adyen.controller.shop.payment_details
+
+sylius_adyen_shop_details:
+  path: /payment/adyen/{code}/details
+  controller: sylius_adyen.controller.shop.adyen_details
+
+sylius_adyen_shop_payments:
+  path: /payment/adyen/{code}
+  methods: [POST]
+  controller: sylius_adyen.controller.shop.payments
+  defaults:
+    code: null
+
+sylius_adyen_shop_thank_you:
+  path: /payment/adyen/{code}/thanks
+  controller: sylius_adyen.controller.shop.redirect_target
+
+sylius_adyen_shop_config:
+  path: /payment/adyen/{code}/{orderToken}
+  methods: [GET]
+  controller: sylius_adyen.controller.shop.dropin_configuration
+  defaults:
+    orderToken: null
+
+sylius_adyen_shop_remove_token:
+  path: /payment/adyen/{code}/token/{paymentReference}
+  methods: [DELETE]
+  controller: sylius_adyen.controller.shop.remove_stored_token

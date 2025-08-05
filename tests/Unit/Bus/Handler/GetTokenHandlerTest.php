@@ -1,24 +1,26 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Bus\Handler;
+namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\CreateToken;
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
-use BitBag\SyliusAdyenPlugin\Bus\Handler\GetTokenHandler;
-use BitBag\SyliusAdyenPlugin\Bus\Query\GetToken;
-use BitBag\SyliusAdyenPlugin\Entity\AdyenToken;
-use BitBag\SyliusAdyenPlugin\Repository\AdyenTokenRepositoryInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Bus\Command\CreateToken;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\Handler\GetTokenHandler;
+use Sylius\AdyenPlugin\Bus\Query\GetToken;
+use Sylius\AdyenPlugin\Entity\AdyenToken;
+use Sylius\AdyenPlugin\Repository\AdyenTokenRepositoryInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;

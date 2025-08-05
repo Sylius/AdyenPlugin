@@ -6,59 +6,59 @@
         <defaults public="true"/>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Provider\AdyenClientProvider"
-                id="bitbag.sylius_adyen_plugin.provider.adyen_client_provider"
+                class="Sylius\AdyenPlugin\Provider\AdyenClientProvider"
+                id="sylius_adyen.provider.adyen_client"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.repository.payment_method"/>
             <argument type="service" id="sylius.context.shopper"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.client.adyen_transport_factory"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.client.client_payload_factory"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.client.payment_methods_filter"/>
+            <argument type="service" id="sylius_adyen.client.adyen_transport_factory"/>
+            <argument type="service" id="sylius_adyen.client.client_payload_factory"/>
+            <argument type="service" id="sylius_adyen.client.payment_methods_filter"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Client\ClientPayloadFactory"
-            id="bitbag.sylius_adyen_plugin.client.client_payload_factory"
+            class="Sylius\AdyenPlugin\Client\ClientPayloadFactory"
+            id="sylius_adyen.client.client_payload_factory"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.resolver.version.version_resolver"/>
+            <argument type="service" id="sylius_adyen.resolver.version.version"/>
             <argument type="service" id="serializer"/>
             <argument type="service" id="request_stack"/>
         </service>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Client\AdyenTransportFactory"
-                id="bitbag.sylius_adyen_plugin.client.adyen_transport_factory"
+                class="Sylius\AdyenPlugin\Client\AdyenTransportFactory"
+                id="sylius_adyen.client.adyen_transport_factory"
         >
-            <argument type="service" on-invalid="null" id="bitbag.sylius_adyen_plugin.logger" />
+            <argument type="service" on-invalid="null" id="sylius_adyen.logger" />
         </service>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Client\AdyenClient"
-                id="bitbag.sylius_adyen_plugin.client.adyen_client"
+                class="Sylius\AdyenPlugin\Client\AdyenClient"
+                id="sylius_adyen.client.adyen"
         >
-            <factory service="bitbag.sylius_adyen_plugin.provider.adyen_client_provider" method="getDefaultClient"/>
+            <factory service="sylius_adyen.provider.adyen_client" method="getDefaultClient"/>
         </service>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Validator\Constraint\AdyenCredentialsValidator"
-                id="bitbag.sylius_adyen_plugin.validator.constraint.adyen_credentials_validator"
+                class="Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentialsValidator"
+                id="sylius_adyen.validator.adyen_credentials"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.client.adyen_transport_factory"/>
-            <tag name="validator.constraint_validator" alias="bitbag_sylius_adyen_plugin_credentials"/>
+            <argument type="service" id="sylius_adyen.client.adyen_transport_factory"/>
+            <tag name="validator.constraint_validator" alias="sylius_adyen.validator.credentials"/>
         </service>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Provider\SignatureValidatorProvider"
-                id="bitbag.sylius_adyen_plugin.provider.signature_validator_provider"
+                class="Sylius\AdyenPlugin\Provider\SignatureValidatorProvider"
+                id="sylius_adyen.provider.signature_validator"
         >
-            <argument type="service" id="bitbag.sylius_adyen_plugin.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.repository.payment_method"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Client\PaymentMethodsFilter"
-            id="bitbag.sylius_adyen_plugin.client.payment_methods_filter"
+            class="Sylius\AdyenPlugin\Client\PaymentMethodsFilter"
+            id="sylius_adyen.client.payment_methods_filter"
         >
-            <argument>%bitbag.sylius_adyen_plugin.supported_payment_methods%</argument>
+            <argument>%sylius_adyen.supported_payment_methods%</argument>
         </service>
     </services>
 </container>

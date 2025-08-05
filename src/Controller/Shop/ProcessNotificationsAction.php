@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Controller\Shop;
+namespace Sylius\AdyenPlugin\Controller\Shop;
 
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver;
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
-use BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationToCommandResolver;
 use Psr\Log\LoggerInterface;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationToCommandResolver;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 

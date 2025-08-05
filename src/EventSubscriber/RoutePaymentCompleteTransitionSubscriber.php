@@ -1,23 +1,25 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\EventSubscriber;
+namespace Sylius\AdyenPlugin\EventSubscriber;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\RequestCapture;
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
-use BitBag\SyliusAdyenPlugin\Exception\UnprocessablePaymentException;
-use BitBag\SyliusAdyenPlugin\PaymentTransitions;
-use BitBag\SyliusAdyenPlugin\Traits\OrderFromPaymentTrait;
 use SM\Event\SMEvents;
 use SM\Event\TransitionEvent;
+use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
+use Sylius\AdyenPlugin\PaymentTransitions;
+use Sylius\AdyenPlugin\Traits\OrderFromPaymentTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 

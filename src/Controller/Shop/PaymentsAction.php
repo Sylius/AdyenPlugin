@@ -1,27 +1,29 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Controller\Shop;
+namespace Sylius\AdyenPlugin\Controller\Shop;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\PaymentStatusReceived;
-use BitBag\SyliusAdyenPlugin\Bus\Command\PrepareOrderForPayment;
-use BitBag\SyliusAdyenPlugin\Bus\Command\TakeOverPayment;
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
-use BitBag\SyliusAdyenPlugin\Bus\Query\GetToken;
-use BitBag\SyliusAdyenPlugin\Entity\AdyenTokenInterface;
-use BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessorInterface;
-use BitBag\SyliusAdyenPlugin\Provider\AdyenClientProviderInterface;
-use BitBag\SyliusAdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
-use BitBag\SyliusAdyenPlugin\Traits\PayableOrderPaymentTrait;
-use BitBag\SyliusAdyenPlugin\Traits\PaymentFromOrderTrait;
+use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
+use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
+use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\Query\GetToken;
+use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
+use Sylius\AdyenPlugin\Traits\PaymentFromOrderTrait;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +34,7 @@ class PaymentsAction
     use PayableOrderPaymentTrait;
     use PaymentFromOrderTrait;
 
-    public const REDIRECT_TARGET_ACTION = 'bitbag_adyen_thank_you';
+    public const REDIRECT_TARGET_ACTION = 'sylius_adyen_shop_thank_you';
 
     public const ORDER_ID_KEY = 'sylius_order_id';
 

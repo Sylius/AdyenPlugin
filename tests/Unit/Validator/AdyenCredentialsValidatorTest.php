@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Validator;
+namespace Tests\Sylius\AdyenPlugin\Unit\Validator;
 
 use Adyen\HttpClient\ClientInterface;
-use BitBag\SyliusAdyenPlugin\Client\AdyenClientInterface;
-use BitBag\SyliusAdyenPlugin\Client\AdyenTransportFactory;
-use BitBag\SyliusAdyenPlugin\Validator\Constraint\AdyenCredentials;
-use BitBag\SyliusAdyenPlugin\Validator\Constraint\AdyenCredentialsValidator;
+use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Client\AdyenTransportFactory;
+use Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentials;
+use Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentialsValidator;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 class AdyenCredentialsValidatorTest extends ConstraintValidatorTestCase

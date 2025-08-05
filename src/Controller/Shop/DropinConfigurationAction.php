@@ -1,18 +1,20 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Controller\Shop;
+namespace Sylius\AdyenPlugin\Controller\Shop;
 
-use BitBag\SyliusAdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
-use BitBag\SyliusAdyenPlugin\Provider\PaymentMethodsForOrderProvider;
+use Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
+use Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
@@ -27,7 +29,7 @@ use Webmozart\Assert\Assert;
 class DropinConfigurationAction
 {
     public const TRANSLATIONS = [
-        'bitbag_sylius_adyen_plugin.runtime.payment_failed_try_again',
+        'sylius_adyen.runtime.payment_failed_try_again',
     ];
 
     /** @var CartContextInterface */
@@ -100,10 +102,10 @@ class DropinConfigurationAction
                 'value' => $order->getTotal(),
             ],
             'path' => [
-                'payments' => $this->urlGenerator->generate('bitbag_adyen_payments', $pathParams),
-                'paymentDetails' => $this->urlGenerator->generate('bitbag_adyen_payment_details', $pathParams),
+                'payments' => $this->urlGenerator->generate('sylius_adyen_shop_payments', $pathParams),
+                'paymentDetails' => $this->urlGenerator->generate('sylius_adyen_shop_payment_details', $pathParams),
                 'deleteToken' => $this->urlGenerator->generate(
-                    'bitbag_adyen_remove_token',
+                    'sylius_adyen_shop_remove_token',
                     $pathParams + ['paymentReference' => '_REFERENCE_'],
                 ),
             ],

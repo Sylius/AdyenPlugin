@@ -1,18 +1,20 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Bus\Handler;
+namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\CreateReferenceForRefund;
-use BitBag\SyliusAdyenPlugin\Factory\AdyenReferenceFactoryInterface;
+use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
+use Sylius\AdyenPlugin\Factory\AdyenReferenceFactoryInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 

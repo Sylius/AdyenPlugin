@@ -6,8 +6,8 @@
         <defaults public="true"/>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolver"
-                id="bitbag.sylius_adyen_plugin.resolver.order.payment_checkout_order_resolver"
+                class="Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolver"
+                id="sylius_adyen.resolver.order.payment_checkout_order"
         >
             <argument type="service" id="request_stack"/>
             <argument type="service" id="sylius.context.cart"/>
@@ -15,38 +15,38 @@
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver\PaymentNotificationResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.notification.notification_resolver.payment_notification_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\PaymentNotificationResolver"
+            id="sylius_adyen.resolver.notification.notification_resolver.payment_notification"
         >
-            <tag name="bitbag.sylius_adyen_plugin.resolver.notification.command_resolver"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.bus.dispatcher"/>
-            <argument type="service" id="bitbag_sylius_adyen_plugin.repository.adyen_reference"/>
+            <tag name="sylius_adyen.resolver.notification.command_resolver"/>
+            <argument type="service" id="sylius_adyen.bus.dispatcher"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver\RefundNotificationResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.notification.processor.refund_notification_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\RefundNotificationResolver"
+            id="sylius_adyen.resolver.notification.processor.refund_notification"
         >
-            <argument type="service" id="bitbag_sylius_adyen_plugin.repository.adyen_reference"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
 
-            <tag name="bitbag.sylius_adyen_plugin.resolver.notification.command_resolver"/>
+            <tag name="sylius_adyen.resolver.notification.command_resolver"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationToCommandResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.notification.notification_command_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Notification\NotificationToCommandResolver"
+            id="sylius_adyen.resolver.notification.notification_command"
         >
-            <argument type="tagged_iterator" tag="bitbag.sylius_adyen_plugin.resolver.notification.command_resolver"/>
+            <argument type="tagged_iterator" tag="sylius_adyen.resolver.notification.command_resolver"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Version\VersionResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.version.version_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Version\VersionResolver"
+            id="sylius_adyen.resolver.version.version"
         />
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Notification\NotificationResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.notification.notification_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver"
+            id="sylius_adyen.resolver.notification.notification"
         >
             <argument type="service" id="serializer"/>
             <argument type="service" id="validator"/>
@@ -54,32 +54,32 @@
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Notification\Serializer\NotificationItemNormalizer"
-            id="bitbag.sylius_adyen_plugin.resolver.notification.serializer.notification_item_normalizer"
+            class="Sylius\AdyenPlugin\Resolver\Notification\Serializer\NotificationItemNormalizer"
+            id="sylius_adyen.resolver.notification.serializer.notification_item_normalizer"
         >
             <tag name="serializer.normalizer"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Payment\PaymentDetailsResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.payment.payment_details_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Payment\PaymentDetailsResolver"
+            id="sylius_adyen.resolver.payment.payment_details"
         >
 
             <argument type="service" id="sylius.repository.order"/>
-            <argument type="service" id="bitbag.sylius_adyen_plugin.provider.adyen_client_provider"/>
+            <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius.repository.payment"/>
         </service>
 
         <service
-            class="BitBag\SyliusAdyenPlugin\Resolver\Product\ThumbnailUrlResolver"
-            id="bitbag.sylius_adyen_plugin.resolver.product.thumbnail_url_resolver"
+            class="Sylius\AdyenPlugin\Resolver\Product\ThumbnailUrlResolver"
+            id="sylius_adyen.resolver.product.thumbnail_url"
         >
             <argument type="service" id="liip_imagine.cache.manager"/>
         </service>
 
         <service
-                class="BitBag\SyliusAdyenPlugin\Resolver\Address\StreetAddressResolver"
-                id="bitbag.sylius_adyen_plugin.resolver.address.street_address_resolver"
+                class="Sylius\AdyenPlugin\Resolver\Address\StreetAddressResolver"
+                id="sylius_adyen.resolver.address.street_address"
         />
 
     </services>

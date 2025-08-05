@@ -15,14 +15,14 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="https://api-platform.com/schema/metadata https://api-platform.com/schema/metadata/metadata-2.0.xsd"
 >
-    <resource class="%bitbag_sylius_adyen_plugin.model.adyen_token.class%" shortName="Adyen">
+    <resource class="%sylius_adyen.model.adyen_token.class%" shortName="Adyen">
         <attribute name="validation_groups">sylius</attribute>
 
         <collectionOperations>
             <collectionOperation name="shop_get_adyen_details">
                 <attribute name="method">GET</attribute>
                 <attribute name="path">/shop/payment/adyen/{code}/details</attribute>
-                <attribute name="controller">bitbag.sylius_adyen_plugin.controller.shop.adyen_details_action</attribute>
+                <attribute name="controller">sylius_adyen.controller.shop.adyen_details</attribute>
                 <attribute name="pagination_enabled">false</attribute>
                 <attribute name="openapi_context">
                     <attribute name="summary">Adyen payment details</attribute>
@@ -90,7 +90,7 @@
             <collectionOperation name="shop_get_dropin_configuration">
                 <attribute name="method">GET</attribute>
                 <attribute name="path">/shop/payment/adyen/{code}/{orderToken}</attribute>
-                <attribute name="controller">bitbag.sylius_adyen_plugin.controller.shop.dropin_configuration_action</attribute>
+                <attribute name="controller">sylius_adyen.controller.shop.dropin_configuration</attribute>
                 <attribute name="pagination_enabled">false</attribute>
                 <attribute name="openapi_context">
                     <attribute name="summary">Fetches dropin configuration</attribute>
@@ -236,7 +236,7 @@
                                             <attribute name="translations">
                                                 <attribute name="type">object</attribute>
                                                 <attribute name="properties">
-                                                    <attribute name="bitbag_sylius_adyen_plugin.runtime.payment_failed_try_again">
+                                                    <attribute name="sylius_adyen.runtime.payment_failed_try_again">
                                                         <attribute name="type">string</attribute>
                                                     </attribute>
                                                 </attribute>
@@ -271,7 +271,7 @@
             <collectionOperation name="shop_get_custom_thank_you_page">
                 <attribute name="method">GET</attribute>
                 <attribute name="path">/shop/payment/adyen/{code}/thanks</attribute>
-                <attribute name="controller">bitbag.sylius_adyen_plugin.controller.shop.redirect_target_action</attribute>
+                <attribute name="controller">sylius_adyen.controller.shop.redirect_target</attribute>
                 <attribute name="pagination_enabled">false</attribute>
                 <attribute name="openapi_context">
                     <attribute name="summary">Custom thank-you page, that needs to be intercepted.</attribute>

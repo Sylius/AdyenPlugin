@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Behat\Context\Ui\Admin;
+namespace Tests\Sylius\AdyenPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
-use BitBag\SyliusAdyenPlugin\Form\Type\CredentialType;
+use Sylius\AdyenPlugin\Form\Type\CredentialType;
 use Sylius\Component\Payment\Model\PaymentMethodInterface;
-use Tests\BitBag\SyliusAdyenPlugin\Behat\Page\Admin\PaymentMethod\UpdatePageInterface;
+use Tests\Sylius\AdyenPlugin\Behat\Page\Admin\PaymentMethod\UpdatePageInterface;
 use Webmozart\Assert\Assert;
 
 class AdyenPaymentMethodConfigurationContext implements Context

@@ -1,17 +1,19 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Processor\PaymentResponseProcessor;
+namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
-use BitBag\SyliusAdyenPlugin\Bus\DispatcherInterface;
+use Sylius\AdyenPlugin\Bus\DispatcherInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -23,7 +25,7 @@ final class PaymentProcessingResponseProcessor extends AbstractProcessor
 
     public const PAYMENT_PROCESSING_CODES = ['received', 'processing'];
 
-    public const LABEL_PROCESSING = 'bitbag_sylius_adyen_plugin.ui.payment_processing';
+    public const LABEL_PROCESSING = 'sylius_adyen.ui.payment_processing';
 
     public const REDIRECT_TARGET_ROUTE = 'sylius_shop_homepage';
 

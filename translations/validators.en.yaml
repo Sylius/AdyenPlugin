@@ -1,4 +1,4 @@
-bitbag_sylius_adyen_plugin:
+sylius_adyen:
   environment:
     not_blank: Environment cannot be blank.
   merchant_account:

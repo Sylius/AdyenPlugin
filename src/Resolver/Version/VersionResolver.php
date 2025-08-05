@@ -1,21 +1,23 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace BitBag\SyliusAdyenPlugin\Resolver\Version;
+namespace Sylius\AdyenPlugin\Resolver\Version;
 
 use PackageVersions\FallbackVersions;
 
 final class VersionResolver implements VersionResolverInterface
 {
-    private const PACKAGE_NAME = 'bitbag/sylius-adyen-plugin';
+    private const PACKAGE_NAME = 'sylius/adyen-plugin';
 
     private const TEST_APPLICATION_VERSION = 'dev';
 
@@ -55,7 +57,7 @@ final class VersionResolver implements VersionResolverInterface
             'externalPlatform' => [
                 'name' => 'Sylius',
                 'version' => $syliusVersion,
-                'integrator' => 'BitBag',
+                'integrator' => 'Sylius',
             ],
         ];
     }

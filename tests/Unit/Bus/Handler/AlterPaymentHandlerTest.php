@@ -1,24 +1,26 @@
 <?php
 
 /*
- * This file has been created by developers from BitBag.
- * Feel free to contact us once you face any issues or want to start
- * You can find more information about us on https://bitbag.io and write us
- * an email on hello@bitbag.io.
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
  */
 
 declare(strict_types=1);
 
-namespace Tests\BitBag\SyliusAdyenPlugin\Unit\Bus\Handler;
+namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
-use BitBag\SyliusAdyenPlugin\Bus\Command\AlterPaymentCommand;
-use BitBag\SyliusAdyenPlugin\Bus\Command\CancelPayment;
-use BitBag\SyliusAdyenPlugin\Bus\Command\RequestCapture;
-use BitBag\SyliusAdyenPlugin\Bus\Handler\AlterPaymentHandler;
-use BitBag\SyliusAdyenPlugin\Provider\AdyenClientProvider;
 use Payum\Core\Model\GatewayConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Bus\Command\AlterPaymentCommand;
+use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
+use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
+use Sylius\AdyenPlugin\Bus\Handler\AlterPaymentHandler;
+use Sylius\AdyenPlugin\Provider\AdyenClientProvider;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderItem;
 use Sylius\Component\Core\Model\OrderItemUnit;

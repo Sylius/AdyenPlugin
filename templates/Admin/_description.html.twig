@@ -1,16 +1,16 @@
-{% set factory = constant('BitBag\\SyliusAdyenPlugin\\Provider\\AdyenClientProviderInterface::FACTORY_NAME') %}
+{% set factory = constant('Sylius\\AdyenPlugin\\Provider\\AdyenClientProviderInterface::FACTORY_NAME') %}
 
 {% if payment_method is defined and payment_method.gatewayConfig.factoryName == factory %}
     <div class="ui segment">
 
-        <p>{{ 'bitbag_sylius_adyen_plugin.ui.notification_endpoint_description'|trans }}:</p>
+        <p>{{ 'sylius_adyen.ui.notification_endpoint_description'|trans }}:</p>
 
         <div class="ui form">
             <div class="required field">
-                <label for="notifications-endpoint">{{ 'bitbag_sylius_adyen_plugin.ui.notification_endpoint'|trans }}</label>
+                <label for="notifications-endpoint">{{ 'sylius_adyen.ui.notification_endpoint'|trans }}</label>
                 <input type="text"
                        id="notifications-endpoint"
-                       value="{{ url('bitbag_adyen_process_notifications', {code: payment_method.code}) }}"
+                       value="{{ url('sylius_adyen_shop_process_notifications', {code: payment_method.code}) }}"
                        readonly="readonly"
                 >
             </div>
