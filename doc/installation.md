@@ -106,23 +106,19 @@ bin/console cache:clear
 **Note:** If you are running it on production, add the `-e prod` flag to this command.
 
 ## Templates
-Copy required templates into correct directories in your project.
 
-**AdminBundle** (`templates/bundles/SyliusAdminBundle`):
-```
-vendor/bitbag/sylius-adyen-plugin/tests/Application/templates/bundles/SyliusAdminBundle/Order/Show/_payment.html.twig
-vendor/bitbag/sylius-adyen-plugin/tests/Application/templates/bundles/SyliusAdminBundle/Order/Show/_payments.html.twig
-```
+### Run commands
 
-**ShopBundle** (`templates/bundles/SyliusShopBundle`):
-```
-vendor/bitbag/sylius-adyen-plugin/tests/Application/templates/bundles/SyliusShopBundle/Checkout/Complete/_navigation.html.twig
-vendor/bitbag/sylius-adyen-plugin/tests/Application/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig
-```
-
-Install assets:
 ```bash
-bin/console assets:install
+mkdir -p templates/bundles/SyliusAdminBundle/Order/Show \
+         templates/bundles/SyliusShopBundle/Checkout/Complete \
+         templates/bundles/SyliusShopBundle/Checkout/SelectPayment && \
+cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusAdminBundle/Order/Show/_payment.html.twig templates/bundles/SyliusAdminBundle/Order/Show/ && \
+cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusAdminBundle/Order/Show/_payments.html.twig templates/bundles/SyliusAdminBundle/Order/Show/ && \
+cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusShopBundle/Checkout/Complete/_navigation.html.twig templates/bundles/SyliusShopBundle/Checkout/Complete/ && \
+cp vendor/bitbag/sylius-adyen-plugin/tests/TestApplication/templates/bundles/SyliusShopBundle/Checkout/SelectPayment/_payment.html.twig templates/bundles/SyliusShopBundle/Checkout/SelectPayment/ && \
+php bin/console assets:install public --symlink
+
 ```
 
 ## Webpack
