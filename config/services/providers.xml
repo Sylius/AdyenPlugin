@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+    <services>
+        <defaults public="true"/>
+
+        <service
+            id="sylius_adyen.provider.esd_type"
+            class="Sylius\AdyenPlugin\Provider\EsdTypeProvider"
+        >
+            <argument type="tagged_iterator" tag="sylius_adyen.esd.collector" index-by="type" />
+        </service>
+
+        <service
+            id="Sylius\AdyenPlugin\Provider\EsdTypeProviderInterface"
+            alias="sylius_adyen.provider.esd_type"
+        />
+    </services>
+</container>

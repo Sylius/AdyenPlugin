@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Client\ClientPayloadFactory;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollector;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
+use Sylius\AdyenPlugin\Collector\ItemDetailLineCollector;
 use Sylius\AdyenPlugin\Collector\Level2EsdCollector;
 use Sylius\AdyenPlugin\Collector\Level3EsdCollector;
 use Sylius\AdyenPlugin\Resolver\Version\VersionResolverInterface;
@@ -49,10 +50,11 @@ final class ClientPayloadFactoryTest extends TestCase
 
         // Create real ESD collector with Level 2 and Level 3 collectors
         $level2Collector = new Level2EsdCollector();
+        $itemDetailLineCollector = new ItemDetailLineCollector();
         $this->esdCollector = new CompositeEsdCollector([
             'level2' => $level2Collector,
-            'level3' => new Level3EsdCollector($level2Collector),
-        ]);
+            'level3' => new Level3EsdCollector($level2Collector, $itemDetailLineCollector),
+        ], ['USD'], ['US']);
 
         $this->factory = new ClientPayloadFactory(
             $this->versionResolver,
@@ -119,6 +121,12 @@ final class ClientPayloadFactoryTest extends TestCase
         $order->expects($this->any())
             ->method('getItems')
             ->willReturn(new ArrayCollection());
+        $order->expects($this->any())
+            ->method('getCreatedAt')
+            ->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->any())
+            ->method('getShippingTotal')
+            ->willReturn(500);
 
         $result = $this->factory->createForSubmitPayment(
             $options,
@@ -268,6 +276,12 @@ final class ClientPayloadFactoryTest extends TestCase
         $order->expects($this->any())
             ->method('getItems')
             ->willReturn(new ArrayCollection());
+        $order->expects($this->any())
+            ->method('getCreatedAt')
+            ->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->any())
+            ->method('getShippingTotal')
+            ->willReturn(500);
 
         $billingAddress = $this->createMock(AddressInterface::class);
         $billingAddress->expects($this->any())

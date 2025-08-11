@@ -17,11 +17,10 @@ use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Collector\EsdCollectorInterface;
+use Sylius\AdyenPlugin\Collector\ItemDetailLineCollectorInterface;
 use Sylius\AdyenPlugin\Collector\Level3EsdCollector;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
-use Sylius\Component\Core\Model\ProductInterface;
-use Sylius\Component\Core\Model\ProductVariantInterface;
 
 final class Level3EsdCollectorTest extends TestCase
 {
@@ -29,10 +28,13 @@ final class Level3EsdCollectorTest extends TestCase
 
     private MockObject $level2Collector;
 
+    private MockObject $itemDetailLineCollector;
+
     protected function setUp(): void
     {
         $this->level2Collector = $this->createMock(EsdCollectorInterface::class);
-        $this->collector = new Level3EsdCollector($this->level2Collector);
+        $this->itemDetailLineCollector = $this->createMock(ItemDetailLineCollectorInterface::class);
+        $this->collector = new Level3EsdCollector($this->level2Collector, $this->itemDetailLineCollector);
     }
 
     public function testItSupportsAllMerchantCategoryCodes(): void
@@ -44,35 +46,7 @@ final class Level3EsdCollectorTest extends TestCase
 
     public function testItCollectsLineItemData(): void
     {
-        $product = $this->createMock(ProductInterface::class);
-
-        $variant = $this->createMock(ProductVariantInterface::class);
-        $variant->expects($this->once())
-            ->method('getCode')
-            ->willReturn('SKU-001');
-        $variant->expects($this->once())
-            ->method('getProduct')
-            ->willReturn($product);
-
         $orderItem = $this->createMock(OrderItemInterface::class);
-        $orderItem->expects($this->once())
-            ->method('getVariant')
-            ->willReturn($variant);
-        $orderItem->expects($this->once())
-            ->method('getProductName')
-            ->willReturn('Test Product Name');
-        $orderItem->expects($this->once())
-            ->method('getQuantity')
-            ->willReturn(2);
-        $orderItem->expects($this->once())
-            ->method('getUnitPrice')
-            ->willReturn(1000);
-        $orderItem->expects($this->once())
-            ->method('getTotal')
-            ->willReturn(2000);
-        $orderItem->expects($this->any())
-            ->method('getAdjustmentsTotalRecursively')
-            ->willReturn(0);
 
         $order = $this->createMock(OrderInterface::class);
         $order->expects($this->once())
@@ -97,51 +71,35 @@ final class Level3EsdCollectorTest extends TestCase
                 'enhancedSchemeData.totalTaxAmount' => 100,
             ]);
 
+        // Set up ItemDetailLineCollector expectations
+        $this->itemDetailLineCollector->expects($this->once())
+            ->method('collect')
+            ->with($orderItem, 1)
+            ->willReturn([
+                'enhancedSchemeData.itemDetailLine1.productCode' => 'SKU-001',
+                'enhancedSchemeData.itemDetailLine1.description' => 'Test Product Name',
+                'enhancedSchemeData.itemDetailLine1.quantity' => '2',
+                'enhancedSchemeData.itemDetailLine1.unitOfMeasure' => 'PCS',
+                'enhancedSchemeData.itemDetailLine1.unitPrice' => '1000',
+                'enhancedSchemeData.itemDetailLine1.totalAmount' => '2000',
+            ]);
+
         $result = $this->collector->collect($order);
 
         $this->assertArrayHasKey('enhancedSchemeData.customerReference', $result);
         $this->assertArrayHasKey('enhancedSchemeData.totalTaxAmount', $result);
         $this->assertEquals('SKU-001', $result['enhancedSchemeData.itemDetailLine1.productCode']);
         $this->assertEquals('Test Product Name', $result['enhancedSchemeData.itemDetailLine1.description']);
-        $this->assertEquals(2, $result['enhancedSchemeData.itemDetailLine1.quantity']);
+        $this->assertEquals('2', $result['enhancedSchemeData.itemDetailLine1.quantity']);
         $this->assertEquals('PCS', $result['enhancedSchemeData.itemDetailLine1.unitOfMeasure']);
-        $this->assertEquals(1000, $result['enhancedSchemeData.itemDetailLine1.unitPrice']);
-        $this->assertEquals(2000, $result['enhancedSchemeData.itemDetailLine1.totalAmount']);
+        $this->assertEquals('1000', $result['enhancedSchemeData.itemDetailLine1.unitPrice']);
+        $this->assertEquals('2000', $result['enhancedSchemeData.itemDetailLine1.totalAmount']);
         $this->assertArrayNotHasKey('enhancedSchemeData.itemDetailLine1.commodityCode', $result);
     }
 
     public function testItHandlesDiscountAmount(): void
     {
-        $variant = $this->createMock(ProductVariantInterface::class);
-        $variant->expects($this->once())
-            ->method('getCode')
-            ->willReturn('SKU-002');
-        $variant->expects($this->once())
-            ->method('getProduct')
-            ->willReturn(null);
-
         $orderItem = $this->createMock(OrderItemInterface::class);
-        $orderItem->expects($this->once())
-            ->method('getVariant')
-            ->willReturn($variant);
-        $orderItem->expects($this->once())
-            ->method('getProductName')
-            ->willReturn('Discounted Product');
-        $orderItem->expects($this->once())
-            ->method('getQuantity')
-            ->willReturn(1);
-        $orderItem->expects($this->once())
-            ->method('getUnitPrice')
-            ->willReturn(1500);
-        $orderItem->expects($this->once())
-            ->method('getTotal')
-            ->willReturn(1200);
-        $orderItem->expects($this->any())
-            ->method('getAdjustmentsTotalRecursively')
-            ->willReturnMap([
-                ['order_unit_promotion', -200],
-                ['order_promotion', -100],
-            ]);
 
         $order = $this->createMock(OrderInterface::class);
         $order->expects($this->once())
@@ -166,32 +124,28 @@ final class Level3EsdCollectorTest extends TestCase
                 'enhancedSchemeData.totalTaxAmount' => 0,
             ]);
 
+        // Set up ItemDetailLineCollector expectations
+        $this->itemDetailLineCollector->expects($this->once())
+            ->method('collect')
+            ->with($orderItem, 1)
+            ->willReturn([
+                'enhancedSchemeData.itemDetailLine1.productCode' => 'SKU-002',
+                'enhancedSchemeData.itemDetailLine1.description' => 'Discounted Product',
+                'enhancedSchemeData.itemDetailLine1.quantity' => '1',
+                'enhancedSchemeData.itemDetailLine1.unitOfMeasure' => 'PCS',
+                'enhancedSchemeData.itemDetailLine1.unitPrice' => '1500',
+                'enhancedSchemeData.itemDetailLine1.totalAmount' => '1200',
+                'enhancedSchemeData.itemDetailLine1.discountAmount' => '300',
+            ]);
+
         $result = $this->collector->collect($order);
 
-        $this->assertEquals(300, $result['enhancedSchemeData.itemDetailLine1.discountAmount']);
+        $this->assertEquals('300', $result['enhancedSchemeData.itemDetailLine1.discountAmount']);
     }
 
     public function testItHandlesMissingVariant(): void
     {
         $orderItem = $this->createMock(OrderItemInterface::class);
-        $orderItem->expects($this->once())
-            ->method('getVariant')
-            ->willReturn(null);
-        $orderItem->expects($this->once())
-            ->method('getProductName')
-            ->willReturn('Product without variant');
-        $orderItem->expects($this->once())
-            ->method('getQuantity')
-            ->willReturn(1);
-        $orderItem->expects($this->once())
-            ->method('getUnitPrice')
-            ->willReturn(500);
-        $orderItem->expects($this->once())
-            ->method('getTotal')
-            ->willReturn(500);
-        $orderItem->expects($this->any())
-            ->method('getAdjustmentsTotalRecursively')
-            ->willReturn(0);
 
         $order = $this->createMock(OrderInterface::class);
         $order->expects($this->once())
@@ -214,6 +168,19 @@ final class Level3EsdCollectorTest extends TestCase
             ->willReturn([
                 'enhancedSchemeData.customerReference' => '4',
                 'enhancedSchemeData.totalTaxAmount' => 0,
+            ]);
+
+        // Set up ItemDetailLineCollector expectations
+        $this->itemDetailLineCollector->expects($this->once())
+            ->method('collect')
+            ->with($orderItem, 1)
+            ->willReturn([
+                'enhancedSchemeData.itemDetailLine1.productCode' => 'UNKNOWN',
+                'enhancedSchemeData.itemDetailLine1.description' => 'Product without variant',
+                'enhancedSchemeData.itemDetailLine1.quantity' => '1',
+                'enhancedSchemeData.itemDetailLine1.unitOfMeasure' => 'PCS',
+                'enhancedSchemeData.itemDetailLine1.unitPrice' => '500',
+                'enhancedSchemeData.itemDetailLine1.totalAmount' => '500',
             ]);
 
         $result = $this->collector->collect($order);

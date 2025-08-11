@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+<container
+        xmlns="http://symfony.com/schema/dic/services"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
     <services>
         <defaults public="true"/>
 
@@ -17,6 +20,7 @@
             class="Sylius\AdyenPlugin\Collector\Level3EsdCollector"
         >
             <argument type="service" id="sylius_adyen.collector.esd.level2" />
+            <argument type="service" id="sylius_adyen.collector.esd.item_detail_line" />
             <tag name="sylius_adyen.esd.collector" priority="100" type="level3" />
         </service>
 
@@ -35,15 +39,13 @@
         />
 
         <service
-            id="sylius_adyen.provider.esd_type"
-            class="Sylius\AdyenPlugin\Provider\EsdTypeProvider"
-        >
-            <argument type="tagged_iterator" tag="sylius_adyen.esd.collector" index-by="type" />
-        </service>
+            id="sylius_adyen.collector.esd.item_detail_line"
+            class="Sylius\AdyenPlugin\Collector\ItemDetailLineCollector"
+        />
 
         <service
-            id="Sylius\AdyenPlugin\Provider\EsdTypeProviderInterface"
-            alias="sylius_adyen.provider.esd_type"
+            id="Sylius\AdyenPlugin\Collector\ItemDetailLineCollectorInterface"
+            alias="sylius_adyen.collector.esd.item_detail_line"
         />
     </services>
 </container>
