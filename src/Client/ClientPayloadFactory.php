@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\PaymentDetails;
+use Adyen\Model\Checkout\PaymentReversalRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -232,6 +233,18 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $params = $this->versionResolver->appendVersionConstraints($params);
 
         return $params;
+    }
+
+    public function createForReversal(ArrayObject $options, PaymentInterface $payment): PaymentReversalRequest
+    {
+        $payload = [
+            'merchantAccount' => $options['merchantAccount'],
+            'reference' => $payment->getOrder()->getNumber(),
+        ];
+
+        $payload = $this->versionResolver->appendVersionConstraints($payload);
+
+        return new PaymentReversalRequest($payload);
     }
 
     private function filterArray(array $payload, array $keysWhitelist): array

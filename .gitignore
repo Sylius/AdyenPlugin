@@ -2,10 +2,10 @@
 /node_modules/
 /var/
 composer.lock
+.php-version
 
 /etc/build/*
 !/etc/build/.gitignore
-
 
 /.phpunit.result.cache
 /behat.yml

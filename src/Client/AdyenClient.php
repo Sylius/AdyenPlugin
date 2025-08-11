@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Client;
 use Adyen\Service\Checkout;
+use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Modification;
 use Adyen\Service\Recurring;
 use Payum\Core\Bridge\Spl\ArrayObject;
@@ -26,23 +27,15 @@ use Webmozart\Assert\Assert;
 
 final class AdyenClient implements AdyenClientInterface
 {
-    /** @var ArrayObject */
-    private $options;
+    private readonly ArrayObject $options;
 
-    /** @var Client */
-    private $transport;
-
-    /** @var ClientPayloadFactoryInterface */
-    private $clientPayloadFactory;
-
-    /** @var PaymentMethodsFilterInterface */
-    private $paymentMethodsFilter;
+    private readonly Client $transport;
 
     public function __construct(
         array $options,
         AdyenTransportFactoryInterface $adyenTransportFactory,
-        ClientPayloadFactoryInterface $clientPayloadFactory,
-        PaymentMethodsFilterInterface $paymentMethodsFilter,
+        private readonly ClientPayloadFactoryInterface $clientPayloadFactory,
+        private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
     ) {
         $options = ArrayObject::ensureArrayObject($options);
         $options->defaults(self::DEFAULT_OPTIONS);
@@ -57,8 +50,6 @@ final class AdyenClient implements AdyenClientInterface
 
         $this->options = $options;
         $this->transport = $adyenTransportFactory->create($options->getArrayCopy());
-        $this->clientPayloadFactory = $clientPayloadFactory;
-        $this->paymentMethodsFilter = $paymentMethodsFilter;
     }
 
     public function getAvailablePaymentMethods(
@@ -141,6 +132,16 @@ final class AdyenClient implements AdyenClientInterface
         return (array) $this->getModification()->refund($params);
     }
 
+    public function requestReversal(PaymentInterface $payment): array
+    {
+        $response = $this->getModificationsApi()->refundOrCancelPayment(
+            $payment->getDetails()['pspReference'],
+            $this->clientPayloadFactory->createForReversal($this->options, $payment),
+        );
+
+        return $response->toArray();
+    }
+
     public function getEnvironment(): string
     {
         return (string) $this->options['environment'];
@@ -149,6 +150,13 @@ final class AdyenClient implements AdyenClientInterface
     private function getCheckout(): Checkout
     {
         return new Checkout(
+            $this->transport,
+        );
+    }
+
+    private function getModificationsApi(): ModificationsApi
+    {
+        return new ModificationsApi(
             $this->transport,
         );
     }
