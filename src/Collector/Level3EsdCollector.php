@@ -17,16 +17,10 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 final class Level3EsdCollector implements EsdCollectorInterface
 {
-    private EsdCollectorInterface $level2Collector;
-
-    private ItemDetailLineCollectorInterface $itemDetailLineCollector;
-
     public function __construct(
-        EsdCollectorInterface $level2Collector,
-        ItemDetailLineCollectorInterface $itemDetailLineCollector,
+        private readonly EsdCollectorInterface $level2Collector,
+        private readonly ItemDetailLineCollectorInterface $itemDetailLineCollector,
     ) {
-        $this->level2Collector = $level2Collector;
-        $this->itemDetailLineCollector = $itemDetailLineCollector;
     }
 
     public function supports(string $merchantCategoryCode): bool

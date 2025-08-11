@@ -37,9 +37,8 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldNotIncludeEsdForNonUsdCurrency(): void
     {
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('EUR');
+
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('EUR');
 
         $collectors = [];
         $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
@@ -54,17 +53,11 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldNotIncludeEsdForNonUsAddress(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('CA');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('CA');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
         $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
@@ -79,29 +72,19 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldUseExplicitTypeCollector(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $expectedData = ['enhancedSchemeData.customerReference' => '123'];
 
         $airlineCollector = $this->createMock(EsdCollectorInterface::class);
-        $airlineCollector->expects($this->once())
-            ->method('collect')
-            ->with($order)
-            ->willReturn($expectedData);
+        $airlineCollector->expects($this->once())->method('collect')->with($order)->willReturn($expectedData);
 
         $level3Collector = $this->createMock(EsdCollectorInterface::class);
-        $level3Collector->expects($this->never())
-            ->method('collect');
+        $level3Collector->expects($this->never())->method('collect');
 
         $collectors = [
             'airline' => $airlineCollector,
@@ -123,35 +106,20 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldAutoDetectCollectorByMcc(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $expectedData = ['enhancedSchemeData.lodgingData.checkInDate' => '2025-01-01'];
 
         $lodgingCollector = $this->createMock(EsdCollectorInterface::class);
-        $lodgingCollector->expects($this->once())
-            ->method('supports')
-            ->with('7011')
-            ->willReturn(true);
-        $lodgingCollector->expects($this->once())
-            ->method('collect')
-            ->with($order)
-            ->willReturn($expectedData);
+        $lodgingCollector->expects($this->once())->method('supports')->with('7011')->willReturn(true);
+        $lodgingCollector->expects($this->once())->method('collect')->with($order)->willReturn($expectedData);
 
         $level3Collector = $this->createMock(EsdCollectorInterface::class);
-        $level3Collector->expects($this->any())
-            ->method('supports')
-            ->with('7011')
-            ->willReturn(false);
+        $level3Collector->expects($this->any())->method('supports')->with('7011')->willReturn(false);
 
         $collectors = [
             'lodging' => $lodgingCollector,
@@ -173,25 +141,16 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldFallbackToLevel3(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $expectedData = ['enhancedSchemeData.totalTaxAmount' => 100];
 
         $level3Collector = $this->createMock(EsdCollectorInterface::class);
-        $level3Collector->expects($this->once())
-            ->method('collect')
-            ->with($order)
-            ->willReturn($expectedData);
+        $level3Collector->expects($this->once())->method('collect')->with($order)->willReturn($expectedData);
 
         $collectors = [
             'level3' => $level3Collector,
@@ -209,17 +168,11 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldFallbackToLevel2(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $expectedData = ['enhancedSchemeData.customerReference' => 'test'];
 
@@ -245,17 +198,11 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldThrowExceptionWhenNoCollectorFound(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
         $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
@@ -271,17 +218,11 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldSupportCustomCurrencies(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('EUR');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('EUR');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
         $composite = new CompositeEsdCollector($collectors, ['USD', 'EUR'], ['US']);
@@ -294,17 +235,11 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldSupportCustomCountries(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('CA');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('CA');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
         $composite = new CompositeEsdCollector($collectors, ['USD'], ['US', 'CA']);
@@ -317,17 +252,11 @@ final class CompositeEsdCollectorTest extends TestCase
     public function testItShouldRejectUnsupportedCurrencyAndCountryCombination(): void
     {
         $address = $this->createMock(AddressInterface::class);
-        $address->expects($this->once())
-            ->method('getCountryCode')
-            ->willReturn('GB');
+        $address->expects($this->once())->method('getCountryCode')->willReturn('GB');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->once())
-            ->method('getBillingAddress')
-            ->willReturn($address);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
         $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);

@@ -29,7 +29,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 final class ConfigurationType extends AbstractType
 {
     public function __construct(
-        private EsdTypeProviderInterface $esdTypeProvider,
+        private readonly EsdTypeProviderInterface $esdTypeProvider,
     ) {
     }
 

@@ -57,17 +57,14 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         'wechatpayQR',
     ];
 
-    /** @var string[] */
-    private readonly array $esdSupportedCardBrands;
-
+    /** @param string[] $esdSupportedCardBrands */
     public function __construct(
         private readonly VersionResolverInterface $versionResolver,
         private readonly NormalizerInterface $normalizer,
         private readonly RequestStack $requestStack,
         private readonly CompositeEsdCollectorInterface $esdCollector,
-        array $esdSupportedCardBrands,
+        private readonly array $esdSupportedCardBrands,
     ) {
-        $this->esdSupportedCardBrands = $esdSupportedCardBrands;
     }
 
     public function createForAvailablePaymentMethods(

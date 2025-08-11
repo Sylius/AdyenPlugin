@@ -48,7 +48,6 @@ final class ClientPayloadFactoryTest extends TestCase
         $this->normalizer = $this->createMock(NormalizerInterface::class);
         $this->requestStack = $this->createMock(RequestStack::class);
 
-        // Create real ESD collector with Level 2 and Level 3 collectors
         $level2Collector = new Level2EsdCollector();
         $itemDetailLineCollector = new ItemDetailLineCollector();
         $this->esdCollector = new CompositeEsdCollector([
@@ -61,13 +60,13 @@ final class ClientPayloadFactoryTest extends TestCase
             $this->normalizer,
             $this->requestStack,
             $this->esdCollector,
-            ['visa', 'mc'], // Default supported card brands
+            ['visa', 'mc'],
         );
 
-        // Default version resolver behavior
         $this->versionResolver->expects($this->any())
             ->method('appendVersionConstraints')
-            ->willReturnArgument(0);
+            ->willReturnArgument(0)
+        ;
     }
 
     public function testItAddsEsdForCardPaymentsInSubmitPayment(): void
@@ -79,23 +78,13 @@ final class ClientPayloadFactoryTest extends TestCase
         ]);
 
         $billingAddress = $this->createMock(AddressInterface::class);
-        $billingAddress->expects($this->any())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $billingAddress->expects($this->any())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->any())
-            ->method('getTotal')
-            ->willReturn(10000);
-        $order->expects($this->any())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->any())
-            ->method('getNumber')
-            ->willReturn('ORD-001');
-        $order->expects($this->any())
-            ->method('getBillingAddress')
-            ->willReturn($billingAddress);
+        $order->expects($this->any())->method('getTotal')->willReturn(10000);
+        $order->expects($this->any())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->any())->method('getNumber')->willReturn('000001');
+        $order->expects($this->any())->method('getBillingAddress')->willReturn($billingAddress);
 
         $receivedPayload = [
             'paymentMethod' => [
@@ -104,30 +93,15 @@ final class ClientPayloadFactoryTest extends TestCase
             ],
         ];
 
-        // Add more order details for the real collector
         $customer = $this->createMock(CustomerInterface::class);
-        $customer->expects($this->any())
-            ->method('getId')
-            ->willReturn(123);
+        $customer->expects($this->any())->method('getId')->willReturn(123);
 
-        $order->expects($this->any())
-            ->method('getCustomer')
-            ->willReturn($customer);
-        $order->expects($this->any())
-            ->method('getTaxTotal')
-            ->willReturn(100);
-        $order->expects($this->any())
-            ->method('getShippingAddress')
-            ->willReturn(null);
-        $order->expects($this->any())
-            ->method('getItems')
-            ->willReturn(new ArrayCollection());
-        $order->expects($this->any())
-            ->method('getCreatedAt')
-            ->willReturn(new \DateTime('2023-01-01'));
-        $order->expects($this->any())
-            ->method('getShippingTotal')
-            ->willReturn(500);
+        $order->expects($this->any())->method('getCustomer')->willReturn($customer);
+        $order->expects($this->any())->method('getTaxTotal')->willReturn(100);
+        $order->expects($this->any())->method('getShippingAddress')->willReturn(null);
+        $order->expects($this->any())->method('getItems')->willReturn(new ArrayCollection());
+        $order->expects($this->any())->method('getCreatedAt')->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->any())->method('getShippingTotal')->willReturn(500);
 
         $result = $this->factory->createForSubmitPayment(
             $options,
@@ -149,31 +123,19 @@ final class ClientPayloadFactoryTest extends TestCase
         ]);
 
         $billingAddress = $this->createMock(AddressInterface::class);
-        $billingAddress->expects($this->any())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $billingAddress->expects($this->any())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->any())
-            ->method('getTotal')
-            ->willReturn(10000);
-        $order->expects($this->any())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->any())
-            ->method('getNumber')
-            ->willReturn('ORD-002');
-        $order->expects($this->any())
-            ->method('getBillingAddress')
-            ->willReturn($billingAddress);
+        $order->expects($this->any())->method('getTotal')->willReturn(10000);
+        $order->expects($this->any())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->any())->method('getNumber')->willReturn('000002');
+        $order->expects($this->any())->method('getBillingAddress')->willReturn($billingAddress);
 
         $receivedPayload = [
             'paymentMethod' => [
                 'type' => 'ideal',
             ],
         ];
-
-        // No ESD data should be added for non-card payments
 
         $result = $this->factory->createForSubmitPayment(
             $options,
@@ -193,23 +155,13 @@ final class ClientPayloadFactoryTest extends TestCase
         ]);
 
         $billingAddress = $this->createMock(AddressInterface::class);
-        $billingAddress->expects($this->any())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $billingAddress->expects($this->any())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->any())
-            ->method('getTotal')
-            ->willReturn(10000);
-        $order->expects($this->any())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->any())
-            ->method('getNumber')
-            ->willReturn('ORD-003');
-        $order->expects($this->any())
-            ->method('getBillingAddress')
-            ->willReturn($billingAddress);
+        $order->expects($this->any())->method('getTotal')->willReturn(10000);
+        $order->expects($this->any())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->any())->method('getNumber')->willReturn('000003');
+        $order->expects($this->any())->method('getBillingAddress')->willReturn($billingAddress);
 
         $receivedPayload = [
             'paymentMethod' => [
@@ -217,8 +169,6 @@ final class ClientPayloadFactoryTest extends TestCase
                 'brand' => 'visa',
             ],
         ];
-
-        // No ESD data should be added for non-card payments
 
         $result = $this->factory->createForSubmitPayment(
             $options,
@@ -240,57 +190,32 @@ final class ClientPayloadFactoryTest extends TestCase
         $order = $this->createMock(OrderInterface::class);
 
         $payment = $this->createMock(PaymentInterface::class);
-        $payment->expects($this->once())
-            ->method('getAmount')
-            ->willReturn(10000);
-        $payment->expects($this->once())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $payment->expects($this->any())
+        $payment->expects($this->once())->method('getAmount')->willReturn(10000);
+        $payment->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $payment
+            ->expects($this->any())
             ->method('getDetails')
             ->willReturn([
                 'pspReference' => 'PSP123',
                 'paymentMethod' => ['brand' => 'mc'],
-            ]);
-        $payment->expects($this->once())
-            ->method('getOrder')
-            ->willReturn($order);
+            ])
+        ;
+        $payment->expects($this->once())->method('getOrder')->willReturn($order);
 
-        // Add order details for the real collector
         $customer = $this->createMock(CustomerInterface::class);
-        $customer->expects($this->any())
-            ->method('getId')
-            ->willReturn(456);
+        $customer->expects($this->any())->method('getId')->willReturn(456);
 
-        $order->expects($this->any())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->any())
-            ->method('getCustomer')
-            ->willReturn($customer);
-        $order->expects($this->any())
-            ->method('getTaxTotal')
-            ->willReturn(200);
-        $order->expects($this->any())
-            ->method('getShippingAddress')
-            ->willReturn(null);
-        $order->expects($this->any())
-            ->method('getItems')
-            ->willReturn(new ArrayCollection());
-        $order->expects($this->any())
-            ->method('getCreatedAt')
-            ->willReturn(new \DateTime('2023-01-01'));
-        $order->expects($this->any())
-            ->method('getShippingTotal')
-            ->willReturn(500);
+        $order->expects($this->any())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->any())->method('getCustomer')->willReturn($customer);
+        $order->expects($this->any())->method('getTaxTotal')->willReturn(200);
+        $order->expects($this->any())->method('getShippingAddress')->willReturn(null);
+        $order->expects($this->any())->method('getItems')->willReturn(new ArrayCollection());
+        $order->expects($this->any())->method('getCreatedAt')->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->any())->method('getShippingTotal')->willReturn(500);
 
         $billingAddress = $this->createMock(AddressInterface::class);
-        $billingAddress->expects($this->any())
-            ->method('getCountryCode')
-            ->willReturn('US');
-        $order->expects($this->any())
-            ->method('getBillingAddress')
-            ->willReturn($billingAddress);
+        $billingAddress->expects($this->any())->method('getCountryCode')->willReturn('US');
+        $order->expects($this->any())->method('getBillingAddress')->willReturn($billingAddress);
 
         $result = $this->factory->createForCapture($options, $payment);
 
@@ -307,20 +232,12 @@ final class ClientPayloadFactoryTest extends TestCase
         ]);
 
         $billingAddress = $this->createMock(AddressInterface::class);
-        $billingAddress->expects($this->any())
-            ->method('getCountryCode')
-            ->willReturn('US');
+        $billingAddress->expects($this->any())->method('getCountryCode')->willReturn('US');
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->any())
-            ->method('getTotal')
-            ->willReturn(10000);
-        $order->expects($this->any())
-            ->method('getCurrencyCode')
-            ->willReturn('USD');
-        $order->expects($this->any())
-            ->method('getNumber')
-            ->willReturn('ORD-004');
+        $order->expects($this->any())->method('getTotal')->willReturn(10000);
+        $order->expects($this->any())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->any())->method('getNumber')->willReturn('000004');
         $order->expects($this->any())
             ->method('getBillingAddress')
             ->willReturn($billingAddress);
@@ -328,11 +245,9 @@ final class ClientPayloadFactoryTest extends TestCase
         $receivedPayload = [
             'paymentMethod' => [
                 'type' => 'scheme',
-                'brand' => 'amex', // American Express - not Visa/Mastercard
+                'brand' => 'amex',
             ],
         ];
-
-        // No ESD data should be added for non-card payments
 
         $result = $this->factory->createForSubmitPayment(
             $options,

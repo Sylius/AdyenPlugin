@@ -21,7 +21,6 @@ sylius_ui:
                     template: '@SyliusAdyenPlugin/Admin/ProductVariant/_commodityCode.html.twig'
                     priority: 0
 
-
         sylius.admin.product.tab_details:
             blocks:
                 commodity_code:

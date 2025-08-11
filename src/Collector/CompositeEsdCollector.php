@@ -20,22 +20,17 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
     /** @var array<string, EsdCollectorInterface> */
     private array $collectors;
 
-    /** @var array<string> */
-    private array $supportedCurrencies;
-
-    /** @var array<string> */
-    private array $supportedCountries;
-
     /**
      * @param iterable<string, EsdCollectorInterface> $collectors
      * @param array<string> $supportedCurrencies
      * @param array<string> $supportedCountries
      */
-    public function __construct(iterable $collectors, array $supportedCurrencies, array $supportedCountries)
-    {
+    public function __construct(
+        iterable $collectors,
+        private readonly array $supportedCurrencies,
+        private readonly array $supportedCountries,
+    ) {
         $this->collectors = $collectors instanceof \Traversable ? iterator_to_array($collectors) : $collectors;
-        $this->supportedCurrencies = $supportedCurrencies;
-        $this->supportedCountries = $supportedCountries;
     }
 
     public function collect(OrderInterface $order, array $gatewayConfig): array
@@ -44,9 +39,7 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
             return [];
         }
 
-        $collector = $this->findCollector($gatewayConfig);
-
-        return $collector->collect($order);
+        return $this->findCollector($gatewayConfig)->collect($order);
     }
 
     public function shouldIncludeEsd(OrderInterface $order, array $gatewayConfig): bool

@@ -49,20 +49,11 @@ final class Level3EsdCollectorTest extends TestCase
         $orderItem = $this->createMock(OrderItemInterface::class);
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getItems')
-            ->willReturn(new ArrayCollection([$orderItem]));
-        $order->expects($this->once())
-            ->method('getCreatedAt')
-            ->willReturn(new \DateTime('2023-01-01'));
-        $order->expects($this->once())
-            ->method('getShippingTotal')
-            ->willReturn(500);
-        $order->expects($this->once())
-            ->method('getShippingAddress')
-            ->willReturn(null);
+        $order->expects($this->once())->method('getItems')->willReturn(new ArrayCollection([$orderItem]));
+        $order->expects($this->once())->method('getCreatedAt')->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->once())->method('getShippingTotal')->willReturn(500);
+        $order->expects($this->once())->method('getShippingAddress')->willReturn(null);
 
-        // Set up Level2 collector expectations
         $this->level2Collector->expects($this->once())
             ->method('collect')
             ->with($order)
@@ -71,7 +62,6 @@ final class Level3EsdCollectorTest extends TestCase
                 'enhancedSchemeData.totalTaxAmount' => 100,
             ]);
 
-        // Set up ItemDetailLineCollector expectations
         $this->itemDetailLineCollector->expects($this->once())
             ->method('collect')
             ->with($orderItem, 1)
@@ -102,20 +92,11 @@ final class Level3EsdCollectorTest extends TestCase
         $orderItem = $this->createMock(OrderItemInterface::class);
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getItems')
-            ->willReturn(new ArrayCollection([$orderItem]));
-        $order->expects($this->once())
-            ->method('getCreatedAt')
-            ->willReturn(new \DateTime('2023-01-01'));
-        $order->expects($this->once())
-            ->method('getShippingTotal')
-            ->willReturn(500);
-        $order->expects($this->once())
-            ->method('getShippingAddress')
-            ->willReturn(null);
+        $order->expects($this->once())->method('getItems')->willReturn(new ArrayCollection([$orderItem]));
+        $order->expects($this->once())->method('getCreatedAt')->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->once())->method('getShippingTotal')->willReturn(500);
+        $order->expects($this->once())->method('getShippingAddress')->willReturn(null);
 
-        // Set up Level2 collector expectations
         $this->level2Collector->expects($this->once())
             ->method('collect')
             ->with($order)
@@ -124,7 +105,6 @@ final class Level3EsdCollectorTest extends TestCase
                 'enhancedSchemeData.totalTaxAmount' => 0,
             ]);
 
-        // Set up ItemDetailLineCollector expectations
         $this->itemDetailLineCollector->expects($this->once())
             ->method('collect')
             ->with($orderItem, 1)
@@ -148,20 +128,11 @@ final class Level3EsdCollectorTest extends TestCase
         $orderItem = $this->createMock(OrderItemInterface::class);
 
         $order = $this->createMock(OrderInterface::class);
-        $order->expects($this->once())
-            ->method('getItems')
-            ->willReturn(new ArrayCollection([$orderItem]));
-        $order->expects($this->once())
-            ->method('getCreatedAt')
-            ->willReturn(new \DateTime('2023-01-01'));
-        $order->expects($this->once())
-            ->method('getShippingTotal')
-            ->willReturn(500);
-        $order->expects($this->once())
-            ->method('getShippingAddress')
-            ->willReturn(null);
+        $order->expects($this->once())->method('getItems')->willReturn(new ArrayCollection([$orderItem]));
+        $order->expects($this->once())->method('getCreatedAt')->willReturn(new \DateTime('2023-01-01'));
+        $order->expects($this->once())->method('getShippingTotal')->willReturn(500);
+        $order->expects($this->once())->method('getShippingAddress')->willReturn(null);
 
-        // Set up Level2 collector expectations
         $this->level2Collector->expects($this->once())
             ->method('collect')
             ->with($order)
@@ -170,7 +141,6 @@ final class Level3EsdCollectorTest extends TestCase
                 'enhancedSchemeData.totalTaxAmount' => 0,
             ]);
 
-        // Set up ItemDetailLineCollector expectations
         $this->itemDetailLineCollector->expects($this->once())
             ->method('collect')
             ->with($orderItem, 1)
