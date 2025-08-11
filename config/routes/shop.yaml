@@ -1,6 +1,2 @@
-sylius_adyen_shop_process_notifications:
-    path: /payment/adyen/{code}/notifications
-    controller: sylius_adyen.controller.shop.process_notifications
-
 sylius_adyen_localized:
     resource: "@SyliusAdyenPlugin/config/routes/shop_localized.yaml"

@@ -7,3 +7,7 @@ sylius_adyen_shop:
 sylius_adyen_admin:
     prefix: '/%sylius_admin.path_name%'
     resource: "@SyliusAdyenPlugin/config/routes/admin.yaml"
+
+sylius_adyen_shop_process_notifications:
+    path: /payment/adyen/{code}/notifications
+    controller: sylius_adyen.controller.shop.process_notifications
