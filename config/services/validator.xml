@@ -22,5 +22,11 @@
         >
             <argument type="service" id=".inner"/>
         </service>
+
+        <service
+            class="Sylius\AdyenPlugin\Validator\EsdValidator"
+            id="sylius_adyen.validator.esd"
+        >
+        </service>
     </services>
 </container>

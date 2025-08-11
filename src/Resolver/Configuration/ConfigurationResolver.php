@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Resolver\Configuration;
 
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Model\EsdTypes;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 
 class ConfigurationResolver
@@ -31,6 +32,9 @@ class ConfigurationResolver
             'adyen' => 0,
             'merchantAccount' => '',
             'liveEndpointUrlPrefix' => '',
+            'esdEnabled' => false,
+            'esdType' => EsdTypes::TYPE_LEVEL3,
+            'merchantCategoryCode' => '',
         ]);
         $resolver->setRequired($resolver->getDefinedOptions());
 

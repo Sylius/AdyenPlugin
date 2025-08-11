@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults public="true"/>
+
+        <service
+            id="sylius_adyen.collector.esd.level2"
+            class="Sylius\AdyenPlugin\Collector\Level2EsdCollector"
+        >
+            <tag name="sylius_adyen.esd.collector" priority="0" type="level2" />
+        </service>
+
+        <service
+            id="sylius_adyen.collector.esd.level3"
+            class="Sylius\AdyenPlugin\Collector\Level3EsdCollector"
+        >
+            <argument type="service" id="sylius_adyen.collector.esd.level2" />
+            <tag name="sylius_adyen.esd.collector" priority="100" type="level3" />
+        </service>
+
+        <service
+            id="sylius_adyen.collector.esd.composite"
+            class="Sylius\AdyenPlugin\Collector\CompositeEsdCollector"
+        >
+            <argument type="tagged_iterator" tag="sylius_adyen.esd.collector" index-by="type" />
+            <argument>%sylius_adyen.esd.supported_currencies%</argument>
+            <argument>%sylius_adyen.esd.supported_countries%</argument>
+        </service>
+
+        <service
+            id="Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface"
+            alias="sylius_adyen.collector.esd.composite"
+        />
+    </services>
+</container>

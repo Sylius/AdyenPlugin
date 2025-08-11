@@ -59,6 +59,13 @@
             <tag name="sylius_adyen.processor.payment_response" priority="-100"/>
         </service>
 
+        <service
+            class="Sylius\AdyenPlugin\Processor\EsdResponseProcessor"
+            id="sylius_adyen.processor.esd_response"
+        >
+            <argument type="service" id="logger"/>
+        </service>
+
     </services>
 </container>
 

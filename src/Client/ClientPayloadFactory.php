@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Payum\Core\Bridge\Spl\ArrayObject;
+use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Normalizer\AbstractPaymentNormalizer;
 use Sylius\AdyenPlugin\Resolver\Version\VersionResolverInterface;
@@ -26,15 +27,6 @@ use Webmozart\Assert\Assert;
 
 final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 {
-    /** @var VersionResolverInterface */
-    private $versionResolver;
-
-    /** @var NormalizerInterface */
-    private $normalizer;
-
-    /** @var RequestStack */
-    private $requestStack;
-
     /** @var string[] */
     private $allowedMethodsList = [
         'ideal',
@@ -66,13 +58,11 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
     ];
 
     public function __construct(
-        VersionResolverInterface $versionResolver,
-        NormalizerInterface $normalizer,
-        RequestStack $requestStack,
+        private readonly VersionResolverInterface $versionResolver,
+        private readonly NormalizerInterface $normalizer,
+        private readonly RequestStack $requestStack,
+        private readonly CompositeEsdCollectorInterface $esdCollector,
     ) {
-        $this->versionResolver = $versionResolver;
-        $this->normalizer = $normalizer;
-        $this->requestStack = $requestStack;
     }
 
     public function createForAvailablePaymentMethods(
@@ -157,6 +147,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
         $payload = $payload + $this->getOrderDataForPayment($order);
+        $payload = $this->addEsdIfApplicable($payload, $options, $order);
 
         return $payload;
     }
@@ -175,6 +166,11 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ];
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
+
+        $order = $payment->getOrder();
+        if ($order instanceof OrderInterface) {
+            $payload = $this->addEsdIfApplicable($payload, $options, $order, $payment);
+        }
 
         return $payload;
     }
@@ -321,6 +317,47 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload['recurringProcessingModel'] = 'CardOnFile';
         $payload['shopperInteraction'] = 'Ecommerce';
+
+        return $payload;
+    }
+
+    private function addEsdIfApplicable(
+        array $payload,
+        ArrayObject $options,
+        OrderInterface $order,
+        ?PaymentInterface $payment = null,
+    ): array {
+        $gatewayConfig = $options->getArrayCopy();
+
+        if (!isset($gatewayConfig['esdEnabled']) || !$gatewayConfig['esdEnabled']) {
+            return $payload;
+        }
+
+        // ESD is only applicable for Visa and Mastercard card payments
+        if (isset($payload['paymentMethod'])) {
+            $paymentMethodType = $payload['paymentMethod']['type'] ?? '';
+            $cardBrand = $payload['paymentMethod']['brand'] ?? '';
+
+            // Only proceed if it's a card payment (scheme) and the brand is Visa or Mastercard
+            if ($paymentMethodType !== 'scheme' || !in_array($cardBrand, ['visa', 'mc'], true)) {
+                return $payload;
+            }
+        } elseif ($payment !== null) {
+            // For capture requests, check the payment details for card brand info
+            $paymentDetails = $payment->getDetails();
+            $cardBrand = $paymentDetails['additionalData']['cardBin'] ?? $paymentDetails['paymentMethod']['brand'] ?? '';
+
+            if (!in_array($cardBrand, ['visa', 'mc'], true)) {
+                return $payload;
+            }
+        } else {
+            return $payload;
+        }
+
+        $esd = $this->esdCollector->collect($order, $gatewayConfig);
+        if (!empty($esd)) {
+            $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], $esd);
+        }
 
         return $payload;
     }

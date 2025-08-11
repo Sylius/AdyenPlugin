@@ -11,6 +11,19 @@ sylius_adyen:
     auth_user: Webhook authentication username
     auth_password: Webhook authentication password
     client_key: Client key
+    esd_enabled: Enable Enhanced Scheme Data
+    esd_enabled_help: Enable Enhanced Scheme Data to reduce interchange fees by up to 1% for US domestic transactions
+    esd_type: ESD Type
+    esd_type_help: Select the appropriate Enhanced Scheme Data type for your business
+    esd_type_level2: Level 2 Data
+    esd_type_level3: Level 3 Data
+    esd_type_airline: Airline Data
+    esd_type_lodging: Lodging Data
+    esd_type_car_rental: Car Rental Data
+    merchant_category_code: Merchant Category Code (MCC)
+    merchant_category_code_help: Your 4-digit MCC code to automatically determine ESD type
+    esd_auto_detect: Auto-detect ESD Type
+    esd_auto_detect_help: Automatically determine ESD type based on merchant category code
     notification_endpoint_description: In order to configure Adyen payment, head to merchant panel and use following URL as target
     notification_endpoint: Notifications endpoint
     payment_failed: Payment failed, try again

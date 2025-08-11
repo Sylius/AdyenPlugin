@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Form\Type;
 
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Model\EsdTypes;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentials;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -101,6 +103,29 @@ final class ConfigurationType extends AbstractType
             ])
             ->add(AdyenClientProviderInterface::FACTORY_NAME, HiddenType::class, [
                 'data' => true,
+            ])
+            ->add('esdEnabled', CheckboxType::class, [
+                'label' => 'sylius_adyen.ui.esd_enabled',
+                'help' => 'sylius_adyen.ui.esd_enabled_help',
+                'required' => false,
+            ])
+            ->add('esdType', ChoiceType::class, [
+                'label' => 'sylius_adyen.ui.esd_type',
+                'help' => 'sylius_adyen.ui.esd_type_help',
+                'choices' => [
+                    'sylius_adyen.ui.esd_type_level2' => EsdTypes::TYPE_LEVEL2,
+                    'sylius_adyen.ui.esd_type_level3' => EsdTypes::TYPE_LEVEL3,
+                    'sylius_adyen.ui.esd_type_airline' => EsdTypes::TYPE_AIRLINE,
+                    'sylius_adyen.ui.esd_type_lodging' => EsdTypes::TYPE_LODGING,
+                    'sylius_adyen.ui.esd_type_car_rental' => EsdTypes::TYPE_CAR_RENTAL,
+                    'sylius_adyen.ui.esd_type_temporary_services' => EsdTypes::TYPE_TEMPORARY_SERVICES,
+                ],
+                'required' => false,
+            ])
+            ->add('merchantCategoryCode', TextType::class, [
+                'label' => 'sylius_adyen.ui.merchant_category_code',
+                'help' => 'sylius_adyen.ui.merchant_category_code_help',
+                'required' => false,
             ]);
     }
 
