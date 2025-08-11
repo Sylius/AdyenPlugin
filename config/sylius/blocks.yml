@@ -1,16 +1,29 @@
 sylius_ui:
-  events:
-    sylius.shop.layout.stylesheets:
-      blocks:
-        adyen:
-          template: '@SyliusAdyenPlugin/Shop/_stylesheets.html.twig'
-    sylius.shop.layout.javascripts:
-      blocks:
-        adyen:
-          template: '@SyliusAdyenPlugin/Shop/_javascripts.html.twig'
+    events:
+        sylius.shop.layout.stylesheets:
+            blocks:
+                adyen:
+                    template: '@SyliusAdyenPlugin/Shop/_stylesheets.html.twig'
+        sylius.shop.layout.javascripts:
+            blocks:
+                adyen:
+                    template: '@SyliusAdyenPlugin/Shop/_javascripts.html.twig'
 
-    sylius.admin.update:
-      blocks:
-        adyen_description:
-          priority: 11
-          template: '@SyliusAdyenPlugin/Admin/_description.html.twig'
+        sylius.admin.update:
+            blocks:
+                adyen_description:
+                    priority: 11
+                    template: '@SyliusAdyenPlugin/Admin/_description.html.twig'
+
+        sylius.admin.product_variant.tab_details:
+            blocks:
+                commodity_code:
+                    template: '@SyliusAdyenPlugin/Admin/ProductVariant/_commodityCode.html.twig'
+                    priority: 0
+
+
+        sylius.admin.product.tab_details:
+            blocks:
+                commodity_code:
+                    template: '@SyliusAdyenPlugin/Admin/Product/_commodityCode.html.twig'
+                    priority: 0

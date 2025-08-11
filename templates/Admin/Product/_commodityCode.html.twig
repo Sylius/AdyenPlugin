@@ -1,0 +1,9 @@
+{% set product = form.vars.value %}
+
+{% if product.simple %}
+    <div class="ui hidden divider"></div>
+    <h4 class="ui top attached header">{{ 'sylius_adyen.ui.esd'|trans }}</h4>
+    <div class="ui attached segment">
+        {{ form_row(form.variant.commodityCode) }}
+    </div>
+{% endif %}

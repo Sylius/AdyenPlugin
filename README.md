@@ -67,6 +67,8 @@ We have a 70-person team of experts: business analysts and eCommerce consultants
 ----
 Elevate your Sylius store's payment processing capabilities with the Adyen Plugin. Developed in collaboration with the Adyen Team, this plugin seamlessly integrates Sylius with Adyen, a globally recognized payment processing company. By enabling a wide range of payment methods, this plugin offers a comprehensive solution for your payment gateway needs. It supports all methods available to drop-in.
 
+**Enhanced Scheme Data (ESD) Support:** Reduce interchange fees on US Visa and Mastercard transactions with comprehensive Level 2 and Level 3 ESD data transmission, including commodity codes and detailed line item information.
+
 ![Screenshot showing payment methods show in shop](doc/choose-payment.png)
 
 ![Screenshot showing payment method config in admin](doc/payment-method-form.png)
@@ -108,6 +110,11 @@ It supports all methods available to [drop-in](https://docs.adyen.com/online-pay
 | **Order management** |
 | [Capture](https://docs.adyen.com/issuing/payment-stages#captures) | Yes |
 | [Partial refunds](https://docs.adyen.com/issuing/payment-stages#refunds) | Yes |
+| **Enhanced Scheme Data (ESD)** |
+| Level 2 ESD data | Yes |
+| Level 3 ESD data with line items | Yes |
+| Commodity code support | Yes |
+| Reduced interchange fees (US Visa/MC) | Yes |
 
 
 # Installation

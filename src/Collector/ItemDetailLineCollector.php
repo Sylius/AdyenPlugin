@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Collector;
 
+use Sylius\AdyenPlugin\Entity\CommodityCodeAwareInterface;
 use Sylius\Component\Core\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductInterface;
@@ -23,6 +24,7 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
     public function collect(OrderItemInterface $orderItem, int $lineNumber): array
     {
         $data = [];
+        /** @var ProductVariantInterface|CommodityCodeAwareInterface $variant */
         $variant = $orderItem->getVariant();
         $product = $variant ? $variant->getProduct() : null;
 
@@ -33,7 +35,7 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitPrice'] = (string) $orderItem->getUnitPrice();
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.totalAmount'] = (string) $orderItem->getTotal();
 
-        $commodityCode = $this->getCommodityCode($variant, $product);
+        $commodityCode = $variant->getCommodityCode();
         if ($commodityCode) {
             $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.commodityCode'] = $commodityCode;
         }
@@ -47,24 +49,5 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
         }
 
         return $data;
-    }
-
-    private function getCommodityCode(?ProductVariantInterface $variant, ?ProductInterface $product): ?string
-    {
-        if ($variant && method_exists($variant, 'getCommodityCode')) {
-            $commodityCode = $variant->getCommodityCode();
-            if ($commodityCode) {
-                return substr($commodityCode, 0, 12);
-            }
-        }
-
-        if ($product && method_exists($product, 'getCommodityCode')) {
-            $commodityCode = $product->getCommodityCode();
-            if ($commodityCode) {
-                return substr($commodityCode, 0, 12);
-            }
-        }
-
-        return null;
     }
 }

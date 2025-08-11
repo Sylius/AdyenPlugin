@@ -29,5 +29,12 @@
         >
             <tag name="sylius.grid_filter" type="adyen_log_level" form_type="Sylius\AdyenPlugin\Form\Type\LoggerLevelFilterType" />
         </service>
+
+        <service
+            id="sylius_adyen.form.extension.product_variant"
+            class="Sylius\AdyenPlugin\Form\Extension\ProductVariantTypeExtension"
+        >
+            <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductVariantType" />
+        </service>
     </services>
 </container>
