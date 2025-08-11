@@ -14,8 +14,8 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Form\Type;
 
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
-use Sylius\AdyenPlugin\Model\EsdTypes;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\EsdTypeProviderInterface;
 use Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentials;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
@@ -28,6 +28,11 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class ConfigurationType extends AbstractType
 {
+    public function __construct(
+        private EsdTypeProviderInterface $esdTypeProvider,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -112,14 +117,7 @@ final class ConfigurationType extends AbstractType
             ->add('esdType', ChoiceType::class, [
                 'label' => 'sylius_adyen.ui.esd_type',
                 'help' => 'sylius_adyen.ui.esd_type_help',
-                'choices' => [
-                    'sylius_adyen.ui.esd_type_level2' => EsdTypes::TYPE_LEVEL2,
-                    'sylius_adyen.ui.esd_type_level3' => EsdTypes::TYPE_LEVEL3,
-                    'sylius_adyen.ui.esd_type_airline' => EsdTypes::TYPE_AIRLINE,
-                    'sylius_adyen.ui.esd_type_lodging' => EsdTypes::TYPE_LODGING,
-                    'sylius_adyen.ui.esd_type_car_rental' => EsdTypes::TYPE_CAR_RENTAL,
-                    'sylius_adyen.ui.esd_type_temporary_services' => EsdTypes::TYPE_TEMPORARY_SERVICES,
-                ],
+                'choices' => $this->esdTypeProvider->getAvailableTypes(),
                 'required' => false,
             ])
             ->add('merchantCategoryCode', TextType::class, [

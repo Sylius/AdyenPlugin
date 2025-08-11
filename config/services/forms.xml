@@ -5,9 +5,10 @@
         <defaults public="true"/>
 
         <service
-                class="Sylius\AdyenPlugin\Form\Type\ConfigurationType"
-                id="sylius_adyen.form.type.configuration"
+            id="sylius_adyen.form.type.configuration"
+            class="Sylius\AdyenPlugin\Form\Type\ConfigurationType"
         >
+            <argument type="service" id="sylius_adyen.provider.esd_type"/>
             <tag name="form.type"/>
             <tag name="sylius.gateway_configuration_type" type="adyen" label="sylius_adyen.ui.ayden_gateway_label"/>
         </service>
