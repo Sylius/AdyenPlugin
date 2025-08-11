@@ -16,7 +16,6 @@ namespace Sylius\AdyenPlugin\Collector;
 use Sylius\AdyenPlugin\Entity\CommodityCodeAwareInterface;
 use Sylius\Component\Core\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
-use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Model\ProductVariantInterface;
 
 final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
@@ -26,17 +25,17 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
         $data = [];
         /** @var ProductVariantInterface|CommodityCodeAwareInterface $variant */
         $variant = $orderItem->getVariant();
-        $product = $variant ? $variant->getProduct() : null;
+        $product = $variant !== null ? $variant->getProduct() : null;
 
-        $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.productCode'] = $variant ? $variant->getCode() : ($product ? $product->getCode() : 'UNKNOWN');
+        $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.productCode'] = $variant !== null ? $variant->getCode() : ($product !== null ? $product->getCode() : 'UNKNOWN');
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.description'] = substr((string) $orderItem->getProductName(), 0, 26);
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.quantity'] = (string) $orderItem->getQuantity();
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitOfMeasure'] = 'PCS';
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitPrice'] = (string) $orderItem->getUnitPrice();
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.totalAmount'] = (string) $orderItem->getTotal();
 
-        $commodityCode = $variant->getCommodityCode();
-        if ($commodityCode) {
+        $commodityCode = $variant instanceof \Sylius\AdyenPlugin\Entity\CommodityCodeAwareInterface ? $variant->getCommodityCode() : null;
+        if ($commodityCode !== null) {
             $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.commodityCode'] = $commodityCode;
         }
 

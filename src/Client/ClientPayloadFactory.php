@@ -331,7 +331,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
     ): array {
         $gatewayConfig = $options->getArrayCopy();
 
-        if (!isset($gatewayConfig['esdEnabled']) || !$gatewayConfig['esdEnabled']) {
+        if (!isset($gatewayConfig['esdEnabled']) || $gatewayConfig['esdEnabled'] !== true) {
             return $payload;
         }
 
@@ -340,7 +340,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         }
 
         $esd = $this->esdCollector->collect($order, $gatewayConfig);
-        if (empty($esd)) {
+        if ($esd === []) {
             return $payload;
         }
 

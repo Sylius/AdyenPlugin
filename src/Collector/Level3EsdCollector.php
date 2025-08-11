@@ -35,11 +35,11 @@ final class Level3EsdCollector implements EsdCollectorInterface
         $data = $this->level2Collector->collect($order);
 
         $shippingAddress = $order->getShippingAddress();
-        if ($shippingAddress) {
+        if ($shippingAddress !== null) {
             $data['enhancedSchemeData.destinationPostalCode'] = (string) $shippingAddress->getPostcode();
             $data['enhancedSchemeData.destinationCountryCode'] = (string) $shippingAddress->getCountryCode();
 
-            if ($shippingAddress->getProvinceCode()) {
+            if ($shippingAddress->getProvinceCode() !== null) {
                 $data['enhancedSchemeData.destinationStateProvinceCode'] = $shippingAddress->getProvinceCode();
             }
         }

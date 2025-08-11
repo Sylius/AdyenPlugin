@@ -54,7 +54,7 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
         }
 
         $billingAddress = $order->getBillingAddress();
-        if (!$billingAddress || !in_array($billingAddress->getCountryCode(), $this->supportedCountries, true)) {
+        if ($billingAddress === null || !in_array($billingAddress->getCountryCode(), $this->supportedCountries, true)) {
             return false;
         }
 

@@ -29,7 +29,7 @@ final class Level2EsdCollector implements EsdCollectorInterface
         $customer = $order->getCustomer();
 
         return [
-            'enhancedSchemeData.customerReference' => $customer ? (string) $customer->getId() : (string) $order->getId(),
+            'enhancedSchemeData.customerReference' => $customer !== null ? (string) $customer->getId() : (string) $order->getId(),
             'enhancedSchemeData.totalTaxAmount' => $order->getTaxTotal(),
         ];
     }
