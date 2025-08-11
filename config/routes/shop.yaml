@@ -4,6 +4,3 @@ sylius_adyen_shop_process_notifications:
 
 sylius_adyen_localized:
     resource: "@SyliusAdyenPlugin/config/routes/shop_localized.yaml"
-    prefix: /{_locale}
-    requirements:
-        _locale: ^[A-Za-z]{2,4}(_([A-Za-z]{4}|[0-9]{3}))?(_([A-Za-z]{2}|[0-9]{3}))?$
