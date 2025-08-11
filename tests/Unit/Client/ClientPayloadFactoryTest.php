@@ -61,6 +61,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $this->normalizer,
             $this->requestStack,
             $this->esdCollector,
+            ['visa', 'mc'], // Default supported card brands
         );
 
         // Default version resolver behavior

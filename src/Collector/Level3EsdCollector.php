@@ -18,6 +18,7 @@ use Sylius\Component\Core\Model\OrderInterface;
 final class Level3EsdCollector implements EsdCollectorInterface
 {
     private EsdCollectorInterface $level2Collector;
+
     private ItemDetailLineCollectorInterface $itemDetailLineCollector;
 
     public function __construct(

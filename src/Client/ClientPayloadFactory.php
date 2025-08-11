@@ -28,7 +28,7 @@ use Webmozart\Assert\Assert;
 final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 {
     /** @var string[] */
-    private $allowedMethodsList = [
+    private array $allowedMethodsList = [
         'ideal',
         'paypal',
         'directEbanking', // Klarna - Sofort
@@ -57,12 +57,17 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         'wechatpayQR',
     ];
 
+    /** @var string[] */
+    private readonly array $esdSupportedCardBrands;
+
     public function __construct(
         private readonly VersionResolverInterface $versionResolver,
         private readonly NormalizerInterface $normalizer,
         private readonly RequestStack $requestStack,
         private readonly CompositeEsdCollectorInterface $esdCollector,
+        array $esdSupportedCardBrands,
     ) {
+        $this->esdSupportedCardBrands = $esdSupportedCardBrands;
     }
 
     public function createForAvailablePaymentMethods(
@@ -333,32 +338,42 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             return $payload;
         }
 
-        // ESD is only applicable for Visa and Mastercard card payments
-        if (isset($payload['paymentMethod'])) {
-            $paymentMethodType = $payload['paymentMethod']['type'] ?? '';
-            $cardBrand = $payload['paymentMethod']['brand'] ?? '';
-
-            // Only proceed if it's a card payment (scheme) and the brand is Visa or Mastercard
-            if ($paymentMethodType !== 'scheme' || !in_array($cardBrand, ['visa', 'mc'], true)) {
-                return $payload;
-            }
-        } elseif ($payment !== null) {
-            // For capture requests, check the payment details for card brand info
-            $paymentDetails = $payment->getDetails();
-            $cardBrand = $paymentDetails['additionalData']['cardBin'] ?? $paymentDetails['paymentMethod']['brand'] ?? '';
-
-            if (!in_array($cardBrand, ['visa', 'mc'], true)) {
-                return $payload;
-            }
-        } else {
+        if (!$this->isSupportedCardPayment($payload, $payment)) {
             return $payload;
         }
 
         $esd = $this->esdCollector->collect($order, $gatewayConfig);
-        if (!empty($esd)) {
-            $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], $esd);
+        if (empty($esd)) {
+            return $payload;
         }
 
+        $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], $esd);
+
         return $payload;
+    }
+
+    private function isSupportedCardPayment(array $payload, ?PaymentInterface $payment = null): bool
+    {
+        // For submit payments - check payload
+        if (isset($payload['paymentMethod'])) {
+            $paymentMethodType = $payload['paymentMethod']['type'] ?? '';
+            $cardBrand = $payload['paymentMethod']['brand'] ?? '';
+
+            if ($paymentMethodType !== 'scheme') {
+                return false;
+            }
+
+            return in_array($cardBrand, $this->esdSupportedCardBrands, true);
+        }
+
+        // For capture payments - check payment details
+        if ($payment !== null) {
+            $paymentDetails = $payment->getDetails();
+            $cardBrand = $paymentDetails['additionalData']['cardBin'] ?? $paymentDetails['paymentMethod']['brand'] ?? '';
+
+            return in_array($cardBrand, $this->esdSupportedCardBrands, true);
+        }
+
+        return false;
     }
 }

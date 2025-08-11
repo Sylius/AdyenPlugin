@@ -54,6 +54,10 @@ final class Configuration implements ConfigurationInterface
                             ->scalarPrototype()->end()
                             ->defaultValue(['US'])
                         ->end()
+                        ->arrayNode('supported_card_brands')
+                            ->scalarPrototype()->end()
+                            ->defaultValue(['visa', 'mc'])
+                        ->end()
                     ->end()
                 ->end()
 
