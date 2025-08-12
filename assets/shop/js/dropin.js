@@ -27,13 +27,6 @@
         }
 
         const _successfulFetchCallback = (dropin, data) => {
-            if (data.resultCode && ['Refused', 'Cancelled', 'Error'].includes(data.resultCode)) {
-                _toggleLoader(false);
-                dropin.setStatus('error', { message: data.refusalReason || 'Payment was declined. Please try a different payment method.' });
-
-                return;
-            }
-
             if (data.action) {
                 _toggleLoader(false);
                 dropin.handleAction(data.action);
@@ -41,6 +34,14 @@
             }
 
             window.location.replace(data.redirect)
+        }
+
+        const _displayError = (dropin, error) => {
+            const errorMessage = error.message || 'Payment processing failed. Please try again.';
+
+            if (dropin && typeof dropin.setStatus === 'function') {
+                dropin.setStatus('error', { message: errorMessage });
+            }
         }
 
         const _onSubmitHandler = (e) => {
@@ -64,32 +65,12 @@
             _toggleLoader(true);
 
             fetch(url, options)
-                .then(async (response) => {
-                    let data;
-                    const contentType = response.headers.get("content-type");
-
-                    if (contentType && contentType.includes("application/json")) {
-                        try {
-                            data = await response.json();
-                        } catch (jsonError) {
-                            return Promise.reject({
-                                error: 'Invalid response format from server',
-                                statusCode: response.status
-                            });
-                        }
-                    } else {
-                        return Promise.reject({
-                            error: 'Server returned an unexpected response. Please try again.',
-                            statusCode: response.status,
-                            isHtml: true
-                        });
-                    }
-
+                .then((response) => {
                     if (response.status >= 400 && response.status < 600){
-                        return Promise.reject(data);
+                        return response.json().then(errorData => Promise.reject(errorData));
                     }
 
-                    return Promise.resolve(data);
+                    return Promise.resolve(response.json())
                 })
                 .then(data => {
                     _successfulFetchCallback(dropin, data);
@@ -97,26 +78,11 @@
                 .catch(error => {
                     _toggleLoader(false);
 
-                    let errorMessage = '';
-                    if (error && typeof error === 'object') {
-                        if (error.resultCode && ['Refused', 'Cancelled', 'Error'].includes(error.resultCode)) {
-                            errorMessage = error.refusalReason || 'Payment failed';
-                        } else if (error.error) {
-                            errorMessage = error.error;
-                        } else {
-                            errorMessage = 'An error occurred while processing your payment. Please try again.';
-                        }
+                    if (error && error.error === true) {
+                        _displayError(dropin, error);
                     } else {
-                        errorMessage = 'Connection error. Please check your internet connection and try again.';
+                        _displayError(dropin, { message: 'Payment processing failed. Please try again.' });
                     }
-
-                    dropin.setStatus('error', { message: errorMessage });
-
-                    setTimeout(() => {
-                        dropin.setStatus('ready');
-                    }, 3000);
-
-                    console.error('Payment submission error:', error);
                 })
             ;
         };
