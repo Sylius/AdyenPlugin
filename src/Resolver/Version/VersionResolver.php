@@ -23,18 +23,31 @@ final class VersionResolver implements VersionResolverInterface
 
     private const TEST_APPLICATION_VERSION = 'dev';
 
-    private readonly string $pluginVersion;
+    private readonly array $applicationInfo;
 
     public function __construct()
     {
-        $this->pluginVersion = $this->getPluginVersion();
+        $this->applicationInfo = $this->resolveApplicationInfo();
     }
 
     public function appendVersionConstraints(array $payload): array
     {
-        $payload['applicationInfo'] = $this->resolveApplicationInfo();
+        return array_merge($payload, ['applicationInfo' => $this->applicationInfo]);
+    }
 
-        return $payload;
+    private function resolveApplicationInfo(): array
+    {
+        return [
+            'merchantApplication' => [
+                'name' => 'Sylius Adyen Plugin',
+                'version' => $this->getPluginVersion(),
+            ],
+            'externalPlatform' => [
+                'name' => 'Sylius',
+                'version' => SyliusCoreBundle::VERSION,
+                'integrator' => 'Sylius',
+            ],
+        ];
     }
 
     private function getPluginVersion(): string
@@ -48,20 +61,5 @@ final class VersionResolver implements VersionResolverInterface
         } catch (\Exception) {
             return self::TEST_APPLICATION_VERSION;
         }
-    }
-
-    private function resolveApplicationInfo(): array
-    {
-        return [
-            'merchantApplication' => [
-                'name' => 'Sylius Adyen Plugin',
-                'version' => $this->pluginVersion,
-            ],
-            'externalPlatform' => [
-                'name' => 'Sylius',
-                'version' => SyliusCoreBundle::VERSION,
-                'integrator' => 'Sylius',
-            ],
-        ];
     }
 }
