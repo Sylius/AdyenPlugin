@@ -21,7 +21,7 @@ final class EsdTypeProviderTest extends TestCase
 {
     public function testItReturnsEmptyArrayWhenNoCollectors(): void
     {
-        $provider = new EsdTypeProvider([]);
+        $provider = new EsdTypeProvider(new \ArrayIterator([]));
 
         $types = $provider->getAvailableTypes();
 
@@ -39,7 +39,7 @@ final class EsdTypeProviderTest extends TestCase
             'level3' => $level3Collector,
         ];
 
-        $provider = new EsdTypeProvider($collectors);
+        $provider = new EsdTypeProvider(new \ArrayIterator($collectors));
 
         $types = $provider->getAvailableTypes();
 
@@ -87,7 +87,7 @@ final class EsdTypeProviderTest extends TestCase
             'special-type' => $collector,
         ];
 
-        $provider = new EsdTypeProvider($collectors);
+        $provider = new EsdTypeProvider(new \ArrayIterator($collectors));
 
         $types = $provider->getAvailableTypes();
 
@@ -107,7 +107,7 @@ final class EsdTypeProviderTest extends TestCase
             'beta' => $this->createMock(EsdCollectorInterface::class),
         ];
 
-        $provider = new EsdTypeProvider($collectors);
+        $provider = new EsdTypeProvider(new \ArrayIterator($collectors));
 
         $types = $provider->getAvailableTypes();
         $keys = array_keys($types);

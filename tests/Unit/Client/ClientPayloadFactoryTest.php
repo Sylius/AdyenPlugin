@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Client;
 use Doctrine\Common\Collections\ArrayCollection;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Checker\EsdCardPaymentSupportCheckerInterface;
 use Sylius\AdyenPlugin\Client\ClientPayloadFactory;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollector;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
@@ -50,17 +51,24 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $level2Collector = new Level2EsdCollector();
         $itemDetailLineCollector = new ItemDetailLineCollector();
-        $this->esdCollector = new CompositeEsdCollector([
-            'level2' => $level2Collector,
-            'level3' => new Level3EsdCollector($level2Collector, $itemDetailLineCollector),
-        ], ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->method('isSupported')->willReturn(true);
+
+        $this->esdCollector = new CompositeEsdCollector(
+            new \ArrayIterator([
+                'level2' => $level2Collector,
+                'level3' => new Level3EsdCollector($level2Collector, $itemDetailLineCollector),
+            ]),
+            ['USD'],
+            ['US'],
+            $cardChecker,
+        );
 
         $this->factory = new ClientPayloadFactory(
             $this->versionResolver,
             $this->normalizer,
             $this->requestStack,
             $this->esdCollector,
-            ['visa', 'mc'],
         );
 
         $this->versionResolver->expects($this->any())
@@ -117,6 +125,29 @@ final class ClientPayloadFactoryTest extends TestCase
 
     public function testItDoesNotAddEsdForNonCardPayments(): void
     {
+        // Create special collector that returns false for non-card payments
+        $level2Collector = new Level2EsdCollector();
+        $itemDetailLineCollector = new ItemDetailLineCollector();
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->method('isSupported')->willReturn(false);
+
+        $esdCollector = new CompositeEsdCollector(
+            new \ArrayIterator([
+                'level2' => $level2Collector,
+                'level3' => new Level3EsdCollector($level2Collector, $itemDetailLineCollector),
+            ]),
+            ['USD'],
+            ['US'],
+            $cardChecker,
+        );
+
+        $factory = new ClientPayloadFactory(
+            $this->versionResolver,
+            $this->normalizer,
+            $this->requestStack,
+            $esdCollector,
+        );
+
         $options = new ArrayObject([
             'merchantAccount' => 'TestMerchant',
             'esdEnabled' => true,
@@ -137,7 +168,7 @@ final class ClientPayloadFactoryTest extends TestCase
             ],
         ];
 
-        $result = $this->factory->createForSubmitPayment(
+        $result = $factory->createForSubmitPayment(
             $options,
             'https://example.com/return',
             $receivedPayload,
@@ -226,6 +257,29 @@ final class ClientPayloadFactoryTest extends TestCase
 
     public function testItDoesNotAddEsdForNonVisaMastercardBrands(): void
     {
+        // Create special collector that returns false for unsupported card brands
+        $level2Collector = new Level2EsdCollector();
+        $itemDetailLineCollector = new ItemDetailLineCollector();
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->method('isSupported')->willReturn(false);
+
+        $esdCollector = new CompositeEsdCollector(
+            new \ArrayIterator([
+                'level2' => $level2Collector,
+                'level3' => new Level3EsdCollector($level2Collector, $itemDetailLineCollector),
+            ]),
+            ['USD'],
+            ['US'],
+            $cardChecker,
+        );
+
+        $factory = new ClientPayloadFactory(
+            $this->versionResolver,
+            $this->normalizer,
+            $this->requestStack,
+            $esdCollector,
+        );
+
         $options = new ArrayObject([
             'merchantAccount' => 'TestMerchant',
             'esdEnabled' => true,
@@ -249,7 +303,7 @@ final class ClientPayloadFactoryTest extends TestCase
             ],
         ];
 
-        $result = $this->factory->createForSubmitPayment(
+        $result = $factory->createForSubmitPayment(
             $options,
             'https://example.com/return',
             $receivedPayload,
