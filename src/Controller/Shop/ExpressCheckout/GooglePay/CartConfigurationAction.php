@@ -50,7 +50,7 @@ class CartConfigurationAction
             'environment' => $config['environment'],
             'shippingOptionRequired' => $order->isShippingRequired(),
             'transactionInfo' => $this->transactionInfoProvider->provide($order),
-            'allowedCountryCodes' => $this->countryProvider->getAllowedCountryCodes($order),
+            'allowedCountryCodes' => $this->countryProvider->getAllowedCountryCodes($order->getChannel()),
             'path' => [
                 'shippingOptions' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_google_pay_shipping_options'),
                 'checkout' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_google_pay_checkout'),

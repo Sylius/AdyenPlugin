@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
 use Sylius\Component\Core\Factory\AddressFactoryInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 
-class AddressProvider implements AddressProviderInterface
+final class AddressProvider implements AddressProviderInterface
 {
     public function __construct(
         private readonly AddressFactoryInterface $addressFactory,

@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
 
 use Sylius\Component\Addressing\Model\CountryInterface;
-use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 
-class CountryProvider implements CountryProviderInterface
+final class CountryProvider implements CountryProviderInterface
 {
     public function __construct(
         private readonly RepositoryInterface $countryRepository,
@@ -27,9 +27,8 @@ class CountryProvider implements CountryProviderInterface
     /**
      * @return string[]
      */
-    public function getAllowedCountryCodes(OrderInterface $order): array
+    public function getAllowedCountryCodes(ChannelInterface $channel): array
     {
-        $channel = $order->getChannel();
         $countries = $channel->getCountries();
         $countries = false === $countries->isEmpty() ? $countries->toArray() : $this->countryRepository->findBy(['enabled' => true]);
 

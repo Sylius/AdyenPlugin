@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-class TransactionInfoProvider implements TransactionInfoProviderInterface
+final class TransactionInfoProvider implements TransactionInfoProviderInterface
 {
     public function __construct(
         private readonly TranslatorInterface $translator,

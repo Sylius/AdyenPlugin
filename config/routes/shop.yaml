@@ -2,4 +2,4 @@ sylius_adyen_localized:
     resource: "@SyliusAdyenPlugin/config/routes/shop/localized.yaml"
 
 sylius_adyen_express_checkout:
-    resource: "@SyliusAdyenPlugin/config/routes/shop/express-checkout.yaml"
+    resource: "@SyliusAdyenPlugin/config/routes/shop/express_checkout.yaml"

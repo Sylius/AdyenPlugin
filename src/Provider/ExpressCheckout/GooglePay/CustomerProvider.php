@@ -18,7 +18,7 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Repository\CustomerRepositoryInterface;
 use Sylius\Resource\Factory\FactoryInterface;
 
-class CustomerProvider implements CustomerProviderInterface
+final class CustomerProvider implements CustomerProviderInterface
 {
     public function __construct(
         private readonly CustomerRepositoryInterface $customerRepository,

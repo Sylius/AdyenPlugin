@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
 
-use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\ChannelInterface;
 
 interface CountryProviderInterface
 {
     /**
      * @return string[]
      */
-    public function getAllowedCountryCodes(OrderInterface $order): array;
+    public function getAllowedCountryCodes(ChannelInterface $channel): array;
 }
