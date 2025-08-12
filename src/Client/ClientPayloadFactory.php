@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\Model\Checkout\PaymentDetails;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -63,6 +64,10 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         private readonly RequestStack $requestStack,
         private readonly CompositeEsdCollectorInterface $esdCollector,
     ) {
+        $this->allowedMethodsList = array_values(array_unique(array_merge(
+            $this->allowedMethodsList,
+            (new PaymentDetails())->getTypeAllowableValues(),
+        )));
     }
 
     public function createForAvailablePaymentMethods(
@@ -71,9 +76,9 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ?AdyenTokenInterface $adyenToken = null,
     ): array {
         $address = $order->getBillingAddress();
-        $countryCode = null !== $address ? (string) $address->getCountryCode() : '';
+        $countryCode = $address?->getCountryCode() ?? '';
         $request = $this->requestStack->getCurrentRequest();
-        $locale = null !== $request ? $request->getLocale() : '';
+        $locale = $request?->getLocale() ?? '';
 
         $payload = [
             'amount' => [
