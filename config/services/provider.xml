@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service
+            id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProvider"
+        >
+            <argument type="service" id="translator"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.google_pay.transaction_info" />
+
+        <service
+            id="sylius_adyen.provider.express_checkout.google_pay.address"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProvider"
+        >
+            <argument type="service" id="sylius.factory.address"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.google_pay.address" />
+
+        <service
+            id="sylius_adyen.provider.express_checkout.google_pay.customer"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CustomerProvider"
+        >
+            <argument type="service" id="sylius.repository.customer"/>
+            <argument type="service" id="sylius.factory.customer"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CustomerProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.google_pay.customer" />
+
+        <service
+            id="sylius_adyen.provider.express_checkout.google_pay.country"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CountryProvider"
+        >
+            <argument type="service" id="sylius.repository.country"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CountryProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.google_pay.country" />
+
+    </services>
+</container>
