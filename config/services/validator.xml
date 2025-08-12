@@ -22,5 +22,6 @@
         >
             <argument type="service" id=".inner"/>
         </service>
+
     </services>
 </container>

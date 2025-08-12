@@ -12,6 +12,23 @@ parameters:
 sylius_adyen:
     supported_types: ~
 
+doctrine:
+    orm:
+        entity_managers:
+            default:
+                mappings:
+                    TestApplication:
+                        is_bundle: false
+                        type: attribute
+                        dir: '%kernel.project_dir%/../../../tests/TestApplication/src/Entity'
+                        prefix: Tests\Sylius\AdyenPlugin
+
+sylius_product:
+    resources:
+        product_variant:
+            classes:
+                model: Tests\Sylius\AdyenPlugin\Entity\ProductVariant
+
 monolog:
     channels: [adyen]
     handlers:

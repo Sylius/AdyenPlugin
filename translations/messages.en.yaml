@@ -1,31 +1,46 @@
 sylius_adyen:
-  ui:
-    api_key: API key
-    test_platform: Test platform
-    live_platform: Live platform
-    platform: Platform
-    merchant_account: Merchant account
-    live_endpoint_url_prefix: Live endpoint URL prefix
-    hmac_key: HMAC Key
-    ayden_gateway_label: Adyen
-    auth_user: Webhook authentication username
-    auth_password: Webhook authentication password
-    client_key: Client key
-    notification_endpoint_description: In order to configure Adyen payment, head to merchant panel and use following URL as target
-    notification_endpoint: Notifications endpoint
-    payment_failed: Payment failed, try again
-    payment_processing: Payment is being processed, please watch the notifications on your e-mail
-    log_list: Log list
-    logs: Adyen logs
-    logging:
-      info: Info
-      error: Error
-      debug: Debug
-      level: Level
-      error_code: Error code
-      message: Message
-      date_time: Date time
-      search: Search
-  runtime:
-    invalid_signature: Invalid notification signature provided
-    payment_failed_try_again: Payment failed, please try again
+    ui:
+        api_key: API key
+        test_platform: Test platform
+        live_platform: Live platform
+        platform: Platform
+        merchant_account: Merchant account
+        live_endpoint_url_prefix: Live endpoint URL prefix
+        hmac_key: HMAC Key
+        ayden_gateway_label: Adyen
+        auth_user: Webhook authentication username
+        auth_password: Webhook authentication password
+        client_key: Client key
+        esd: Enhanced Scheme Data
+        esd_enabled: Enable Enhanced Scheme Data
+        esd_enabled_help: Enable Enhanced Scheme Data to reduce interchange fees by up to 1% for US domestic transactions
+        esd_type: ESD Type
+        esd_type_help: Select the appropriate Enhanced Scheme Data type for your business
+        esd_type_level2: Level 2 Data
+        esd_type_level3: Level 3 Data
+        merchant_category_code: Merchant Category Code (MCC)
+        merchant_category_code_help: Your 4-digit MCC code to automatically determine ESD type
+        esd_auto_detect: Auto-detect ESD Type
+        esd_auto_detect_help: Automatically determine ESD type based on merchant category code
+        notification_endpoint_description: In order to configure Adyen payment, head to merchant panel and use following URL as target
+        notification_endpoint: Notifications endpoint
+        payment_failed: Payment failed, try again
+        payment_processing: Payment is being processed, please watch the notifications on your e-mail
+        log_list: Log list
+        logs: Adyen logs
+        logging:
+            info: Info
+            error: Error
+            debug: Debug
+            level: Level
+            error_code: Error code
+            message: Message
+            date_time: Date time
+            search: Search
+    form:
+        product_variant:
+            commodity_code: Commodity Code
+            commodity_code_help: A 12-character code used for Enhanced Scheme Data to categorize the product for reduced interchange fees
+    runtime:
+        invalid_signature: Invalid notification signature provided
+        payment_failed_try_again: Payment failed, please try again

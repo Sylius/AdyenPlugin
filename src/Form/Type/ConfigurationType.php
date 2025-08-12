@@ -15,8 +15,10 @@ namespace Sylius\AdyenPlugin\Form\Type;
 
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\EsdTypeProviderInterface;
 use Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentials;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -26,6 +28,11 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class ConfigurationType extends AbstractType
 {
+    public function __construct(
+        private readonly EsdTypeProviderInterface $esdTypeProvider,
+    ) {
+    }
+
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
@@ -101,6 +108,22 @@ final class ConfigurationType extends AbstractType
             ])
             ->add(AdyenClientProviderInterface::FACTORY_NAME, HiddenType::class, [
                 'data' => true,
+            ])
+            ->add('esdEnabled', CheckboxType::class, [
+                'label' => 'sylius_adyen.ui.esd_enabled',
+                'help' => 'sylius_adyen.ui.esd_enabled_help',
+                'required' => false,
+            ])
+            ->add('esdType', ChoiceType::class, [
+                'label' => 'sylius_adyen.ui.esd_type',
+                'help' => 'sylius_adyen.ui.esd_type_help',
+                'choices' => $this->esdTypeProvider->getAvailableTypes(),
+                'required' => false,
+            ])
+            ->add('merchantCategoryCode', TextType::class, [
+                'label' => 'sylius_adyen.ui.merchant_category_code',
+                'help' => 'sylius_adyen.ui.merchant_category_code_help',
+                'required' => false,
             ]);
     }
 

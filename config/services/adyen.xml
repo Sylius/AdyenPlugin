@@ -23,6 +23,7 @@
             <argument type="service" id="sylius_adyen.resolver.version.version"/>
             <argument type="service" id="serializer"/>
             <argument type="service" id="request_stack"/>
+            <argument type="service" id="sylius_adyen.collector.esd.composite"/>
         </service>
 
         <service

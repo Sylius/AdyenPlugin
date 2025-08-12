@@ -31,6 +31,9 @@ class ConfigurationResolver
             'adyen' => 0,
             'merchantAccount' => '',
             'liveEndpointUrlPrefix' => '',
+            'esdEnabled' => false,
+            'esdType' => 'level3',
+            'merchantCategoryCode' => '',
         ]);
         $resolver->setRequired($resolver->getDefinedOptions());
 

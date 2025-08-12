@@ -5,9 +5,10 @@
         <defaults public="true"/>
 
         <service
-                class="Sylius\AdyenPlugin\Form\Type\ConfigurationType"
-                id="sylius_adyen.form.type.configuration"
+            id="sylius_adyen.form.type.configuration"
+            class="Sylius\AdyenPlugin\Form\Type\ConfigurationType"
         >
+            <argument type="service" id="sylius_adyen.provider.esd_type"/>
             <tag name="form.type"/>
             <tag name="sylius.gateway_configuration_type" type="adyen" label="sylius_adyen.ui.ayden_gateway_label"/>
         </service>
@@ -27,6 +28,13 @@
                  id="sylius_adyen.grid.filter.logger_level"
         >
             <tag name="sylius.grid_filter" type="adyen_log_level" form_type="Sylius\AdyenPlugin\Form\Type\LoggerLevelFilterType" />
+        </service>
+
+        <service
+            id="sylius_adyen.form.extension.product_variant"
+            class="Sylius\AdyenPlugin\Form\Extension\ProductVariantTypeExtension"
+        >
+            <tag name="form.type_extension" extended-type="Sylius\Bundle\ProductBundle\Form\Type\ProductVariantType" />
         </service>
     </services>
 </container>

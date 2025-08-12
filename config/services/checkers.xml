@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+    <services>
+        <defaults public="true"/>
+
+        <service
+            id="sylius_adyen.checker.esd_card_payment_support"
+            class="Sylius\AdyenPlugin\Checker\EsdCardPaymentSupportChecker"
+        >
+            <argument>%sylius_adyen.esd.supported_card_brands%</argument>
+        </service>
+
+        <service
+            id="Sylius\AdyenPlugin\Checker\EsdCardPaymentSupportCheckerInterface"
+            alias="sylius_adyen.checker.esd_card_payment_support"
+        />
+    </services>
+</container>

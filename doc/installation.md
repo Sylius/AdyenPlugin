@@ -88,6 +88,42 @@ monolog:
             id: sylius_adyen.logging.monolog.doctrine_handler
 ```
 
+### Extend ProductVariant entity
+Create or modify your ProductVariant entity to include the CommodityCodeAwareTrait and implement CommodityCodeAwareInterface:
+
+```php
+<?php
+// src/Entity/Product/ProductVariant.php
+
+declare(strict_types=1);
+
+namespace App\Entity\Product;
+
+use Doctrine\ORM\Mapping as ORM;
+use Sylius\AdyenPlugin\Entity\CommodityCodeAwareInterface;
+use Sylius\AdyenPlugin\Entity\CommodityCodeAwareTrait;
+use Sylius\Component\Core\Model\ProductVariant as BaseProductVariant;
+use Sylius\Component\Product\Model\ProductVariantInterface;
+
+#[ORM\Entity]
+#[ORM\Table(name: 'sylius_product_variant')]
+class ProductVariant extends BaseProductVariant implements CommodityCodeAwareInterface
+{
+    use CommodityCodeAwareTrait;
+}
+```
+
+Make sure your ProductVariant is properly registered in your `config/packages/sylius.yaml`:
+
+```yaml
+# config/packages/sylius.yaml
+sylius_product:
+    resources:
+        product_variant:
+            classes:
+                model: App\Entity\Product\ProductVariant
+```
+
 ### Update your database
 First, please run legacy-versioned migrations by using command:
 ```bash
