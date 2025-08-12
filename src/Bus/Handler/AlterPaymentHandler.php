@@ -56,13 +56,10 @@ final class AlterPaymentHandler
 
     private function isAdyenPayment(PaymentInterface $payment): bool
     {
-        /**
-         * @var ?PaymentMethodInterface $method
-         */
+        /** @var PaymentMethodInterface|null $method */
         $method = $payment->getMethod();
         if (
-            null === $method ||
-            null === $method->getGatewayConfig() ||
+            null === $method?->getGatewayConfig() ||
             !isset($this->getGatewayConfig($method)->getConfig()[AdyenClientProviderInterface::FACTORY_NAME])
         ) {
             return false;

@@ -83,6 +83,17 @@
         </service>
 
         <service
+            class="Sylius\AdyenPlugin\Bus\Handler\PaymentRefundedHandler"
+            id="sylius_adyen.bus.handler.payment_refunded"
+        >
+            <argument type="service" id="sm.factory"/>
+            <argument type="service" id="sylius_refund.factory.refund_payment"/>
+            <argument type="service" id="doctrine.orm.entity_manager"/>
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+
+        <service
             class="Sylius\AdyenPlugin\Bus\Handler\GetTokenHandler"
             id="sylius_adyen.bus.handler.get_token"
         >

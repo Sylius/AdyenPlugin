@@ -18,12 +18,8 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class PaymentCancelledCommand implements PaymentFinalizationCommand
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
+    public function __construct(private PaymentInterface $payment)
     {
-        $this->payment = $payment;
     }
 
     public function getPaymentTransition(): string

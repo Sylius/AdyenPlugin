@@ -18,7 +18,7 @@ use Sylius\AdyenPlugin\Bus\Command\CapturePayment;
 use Sylius\AdyenPlugin\Bus\Command\MarkPaymentAsProcessedCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFailedCommand;
-use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentRefundedCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -33,11 +33,12 @@ interface PaymentCommandFactoryInterface
         'refused' => PaymentFailedCommand::class,
         'rejected' => PaymentFailedCommand::class,
         'cancellation' => PaymentCancelledCommand::class,
+        'refund' => PaymentRefundedCommand::class,
     ];
 
     public function createForEvent(
         string $event,
         PaymentInterface $payment,
         ?NotificationItemData $notificationItemData = null,
-    ): PaymentLifecycleCommand;
+    ): object;
 }

@@ -156,9 +156,7 @@ final class AdyenClient implements AdyenClientInterface
 
     private function getModificationsApi(): ModificationsApi
     {
-        return new ModificationsApi(
-            $this->transport,
-        );
+        return new ModificationsApi($this->transport);
     }
 
     private function getModification(): Modification
