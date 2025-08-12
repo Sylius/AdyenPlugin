@@ -40,8 +40,8 @@
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Resolver\Version\VersionResolver"
             id="sylius_adyen.resolver.version.version"
+            class="Sylius\AdyenPlugin\Resolver\Version\VersionResolver"
         />
 
         <service

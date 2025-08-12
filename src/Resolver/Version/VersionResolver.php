@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Resolver\Version;
 
+use Composer\InstalledVersions;
 use PackageVersions\FallbackVersions;
+use Sylius\Bundle\CoreBundle\SyliusCoreBundle;
 
 final class VersionResolver implements VersionResolverInterface
 {
@@ -21,51 +23,43 @@ final class VersionResolver implements VersionResolverInterface
 
     private const TEST_APPLICATION_VERSION = 'dev';
 
-    private function getPluginVersion(): string
-    {
-        try {
-            if (class_exists(\Composer\InstalledVersions::class)) {
-                return \Composer\InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) ?? self::TEST_APPLICATION_VERSION;
-            }
+    private readonly array $applicationInfo;
 
-            return substr(
-                FallbackVersions::getVersion(self::PACKAGE_NAME),
-                0,
-                -1,
-            );
-        } catch (\Exception $ex) {
-            return self::TEST_APPLICATION_VERSION;
-        }
+    public function __construct()
+    {
+        $this->applicationInfo = $this->resolveApplicationInfo();
+    }
+
+    public function appendVersionConstraints(array $payload): array
+    {
+        return array_merge($payload, ['applicationInfo' => $this->applicationInfo]);
     }
 
     private function resolveApplicationInfo(): array
     {
-        $syliusVersion = '';
-        if (5 === constant('Symfony\Component\HttpKernel\Kernel::MAJOR_VERSION')) {
-            /** @var string $syliusVersion */
-            $syliusVersion = constant('Sylius\Bundle\CoreBundle\Application\Kernel::VERSION');
-        } elseif (defined('Sylius\Bundle\CoreBundle\SyliusCoreBundle::VERSION')) {
-            /** @var string $syliusVersion */
-            $syliusVersion = constant('Sylius\Bundle\CoreBundle\SyliusCoreBundle::VERSION');
-        }
-
         return [
             'merchantApplication' => [
-                'name' => 'adyen-sylius',
+                'name' => 'Sylius Adyen Plugin',
                 'version' => $this->getPluginVersion(),
             ],
             'externalPlatform' => [
                 'name' => 'Sylius',
-                'version' => $syliusVersion,
+                'version' => SyliusCoreBundle::VERSION,
                 'integrator' => 'Sylius',
             ],
         ];
     }
 
-    public function appendVersionConstraints(array $payload): array
+    private function getPluginVersion(): string
     {
-        $payload['applicationInfo'] = $this->resolveApplicationInfo();
+        try {
+            if (class_exists(InstalledVersions::class)) {
+                return InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) ?? self::TEST_APPLICATION_VERSION;
+            }
 
-        return $payload;
+            return substr(FallbackVersions::getVersion(self::PACKAGE_NAME), 0, -1);
+        } catch (\Exception) {
+            return self::TEST_APPLICATION_VERSION;
+        }
     }
 }
