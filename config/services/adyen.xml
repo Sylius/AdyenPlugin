@@ -24,7 +24,6 @@
             <argument type="service" id="serializer"/>
             <argument type="service" id="request_stack"/>
             <argument type="service" id="sylius_adyen.collector.esd.composite"/>
-            <argument>%sylius_adyen.esd.supported_card_brands%</argument>
         </service>
 
         <service

@@ -14,10 +14,21 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Collector;
 
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
 
 interface CompositeEsdCollectorInterface
 {
-    public function collect(OrderInterface $order, array $gatewayConfig): array;
+    public function collect(
+        OrderInterface $order,
+        array $gatewayConfig,
+        array $payload,
+        ?PaymentInterface $payment = null,
+    ): array;
 
-    public function shouldIncludeEsd(OrderInterface $order, array $gatewayConfig): bool;
+    public function shouldIncludeEsd(
+        OrderInterface $order,
+        array $gatewayConfig,
+        array $payload,
+        ?PaymentInterface $payment = null,
+    ): bool;
 }

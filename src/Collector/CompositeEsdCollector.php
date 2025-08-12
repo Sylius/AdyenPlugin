@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Collector;
 
+use Sylius\AdyenPlugin\Checker\EsdCardPaymentSupportCheckerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
 
 final class CompositeEsdCollector implements CompositeEsdCollectorInterface
 {
@@ -29,21 +31,30 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
         \Traversable $collectors,
         private readonly array $supportedCurrencies,
         private readonly array $supportedCountries,
+        private readonly EsdCardPaymentSupportCheckerInterface $esdCardPaymentSupportChecker,
     ) {
         $this->collectors = iterator_to_array($collectors);
     }
 
-    public function collect(OrderInterface $order, array $gatewayConfig): array
-    {
-        if (!$this->shouldIncludeEsd($order, $gatewayConfig)) {
+    public function collect(
+        OrderInterface $order,
+        array $gatewayConfig,
+        array $payload,
+        ?PaymentInterface $payment = null,
+    ): array {
+        if (!$this->shouldIncludeEsd($order, $gatewayConfig, $payload, $payment)) {
             return [];
         }
 
         return $this->findCollector($gatewayConfig)->collect($order);
     }
 
-    public function shouldIncludeEsd(OrderInterface $order, array $gatewayConfig): bool
-    {
+    public function shouldIncludeEsd(
+        OrderInterface $order,
+        array $gatewayConfig,
+        array $payload,
+        ?PaymentInterface $payment = null,
+    ): bool {
         if (!isset($gatewayConfig['esdEnabled']) || !$gatewayConfig['esdEnabled']) {
             return false;
         }
@@ -55,6 +66,10 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
 
         $billingAddress = $order->getBillingAddress();
         if ($billingAddress === null || !in_array($billingAddress->getCountryCode(), $this->supportedCountries, true)) {
+            return false;
+        }
+
+        if (!$this->esdCardPaymentSupportChecker->isSupported($payload, $payment)) {
             return false;
         }
 

@@ -57,13 +57,11 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         'wechatpayQR',
     ];
 
-    /** @param string[] $esdSupportedCardBrands */
     public function __construct(
         private readonly VersionResolverInterface $versionResolver,
         private readonly NormalizerInterface $normalizer,
         private readonly RequestStack $requestStack,
         private readonly CompositeEsdCollectorInterface $esdCollector,
-        private readonly array $esdSupportedCardBrands,
     ) {
     }
 
@@ -331,11 +329,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
     ): array {
         $gatewayConfig = $options->getArrayCopy();
 
-        if (!$this->isSupportedCardPayment($payload, $payment)) {
-            return $payload;
-        }
-
-        $esd = $this->esdCollector->collect($order, $gatewayConfig);
+        $esd = $this->esdCollector->collect($order, $gatewayConfig, $payload, $payment);
         if ($esd === []) {
             return $payload;
         }
@@ -343,30 +337,5 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], $esd);
 
         return $payload;
-    }
-
-    private function isSupportedCardPayment(array $payload, ?PaymentInterface $payment = null): bool
-    {
-        // For submit payments - check payload
-        if (isset($payload['paymentMethod'])) {
-            $paymentMethodType = $payload['paymentMethod']['type'] ?? '';
-            $cardBrand = $payload['paymentMethod']['brand'] ?? '';
-
-            if ($paymentMethodType !== 'scheme') {
-                return false;
-            }
-
-            return in_array($cardBrand, $this->esdSupportedCardBrands, true);
-        }
-
-        // For capture payments - check payment details
-        if ($payment !== null) {
-            $paymentDetails = $payment->getDetails();
-            $cardBrand = $paymentDetails['additionalData']['cardBin'] ?? $paymentDetails['paymentMethod']['brand'] ?? '';
-
-            return in_array($cardBrand, $this->esdSupportedCardBrands, true);
-        }
-
-        return false;
     }
 }

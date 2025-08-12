@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Collector;
 
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Checker\EsdCardPaymentSupportCheckerInterface;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollector;
 use Sylius\AdyenPlugin\Collector\EsdCollectorInterface;
 use Sylius\Component\Core\Model\AddressInterface;
@@ -25,11 +26,12 @@ final class CompositeEsdCollectorTest extends TestCase
     {
         $order = $this->createMock(OrderInterface::class);
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => false];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame([], $result);
     }
@@ -41,11 +43,12 @@ final class CompositeEsdCollectorTest extends TestCase
         $order->expects($this->once())->method('getCurrencyCode')->willReturn('EUR');
 
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame([], $result);
     }
@@ -60,11 +63,12 @@ final class CompositeEsdCollectorTest extends TestCase
         $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame([], $result);
     }
@@ -91,14 +95,16 @@ final class CompositeEsdCollectorTest extends TestCase
             'level3' => $level3Collector,
         ];
 
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = [
             'esdEnabled' => true,
             'esdType' => 'airline',
         ];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame($expectedData, $result);
     }
@@ -126,14 +132,16 @@ final class CompositeEsdCollectorTest extends TestCase
             'level3' => $level3Collector,
         ];
 
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = [
             'esdEnabled' => true,
             'merchantCategoryCode' => '7011',
         ];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame($expectedData, $result);
     }
@@ -156,11 +164,13 @@ final class CompositeEsdCollectorTest extends TestCase
             'level3' => $level3Collector,
         ];
 
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame($expectedData, $result);
     }
@@ -186,11 +196,13 @@ final class CompositeEsdCollectorTest extends TestCase
             'level2' => $level2Collector,
         ];
 
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $result = $composite->collect($order, $gatewayConfig);
+        $result = $composite->collect($order, $gatewayConfig, []);
 
         $this->assertSame($expectedData, $result);
     }
@@ -205,14 +217,16 @@ final class CompositeEsdCollectorTest extends TestCase
         $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('No ESD collector found');
 
-        $composite->collect($order, $gatewayConfig);
+        $composite->collect($order, $gatewayConfig, []);
     }
 
     public function testItShouldSupportCustomCurrencies(): void
@@ -225,11 +239,13 @@ final class CompositeEsdCollectorTest extends TestCase
         $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD', 'EUR'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD', 'EUR'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $this->assertTrue($composite->shouldIncludeEsd($order, $gatewayConfig));
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $this->assertTrue($composite->shouldIncludeEsd($order, $gatewayConfig, [], null));
     }
 
     public function testItShouldSupportCustomCountries(): void
@@ -242,11 +258,13 @@ final class CompositeEsdCollectorTest extends TestCase
         $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US', 'CA']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US', 'CA'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $this->assertTrue($composite->shouldIncludeEsd($order, $gatewayConfig));
+        $cardChecker->expects($this->once())->method('isSupported')->willReturn(true);
+        $this->assertTrue($composite->shouldIncludeEsd($order, $gatewayConfig, [], null));
     }
 
     public function testItShouldRejectUnsupportedCurrencyAndCountryCombination(): void
@@ -259,10 +277,39 @@ final class CompositeEsdCollectorTest extends TestCase
         $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
 
         $collectors = [];
-        $composite = new CompositeEsdCollector($collectors, ['USD'], ['US']);
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
 
         $gatewayConfig = ['esdEnabled' => true];
 
-        $this->assertFalse($composite->shouldIncludeEsd($order, $gatewayConfig));
+        $this->assertFalse($composite->shouldIncludeEsd($order, $gatewayConfig, [], null));
+    }
+
+    public function testItShouldNotIncludeEsdForNonCardPayments(): void
+    {
+        $address = $this->createMock(AddressInterface::class);
+        $address->expects($this->once())->method('getCountryCode')->willReturn('US');
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($address);
+
+        $collectors = [
+            'level3' => $this->createMock(EsdCollectorInterface::class),
+        ];
+
+        $cardChecker = $this->createMock(EsdCardPaymentSupportCheckerInterface::class);
+        $cardChecker->expects($this->once())
+            ->method('isSupported')
+            ->with([], null)
+            ->willReturn(false);
+
+        $composite = new CompositeEsdCollector(new \ArrayIterator($collectors), ['USD'], ['US'], $cardChecker);
+
+        $gatewayConfig = ['esdEnabled' => true];
+
+        $result = $composite->collect($order, $gatewayConfig, []);
+
+        $this->assertSame([], $result);
     }
 }
