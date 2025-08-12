@@ -7,6 +7,9 @@ winzou_state_machine:
             process:
                 from: [new, authorized]
                 to: processing
+            cancel:
+                from: [new, processing, authorized, completed]
+                to: cancelled
         callbacks:
             after:
                 sylius_resolve_state:
@@ -16,3 +19,8 @@ winzou_state_machine:
                     do: ["@sylius_adyen.processor.authorization_state", "process"]
                     args: ["object"]
                     priority: 100
+            guard:
+                guard_complete:
+                    on: ["complete"]
+                    do: ["@sylius_adyen.state_machine.guard.payment", "canBeCompleted"]
+                    args: ["object"]
