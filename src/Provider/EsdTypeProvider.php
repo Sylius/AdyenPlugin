@@ -20,10 +20,10 @@ final class EsdTypeProvider implements EsdTypeProviderInterface
     /** @var array<string, EsdCollectorInterface> */
     private array $collectors;
 
-    /** @param iterable<string, EsdCollectorInterface> $collectors */
-    public function __construct(iterable $collectors)
+    /** @param \Traversable<string, EsdCollectorInterface> $collectors */
+    public function __construct(\Traversable $collectors)
     {
-        $this->collectors = $collectors instanceof \Traversable ? iterator_to_array($collectors) : $collectors;
+        $this->collectors = iterator_to_array($collectors);
     }
 
     public function getAvailableTypes(): array

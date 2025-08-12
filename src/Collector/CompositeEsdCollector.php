@@ -21,16 +21,16 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
     private array $collectors;
 
     /**
-     * @param iterable<string, EsdCollectorInterface> $collectors
+     * @param \Traversable<string, EsdCollectorInterface> $collectors
      * @param array<string> $supportedCurrencies
      * @param array<string> $supportedCountries
      */
     public function __construct(
-        iterable $collectors,
+        \Traversable $collectors,
         private readonly array $supportedCurrencies,
         private readonly array $supportedCountries,
     ) {
-        $this->collectors = $collectors instanceof \Traversable ? iterator_to_array($collectors) : $collectors;
+        $this->collectors = iterator_to_array($collectors);
     }
 
     public function collect(OrderInterface $order, array $gatewayConfig): array
@@ -67,9 +67,8 @@ final class CompositeEsdCollector implements CompositeEsdCollectorInterface
             return $this->collectors[$gatewayConfig['esdType']];
         }
 
-        if (isset($gatewayConfig['merchantCategoryCode'])) {
-            $merchantCategoryCode = $gatewayConfig['merchantCategoryCode'];
-
+        $merchantCategoryCode = $gatewayConfig['merchantCategoryCode'] ?? null;
+        if (null !== $merchantCategoryCode) {
             foreach ($this->collectors as $collector) {
                 if ($collector->supports($merchantCategoryCode)) {
                     return $collector;

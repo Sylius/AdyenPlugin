@@ -20,6 +20,8 @@ use Sylius\Component\Core\Model\ProductVariantInterface;
 
 final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
 {
+    public const UNIT_OF_MEASURE = 'PCS';
+
     public function collect(OrderItemInterface $orderItem, int $lineNumber): array
     {
         $data = [];
@@ -30,7 +32,7 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.productCode'] = $variant !== null ? $variant->getCode() : ($product !== null ? $product->getCode() : 'UNKNOWN');
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.description'] = substr((string) $orderItem->getProductName(), 0, 26);
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.quantity'] = (string) $orderItem->getQuantity();
-        $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitOfMeasure'] = 'PCS';
+        $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitOfMeasure'] = self::UNIT_OF_MEASURE;
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitPrice'] = (string) $orderItem->getUnitPrice();
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.totalAmount'] = (string) $orderItem->getTotal();
 

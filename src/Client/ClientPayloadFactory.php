@@ -331,10 +331,6 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
     ): array {
         $gatewayConfig = $options->getArrayCopy();
 
-        if (!isset($gatewayConfig['esdEnabled']) || $gatewayConfig['esdEnabled'] !== true) {
-            return $payload;
-        }
-
         if (!$this->isSupportedCardPayment($payload, $payment)) {
             return $payload;
         }
