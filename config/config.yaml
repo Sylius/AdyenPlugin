@@ -1,8 +1,8 @@
 imports:
-  - { resource: "@SyliusAdyenPlugin/config/grids/*/*.yaml" }
-  - { resource: "@SyliusAdyenPlugin/config/sylius/blocks.yml" }
-  - { resource: "@SyliusAdyenPlugin/config/sylius/resources.yml" }
-  - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine/*.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/grids/*/*.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/sylius/blocks.yml" }
+    - { resource: "@SyliusAdyenPlugin/config/sylius/resources.yml" }
+    - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine/**.yaml" }
 
 parameters:
     sylius_adyen_api_platform_mapping_path: '%kernel.project_dir%/vendor/sylius/adyen-plugin/config/api_resources/'

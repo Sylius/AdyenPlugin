@@ -132,7 +132,7 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
     public function testAffirmative(): void
     {
         $config = new GatewayConfig();
-        $config->setConfig(['adyen' => 1]);
+        $config->setConfig(['factory_name' => 'adyen']);
 
         $paymentMethod = new PaymentMethod();
         $paymentMethod->setGatewayConfig($config);

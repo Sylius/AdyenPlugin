@@ -2,6 +2,7 @@ winzou_state_machine:
     sylius_refund_refund_payment:
         class: Sylius\RefundPlugin\Entity\RefundPayment
         transitions:
+            # Special case for automated refunds
             confirm:
                 from: [new]
                 to: completed

@@ -1,26 +1,26 @@
 <?php
 
+/*
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\StateMachine\Guard;
 
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class AdyenPaymentGuard
 {
     public function canBeCompleted(PaymentInterface $payment): bool
     {
-        /** @var PaymentMethodInterface|null $method */
-        $method = $payment->getMethod();
-        $gatewayConfig = $method?->getGatewayConfig();
-        if (null === $gatewayConfig) {
-            return false;
-        }
-
-        $factoryName = $gatewayConfig->getConfig()['factory_name'] ?? $gatewayConfig->getFactoryName();
-
-        return $factoryName !== AdyenClientProviderInterface::FACTORY_NAME;
+        // TODO: Possibly add a manual capture toggle in the payment method configuration and check it here to allow captures in these cases //
+        return false === AdyenPaymentMethodChecker::isAdyenPayment($payment);
     }
 }

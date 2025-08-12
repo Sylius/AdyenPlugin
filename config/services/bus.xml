@@ -69,7 +69,7 @@
             <argument type="service" id="sylius_refund.repository.refund_payment"/>
             <argument type="service" id="sylius.command_bus" />
 
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+            <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
 
         <service
@@ -86,9 +86,12 @@
             class="Sylius\AdyenPlugin\Bus\Handler\PaymentRefundedHandler"
             id="sylius_adyen.bus.handler.payment_refunded"
         >
-            <argument type="service" id="sm.factory"/>
+            <argument type="service" id="sylius_abstraction.state_machine"/>
             <argument type="service" id="sylius_refund.factory.refund_payment"/>
+            <argument type="service" id="sylius_adyen.factory.adyen_reference"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
             <argument type="service" id="doctrine.orm.entity_manager"/>
+            <argument type="service" id="monolog.logger.adyen" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>

@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Command;
 
 use PHPUnit\Framework\TestCase;
-use Sylius\AdyenPlugin\Bus\Command\PaymentRefundedCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Component\Core\Model\PaymentInterface;
 
@@ -25,7 +25,7 @@ class PaymentRefundedCommandTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
         $notificationData = new NotificationItemData();
 
-        $command = new PaymentRefundedCommand($payment, $notificationData);
+        $command = new PaymentRefunded($payment, $notificationData);
 
         $this->assertSame($payment, $command->getPayment());
         $this->assertSame($notificationData, $command->getNotificationData());
@@ -36,7 +36,7 @@ class PaymentRefundedCommandTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
         $notificationData = new NotificationItemData();
 
-        $command = new PaymentRefundedCommand($payment, $notificationData);
+        $command = new PaymentRefunded($payment, $notificationData);
 
         $this->assertSame($payment, $command->getPayment());
     }
@@ -47,7 +47,7 @@ class PaymentRefundedCommandTest extends TestCase
         $notificationData = new NotificationItemData();
         $notificationData->eventCode = 'CANCEL_OR_REFUND';
 
-        $command = new PaymentRefundedCommand($payment, $notificationData);
+        $command = new PaymentRefunded($payment, $notificationData);
 
         $this->assertSame($notificationData, $command->getNotificationData());
         $this->assertEquals('CANCEL_OR_REFUND', $command->getNotificationData()->eventCode);

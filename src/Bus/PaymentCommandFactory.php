@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus;
 
 use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
-use Sylius\AdyenPlugin\Bus\Command\PaymentRefundedCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
@@ -45,16 +45,16 @@ final class PaymentCommandFactory implements PaymentCommandFactoryInterface
     private function createObject(
         string $eventName,
         PaymentInterface $payment,
-        ?NotificationItemData $notificationItemData = null
-    ): PaymentLifecycleCommand|PaymentRefundedCommand {
+        ?NotificationItemData $notificationItemData = null,
+    ): PaymentLifecycleCommand|PaymentRefunded {
         if (!isset($this->mapping[$eventName])) {
             throw new UnmappedAdyenActionException(sprintf('Event "%s" has no handler registered', $eventName));
         }
 
         $class = (string) $this->mapping[$eventName];
 
-        if ($class === PaymentRefundedCommand::class && $notificationItemData !== null) {
-            return new PaymentRefundedCommand($payment, $notificationItemData);
+        if ($class === PaymentRefunded::class && $notificationItemData !== null) {
+            return new PaymentRefunded($payment, $notificationItemData);
         }
 
         $result = new $class($payment);

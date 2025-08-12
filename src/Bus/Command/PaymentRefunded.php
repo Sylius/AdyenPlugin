@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Bus\Command;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class PaymentRefundedCommand
+final class PaymentRefunded
 {
     /** @var PaymentInterface */
     private $payment;

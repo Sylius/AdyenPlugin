@@ -16,7 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Bus;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
-use Sylius\AdyenPlugin\Bus\Command\PaymentRefundedCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactory;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
@@ -77,7 +77,7 @@ class PaymentCommandFactoryTest extends TestCase
 
         $command = $this->factory->createForEvent('ignored_event', $payment, $notificationData);
 
-        $this->assertInstanceOf(PaymentRefundedCommand::class, $command);
+        $this->assertInstanceOf(PaymentRefunded::class, $command);
         $this->assertSame($payment, $command->getPayment());
         $this->assertSame($notificationData, $command->getNotificationData());
     }
@@ -131,7 +131,7 @@ class PaymentCommandFactoryTest extends TestCase
         $command = $this->factory->createForEvent('refund', $payment, $notificationData);
 
         // PaymentRefundedCommand doesn't implement PaymentLifecycleCommand, but should still be returned as object
-        $this->assertInstanceOf(PaymentRefundedCommand::class, $command);
+        $this->assertInstanceOf(PaymentRefunded::class, $command);
         $this->assertIsObject($command);
     }
 }
