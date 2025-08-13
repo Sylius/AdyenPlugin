@@ -53,10 +53,14 @@ class ProcessNotificationsAction
                 $command = $this->notificationCommandResolver->resolve($paymentMethodCode, $notificationItem);
                 $this->messageBus->dispatch($command);
             } catch (NoCommandResolvedException $ex) {
-                $this->logger->error(sprintf(
-                    'Tried to dispatch an unknown command. Notification body: %s',
-                    json_encode($notificationItem, \JSON_PARTIAL_OUTPUT_ON_ERROR),
-                ));
+                $this->logger->error(\sprintf(
+                    'No command resolved for notification with pspReference [%s], event code [%s] and success [%s]',
+                    $notificationItem->pspReference ?? '',
+                    $notificationItem->eventCode ?? '',
+                    $notificationItem->success ?? false,
+                ), [
+                    'exception' => $ex,
+                ]);
             }
         }
 
