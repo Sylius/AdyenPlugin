@@ -26,3 +26,9 @@ sylius_ui:
                 commodity_code:
                     template: '@SyliusAdyenPlugin/Admin/Product/_commodityCode.html.twig'
                     priority: 0
+
+        sylius.shop.cart.summary:
+            blocks:
+                adyen:
+                    template: "@SyliusAdyenPlugin/Shop/Cart/Summary/adyen.html.twig"
+                    priority: -10
