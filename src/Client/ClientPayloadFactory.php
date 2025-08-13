@@ -56,6 +56,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         'wechatpayWeb',
         'wechatpaySDK',
         'wechatpayQR',
+        'onlineBanking_PL', // Przelewy24
     ];
 
     public function __construct(
