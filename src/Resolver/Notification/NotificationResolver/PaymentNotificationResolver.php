@@ -67,12 +67,12 @@ final class PaymentNotificationResolver implements CommandResolver
                 $notificationData->originalReference ?? (string) $notificationData->pspReference,
             );
 
-            $result = $reference->getPayment();
-            Assert::notNull($result);
+            $payment = $reference->getPayment();
+            Assert::notNull($payment);
 
-            return $result;
+            return $payment;
         } catch (NoResultException $ex) {
-            throw new NoCommandResolvedException();
+            throw new NoCommandResolvedException($ex->getMessage(), $ex->getCode(), $ex);
         }
     }
 
