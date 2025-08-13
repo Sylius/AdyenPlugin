@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <defaults public="true"/>
+
+        <service
+            id="sylius_adyen.command_handler.auto_rescue_attempt"
+            class="Sylius\AdyenPlugin\CommandHandler\AutoRescue\AutoRescueAttemptHandler"
+        >
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+
+        <service
+            id="sylius_adyen.command_handler.auto_rescue_success"
+            class="Sylius\AdyenPlugin\CommandHandler\AutoRescue\AutoRescueSuccessHandler"
+        >
+            <argument type="service" id="sylius.repository.payment"/>
+            <argument type="service" id="monolog.logger.adyen"/>
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+
+        <service
+                id="sylius_adyen.command_handler.auto_rescue_failed"
+                class="Sylius\AdyenPlugin\CommandHandler\AutoRescue\AutoRescueFailedHandler"
+        >
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+    </services>
+</container>
