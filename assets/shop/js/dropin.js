@@ -26,21 +26,38 @@
             return configuration;
         }
 
-        const _successfulFetchCallback = (dropin, data) => {
-            if (data.resultCode && ['Refused', 'Cancelled', 'Error'].includes(data.resultCode)) {
-                _toggleLoader(false);
-                dropin.setStatus('error', { message: data.refusalReason || 'Payment was declined. Please try a different payment method.' });
+        const _showErrorMessage = (message) => {
+            _clearErrorMessage();
 
-                return;
+            const errorElement = document.createElement('div');
+            errorElement.className = 'adyen-payment-error';
+            errorElement.innerHTML = `
+                <span class="error-message">${message}</span>
+                <button class="error-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            errorElement.style.cssText = `
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+                border-radius: 4px;
+                padding: 12px 15px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+                animation: fadeIn 0.3s ease-in;
+            `;
+
+            $container.parentElement.insertBefore(errorElement, $container);
+        }
+
+        const _clearErrorMessage = () => {
+            const existingError = document.querySelector('.adyen-payment-error');
+            if (existingError) {
+                existingError.remove();
             }
-
-            if (data.action) {
-                _toggleLoader(false);
-                dropin.handleAction(data.action);
-                return;
-            }
-
-            window.location.replace(data.redirect)
         }
 
         const _onSubmitHandler = (e) => {
@@ -52,7 +69,9 @@
             e.stopPropagation();
         };
 
-        const submitHandler = (state, dropin, url) => {
+        const submitHandler = (state, dropin, url, actions) => {
+            _clearErrorMessage();
+
             const options = {
                 method: 'POST',
                 body: JSON.stringify(state.data),
@@ -63,62 +82,42 @@
 
             _toggleLoader(true);
 
-            fetch(url, options)
-                .then(async (response) => {
-                    let data;
-                    const contentType = response.headers.get("content-type");
-
-                    if (contentType && contentType.includes("application/json")) {
-                        try {
-                            data = await response.json();
-                        } catch (jsonError) {
-                            return Promise.reject({
-                                error: 'Invalid response format from server',
-                                statusCode: response.status
-                            });
-                        }
-                    } else {
-                        return Promise.reject({
-                            error: 'Server returned an unexpected response. Please try again.',
-                            statusCode: response.status,
-                            isHtml: true
-                        });
-                    }
-
+            return fetch(url, options)
+                .then((response) => {
                     if (response.status >= 400 && response.status < 600){
-                        return Promise.reject(data);
+                        return response.json().then(errorData => Promise.reject(errorData));
                     }
 
-                    return Promise.resolve(data);
+                    return response.json();
                 })
                 .then(data => {
-                    _successfulFetchCallback(dropin, data);
+                    _toggleLoader(false);
+
+                    if (data.action) {
+                        dropin.handleAction(data.action);
+                    } else if (data.redirect) {
+                        window.location.replace(data.redirect);
+                    }
+
+                    return data;
                 })
                 .catch(error => {
                     _toggleLoader(false);
 
-                    let errorMessage = '';
-                    if (error && typeof error === 'object') {
-                        if (error.resultCode && ['Refused', 'Cancelled', 'Error'].includes(error.resultCode)) {
-                            errorMessage = error.refusalReason || 'Payment failed';
-                        } else if (error.error) {
-                            errorMessage = error.error;
-                        } else {
-                            errorMessage = 'An error occurred while processing your payment. Please try again.';
-                        }
+                    if (error && error.error === true) {
+                        _showErrorMessage(error.message);
                     } else {
-                        errorMessage = 'Connection error. Please check your internet connection and try again.';
+                        _showErrorMessage('Payment processing failed. Please try again.');
                     }
 
-                    dropin.setStatus('error', { message: errorMessage });
+                    if (dropin && typeof dropin.setStatus === 'function') {
+                        setTimeout(() => {
+                            dropin.setStatus('ready');
+                        }, 100);
+                    }
 
-                    setTimeout(() => {
-                        dropin.setStatus('ready');
-                    }, 3000);
-
-                    console.error('Payment submission error:', error);
-                })
-            ;
+                    return undefined;
+                });
         };
 
         const injectOnSubmitHandler = () => {
