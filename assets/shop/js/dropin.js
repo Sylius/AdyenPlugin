@@ -26,21 +26,37 @@
             return configuration;
         }
 
-        const _successfulFetchCallback = (dropin, data) => {
-            if (data.action) {
-                _toggleLoader(false);
-                dropin.handleAction(data.action);
-                return;
-            }
+        const _showErrorMessage = (message) => {
+            _clearErrorMessage();
 
-            window.location.replace(data.redirect)
+            const errorElement = document.createElement('div');
+            errorElement.className = 'adyen-payment-error';
+            errorElement.innerHTML = `
+                <span class="error-message">${message}</span>
+                <button class="error-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+            errorElement.style.cssText = `
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+                border-radius: 4px;
+                padding: 12px 15px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+                animation: fadeIn 0.3s ease-in;
+            `;
+
+            $container.parentElement.insertBefore(errorElement, $container);
         }
 
-        const _displayError = (dropin, error) => {
-            const errorMessage = error.message || 'Payment processing failed. Please try again.';
-
-            if (dropin && typeof dropin.setStatus === 'function') {
-                dropin.setStatus('error', { message: errorMessage });
+        const _clearErrorMessage = () => {
+            const existingError = document.querySelector('.adyen-payment-error');
+            if (existingError) {
+                existingError.remove();
             }
         }
 
@@ -53,7 +69,9 @@
             e.stopPropagation();
         };
 
-        const submitHandler = (state, dropin, url) => {
+        const submitHandler = (state, dropin, url, actions) => {
+            _clearErrorMessage();
+
             const options = {
                 method: 'POST',
                 body: JSON.stringify(state.data),
@@ -64,27 +82,42 @@
 
             _toggleLoader(true);
 
-            fetch(url, options)
+            return fetch(url, options)
                 .then((response) => {
                     if (response.status >= 400 && response.status < 600){
                         return response.json().then(errorData => Promise.reject(errorData));
                     }
 
-                    return Promise.resolve(response.json())
+                    return response.json();
                 })
                 .then(data => {
-                    _successfulFetchCallback(dropin, data);
+                    _toggleLoader(false);
+
+                    if (data.action) {
+                        dropin.handleAction(data.action);
+                    } else if (data.redirect) {
+                        window.location.replace(data.redirect);
+                    }
+
+                    return data;
                 })
                 .catch(error => {
                     _toggleLoader(false);
 
                     if (error && error.error === true) {
-                        _displayError(dropin, error);
+                        _showErrorMessage(error.message);
                     } else {
-                        _displayError(dropin, { message: 'Payment processing failed. Please try again.' });
+                        _showErrorMessage('Payment processing failed. Please try again.');
                     }
-                })
-            ;
+
+                    if (dropin && typeof dropin.setStatus === 'function') {
+                        setTimeout(() => {
+                            dropin.setStatus('ready');
+                        }, 100);
+                    }
+
+                    return undefined;
+                });
         };
 
         const injectOnSubmitHandler = () => {
