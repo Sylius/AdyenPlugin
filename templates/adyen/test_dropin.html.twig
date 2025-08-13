@@ -1,0 +1,72 @@
+{# templates/adyen/test_dropin.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Sylius Adyen Headless Demo</title>
+    <script
+        src="https://checkoutshopper-live.cdn.adyen.com/checkoutshopper/sdk/6.18.0/adyen.js"
+        integrity="sha384-ZEPvk8M++Rrf/1zMUvnfdO73cZlnj/u9oAGHSeUIIgOXoW0ZrwfyB6pBcIrhDbdd"
+        crossorigin="anonymous"
+    ></script>
+    <link
+        rel="stylesheet"
+        href="https://checkoutshopper-live.cdn.adyen.com/checkoutshopper/sdk/6.18.0/adyen.css"
+        integrity="sha384-lCDmpxn4G68y4vohxVVEuRcbz4iZTDh1u/FLlsCV1wSbibWKs+knhLQpgzPBqap4"
+        crossorigin="anonymous"
+    />
+</head>
+<body>
+<div id="dropin-container" style="max-width:400px;margin:2em auto;"></div>
+
+<script>
+    (async () => {
+        const gatewayCode = '{{ gatewayCode }}';
+        const orderToken = '{{ orderToken }}';
+
+        // Fetch Drop-In configuration
+        const response = await fetch(`/api/v2/shop/payment/adyen/${gatewayCode}/${orderToken}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            }
+        );
+
+        const config = await response.json();
+
+        const {AdyenCheckout, Dropin} = window.AdyenWeb;
+        const errorKey = 'sylius_adyen.runtime.payment_failed_try_again';
+        const errorMsg = config.translations[errorKey];
+
+        const checkout = await AdyenCheckout({
+            clientKey: config.clientKey,
+            environment: config.environment,
+            paymentMethodsResponse: config.paymentMethods,
+            amount: config.amount,
+            countryCode: config.billingAddress.countryCode,
+            locale: config.locale,
+            onError: (err, component) => component.setStatus('error', {message: errorMsg}),
+            onSubmit: (state, component) =>
+                fetch(config.path.payments, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(state.data)
+                })
+                    .then(r => r.json())
+                    .then(res => {
+                        if (res.resultCode === 'Authorised') {
+                            window.location.href = `/${config.locale}/payment/adyen/${gatewayCode}/thanks`;
+                        } else if (res.action) {
+                            component.handleAction(res.action);
+                        } else {
+                            component.setStatus('error', {message: errorMsg});
+                        }
+                    })
+        });
+
+        const dropin = new Dropin(checkout);
+        dropin.mount('#dropin-container');
+    })();
+</script>
+</body>
+</html>

@@ -158,6 +158,12 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $payload + $this->getOrderDataForPayment($order);
         $payload = $this->addEsdIfApplicable($payload, $options, $order);
 
+        $payload = $this->enableAutoRescue(
+            $payload,
+            $order->getNumber(),
+            $receivedPayload['paymentMethod']['storedPaymentMethodId'],
+        );
+
         return $payload;
     }
 
@@ -391,6 +397,26 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         }
 
         $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], $esd);
+
+        return $payload;
+    }
+
+    private function enableAutoRescue(array $payload, string $orderNumber, $storedPaymentMethodId): array
+    {
+        $payload['paymentMethod'] = [
+            'type' => 'scheme',
+            'storedPaymentMethodId' => $storedPaymentMethodId,
+        ];
+        unset($payload['paymentMethod']['encryptedSecurityCode'], $payload['paymentMethod']['holderName'], $payload['paymentMethod']['brand']);
+        $payload['shopperInteraction'] = 'ContAuth';
+        $payload['recurringProcessingModel'] = 'Subscription';
+
+
+        $payload['additionalData']['autoRescue'] = 'true';
+        $payload['additionalData']['autoRescueScenario'] = 'AutoRescueSuccessfulFirst';
+        $payload['additionalData']['maxDaysToRescue'] = '30';
+        $payload['merchantOrderReference'] = sprintf('%s-%s', $orderNumber, (new \DateTimeImmutable())->format('Ymd'));
+
 
         return $payload;
     }

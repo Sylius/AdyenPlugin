@@ -73,5 +73,13 @@
 
             <tag name="controller.service_arguments"/>
         </service>
+
+        <service
+                class="Sylius\AdyenPlugin\Controller\Shop\AdyenTestController"
+                id="sylius_adyen.controller.shop.adyen_test_controller"
+        >
+            <argument type="service" id="twig" />
+            <tag name="controller.service_arguments"/>
+        </service>
     </services>
 </container>
