@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Traits;
 
+use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
@@ -27,8 +28,13 @@ trait PayableOrderPaymentTrait
         }
 
         if (null === $payment) {
-            throw new \InvalidArgumentException(
-                sprintf('Order #%d has no Payment associated', (int) $order->getId()),
+            throw new UnprocessablePaymentException(
+                sprintf('Order "#%d" has no payment in a suitable state. Expected: "%s" or "%s", got "%s"',
+                    $order->getNumber(),
+                    PaymentInterface::STATE_NEW,
+                    PaymentInterface::STATE_CART,
+                    $order->getPaymentState(),
+                )
             );
         }
 
