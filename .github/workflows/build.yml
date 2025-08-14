@@ -71,7 +71,7 @@ jobs:
             -
                 name: Get Composer cache directory
                 id: composer-cache
-                run: echo "::set-output name=dir::$(composer config cache-files-dir)"
+                run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
             -
                 name: Cache Composer
@@ -81,6 +81,7 @@ jobs:
                     key: ${{ runner.os }}-php-${{ matrix.php }}-composer-${{ hashFiles('**/composer.json **/composer.lock') }}
                     restore-keys: |
                         ${{ runner.os }}-php-${{ matrix.php }}-composer-
+
             -
                 name: Restrict Symfony version
                 if: matrix.symfony != ''
@@ -88,6 +89,7 @@ jobs:
                     composer global config --no-plugins allow-plugins.symfony/flex true
                     composer global require --no-progress --no-scripts --no-plugins "symfony/flex:^1.10"
                     composer config extra.symfony.require "${{ matrix.symfony }}"
+
             -
                 name: Restrict Sylius version
                 if: matrix.sylius != ''
@@ -100,9 +102,29 @@ jobs:
                     SYMFONY_REQUIRE: ${{ matrix.symfony }}
 
             -
+                name: Validate composer.json
+                run: composer validate --ansi --strict
+
+            -
+                name: Run PHPStan
+                run: vendor/bin/phpstan analyse
+
+            -
+                name: Run ECS
+                run: vendor/bin/ecs check
+
+            -
+                name: Run Unit Tests
+                run: vendor/bin/phpunit --colors=always --testsuite=unit
+
+            -
+                name: Validate container
+                run: vendor/bin/console lint:container
+
+            -
                 name: Get Yarn cache directory
                 id: yarn-cache
-                run: echo "::set-output name=dir::$(yarn cache dir)"
+                run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
             -
                 name: Cache Yarn
@@ -112,20 +134,27 @@ jobs:
                     key: ${{ runner.os }}-node-${{ matrix.node }}-yarn-${{ hashFiles('**/package.json **/yarn.lock') }}
                     restore-keys: |
                         ${{ runner.os }}-node-${{ matrix.node }}-yarn-
+
             -
                 name: Install JS dependencies
                 run: yarn install --cwd vendor/sylius/test-application
+
+            -
+                name: Prepare test application assets
+                run: |
+                    vendor/bin/console assets:install -vvv
+                    yarn --cwd vendor/sylius/test-application encore prod
 
             -
                 name: Prepare test application database
                 run: |
                     vendor/bin/console doctrine:database:create -vvv
                     vendor/bin/console doctrine:migrations:migrate --no-interaction -vvv
-            -
-                name: Prepare test application assets
-                run: |
-                    vendor/bin/console assets:install -vvv
-                    yarn --cwd vendor/sylius/test-application encore prod
+
+#            -
+#                name: Validate database schema
+#                run: vendor/bin/console doctrine:schema:validate
+
             -
                 name: Prepare test application cache
                 run: vendor/bin/console cache:warmup -vvv
@@ -134,24 +163,9 @@ jobs:
                 name: Load fixtures in test application
                 run: vendor/bin/console sylius:fixtures:load -n
 
-            -
-                name: Validate composer.json
-                run: composer validate --ansi --strict
-
-            -   name: Run PHPStan
-                run: vendor/bin/phpstan analyse
-
-            -   name: Run ECS
-                run: vendor/bin/ecs check
-
-# TODO: Uncomment when the plugin is compatible with Sylius 1.14
 #            -
-#                name: Validate database schema
-#                run: vendor/bin/console doctrine:schema:validate
-
-            -
-                name: Run PHPUnit
-                run: vendor/bin/phpunit --colors=always
+#                name: Run Functional Tests
+#                run: vendor/bin/phpunit --colors=always --testsuite=functional
 
             -
                 name: Run Chrome Headless
@@ -170,6 +184,9 @@ jobs:
                 uses: actions/upload-artifact@v4
                 if: failure()
                 with:
-                    name: Behat logs
-                    path: etc/build/
+                    name: "Logs - ${{ github.run_id }}-${{ github.run_number }}"
+                    path: |
+                        etc/build
+                        var/log
                     if-no-files-found: ignore
+                    overwrite: true
