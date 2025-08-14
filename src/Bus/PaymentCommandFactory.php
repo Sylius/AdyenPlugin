@@ -36,6 +36,18 @@ final class PaymentCommandFactory implements PaymentCommandFactoryInterface
         $this->eventCodeResolver = $eventCodeResolver;
     }
 
+    public function createForEvent(
+        string $event,
+        PaymentInterface $payment,
+        ?NotificationItemData $notificationItemData = null,
+    ): PaymentLifecycleCommand {
+        if (null !== $notificationItemData) {
+            $event = $this->eventCodeResolver->resolve($notificationItemData);
+        }
+
+        return $this->createObject($event, $payment);
+    }
+
     private function createObject(string $eventName, PaymentInterface $payment): PaymentLifecycleCommand
     {
         if (!isset($this->mapping[$eventName])) {
@@ -48,17 +60,5 @@ final class PaymentCommandFactory implements PaymentCommandFactoryInterface
         Assert::isInstanceOf($result, PaymentLifecycleCommand::class);
 
         return $result;
-    }
-
-    public function createForEvent(
-        string $event,
-        PaymentInterface $payment,
-        ?NotificationItemData $notificationItemData = null,
-    ): PaymentLifecycleCommand {
-        if (null !== $notificationItemData) {
-            $event = $this->eventCodeResolver->resolve($notificationItemData);
-        }
-
-        return $this->createObject($event, $payment);
     }
 }
