@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use SM\Factory\FactoryInterface;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -25,7 +25,7 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final class PaymentFinalizationHandler
 {
     public function __construct(
-        private readonly FactoryInterface $stateMachineFactory,
+        private readonly StateMachineInterface $stateMachine,
         private readonly RepositoryInterface $orderRepository,
     ) {
     }
@@ -44,8 +44,9 @@ final class PaymentFinalizationHandler
 
     private function updatePaymentState(PaymentInterface $payment, string $transition): void
     {
-        $stateMachine = $this->stateMachineFactory->get($payment, PaymentTransitions::GRAPH);
-        $stateMachine->apply($transition, true);
+        if ($this->stateMachine->can($payment, PaymentTransitions::GRAPH, $transition)) {
+            $this->stateMachine->apply($payment, PaymentTransitions::GRAPH, $transition);
+        }
     }
 
     private function updatePayment(PaymentInterface $payment): void

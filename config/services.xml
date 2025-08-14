@@ -13,7 +13,7 @@
             class="Sylius\AdyenPlugin\Callback\RequestCancelCallback"
             id="sylius_adyen.callback.request_cancel"
         >
-            <argument type="service" id="sm.factory"/>
+            <argument type="service" id="sylius_abstraction.state_machine"/>
             <argument type="service" id="sylius.command_bus"/>
         </service>
 

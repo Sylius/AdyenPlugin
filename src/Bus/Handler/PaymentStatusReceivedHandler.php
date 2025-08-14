@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
-use SM\Factory\FactoryInterface;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
@@ -33,7 +33,7 @@ final class PaymentStatusReceivedHandler
     public const ALLOWED_EVENT_NAMES = ['authorised', 'redirectshopper', 'received'];
 
     public function __construct(
-        private readonly FactoryInterface $stateMachineFactory,
+        private readonly StateMachineInterface $stateMachine,
         private readonly RepositoryInterface $paymentRepository,
         private readonly RepositoryInterface $orderRepository,
         private readonly MessageBusInterface $commandBus,
@@ -74,17 +74,18 @@ final class PaymentStatusReceivedHandler
 
     private function updateOrderState(OrderInterface $order): void
     {
-        $sm = $this->stateMachineFactory->get($order, OrderCheckoutTransitions::GRAPH);
-        if ($sm->can(OrderCheckoutTransitions::TRANSITION_COMPLETE)) {
-            $sm->apply(OrderCheckoutTransitions::TRANSITION_COMPLETE, true);
+        if (!$this->stateMachine->can($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE)) {
+            return;
+        }
 
-            $this->orderRepository->add($order);
+        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE);
 
-            $token = $order->getTokenValue();
+        $this->orderRepository->add($order);
 
-            if (null !== $token) {
-                $this->commandBus->dispatch(new SendOrderConfirmation($token));
-            }
+        $token = $order->getTokenValue();
+
+        if (null !== $token) {
+            $this->commandBus->dispatch(new SendOrderConfirmation($token));
         }
     }
 

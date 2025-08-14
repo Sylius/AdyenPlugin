@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Callback;
 
-use SM\Factory\FactoryInterface;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\OrderPaymentTransitions;
@@ -22,21 +22,15 @@ use Symfony\Component\Messenger\MessageBusInterface;
 final class RequestCancelCallback
 {
     public function __construct(
-        private readonly FactoryInterface $factory,
+        private readonly StateMachineInterface $stateMachine,
         private readonly MessageBusInterface $messageBus,
     ) {
     }
 
     public function __invoke(OrderInterface $order): void
     {
-        $factory = $this->factory->get($order, OrderPaymentTransitions::GRAPH);
-
-        if (!$factory->can(OrderPaymentTransitions::TRANSITION_CANCEL)) {
-            return;
+        if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)) {
+            $this->messageBus->dispatch(new CancelPayment($order));
         }
-
-        $this->messageBus->dispatch(
-            new CancelPayment($order),
-        );
     }
 }

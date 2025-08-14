@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Doctrine\ORM\EntityManagerInterface;
-use SM\Factory\FactoryInterface;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\RefundPayment;
 use Sylius\AdyenPlugin\RefundPaymentTransitions as AdyenRefundPaymentTransitions;
 use Sylius\RefundPlugin\StateResolver\RefundPaymentTransitions;
@@ -24,17 +24,19 @@ use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 final class RefundPaymentHandler
 {
     public function __construct(
-        private readonly FactoryInterface $stateMachineFactory,
+        private readonly StateMachineInterface $stateMachine,
         private readonly EntityManagerInterface $refundPaymentManager,
     ) {
     }
 
     public function __invoke(RefundPayment $command): void
     {
-        $machine = $this->stateMachineFactory->get($command->getRefundPayment(), RefundPaymentTransitions::GRAPH);
-        $machine->apply(AdyenRefundPaymentTransitions::TRANSITION_CONFIRM, true);
+        $refundPayment = $command->getRefundPayment();
+        if ($this->stateMachine->can($refundPayment, RefundPaymentTransitions::GRAPH, AdyenRefundPaymentTransitions::TRANSITION_CONFIRM)) {
+            $this->stateMachine->apply($refundPayment, RefundPaymentTransitions::GRAPH, AdyenRefundPaymentTransitions::TRANSITION_CONFIRM);
+        }
 
-        $this->refundPaymentManager->persist($command->getRefundPayment());
+        $this->refundPaymentManager->persist($refundPayment);
         $this->refundPaymentManager->flush();
     }
 }

@@ -14,34 +14,38 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\RefundPayment;
 use Sylius\AdyenPlugin\Bus\Handler\RefundPaymentHandler;
 use Sylius\AdyenPlugin\RefundPaymentTransitions;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Sylius\RefundPlugin\Entity\RefundPayment as RefundPaymentEntity;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
+use Sylius\RefundPlugin\StateResolver\RefundPaymentTransitions as BaseRefundPaymentTransitions;
 
 class RefundPaymentHandlerTest extends TestCase
 {
-    use StateMachineTrait;
+    private MockObject|RepositoryInterface $refundPaymentManager;
 
-    /** @var EntityManagerInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $refundPaymentManager;
+    private MockObject|StateMachineInterface $stateMachine;
 
-    /** @var RefundPaymentHandler */
-    private $handler;
+    private RefundPaymentHandler $handler;
 
     protected function setUp(): void
     {
-        $this->setupStateMachineMocks();
-
         $this->refundPaymentManager = $this->createMock(EntityManagerInterface::class);
-        $this->handler = new RefundPaymentHandler($this->stateMachineFactory, $this->refundPaymentManager);
+        $this->stateMachine = $this->createMock(StateMachineInterface::class);
+
+        $this->handler = new RefundPaymentHandler($this->stateMachine, $this->refundPaymentManager);
     }
 
-    public function testProcess(): void
+    #[DataProvider('provideForTestProcess')]
+    public function testProcess(bool $canTransition): void
     {
         $entity = new RefundPaymentEntity(
             $this->createMock(OrderInterface::class),
@@ -53,9 +57,22 @@ class RefundPaymentHandlerTest extends TestCase
 
         $this->stateMachine
             ->expects($this->once())
+            ->method('can')
+            ->with(
+                $entity,
+                BaseRefundPaymentTransitions::GRAPH,
+                RefundPaymentTransitions::TRANSITION_CONFIRM,
+            )
+            ->willReturn($canTransition)
+        ;
+
+        $this->stateMachine
+            ->expects($canTransition ? $this->once() : $this->never())
             ->method('apply')
             ->with(
-                $this->equalTo(RefundPaymentTransitions::TRANSITION_CONFIRM),
+                $entity,
+                BaseRefundPaymentTransitions::GRAPH,
+                RefundPaymentTransitions::TRANSITION_CONFIRM,
             )
         ;
 
@@ -69,5 +86,11 @@ class RefundPaymentHandlerTest extends TestCase
 
         $command = new RefundPayment($entity);
         ($this->handler)($command);
+    }
+
+    public static function provideForTestProcess(): \Generator
+    {
+        yield 'can transition' => [true];
+        yield 'cannot transition' => [false];
     }
 }
