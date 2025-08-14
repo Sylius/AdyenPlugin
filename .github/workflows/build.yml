@@ -163,9 +163,9 @@ jobs:
                 name: Load fixtures in test application
                 run: vendor/bin/console sylius:fixtures:load -n
 
-#            -
-#                name: Run Functional Tests
-#                run: vendor/bin/phpunit --colors=always --testsuite=functional
+            -
+                name: Run Functional Tests
+                run: vendor/bin/phpunit --colors=always --testsuite=functional
 
             -
                 name: Run Chrome Headless
