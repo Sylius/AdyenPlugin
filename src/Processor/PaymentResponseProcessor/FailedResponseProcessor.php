@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
-use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -33,12 +32,12 @@ final class FailedResponseProcessor extends AbstractProcessor
     public const LABEL_PAYMENT_FAILED = 'sylius_adyen.ui.payment_failed';
 
     public function __construct(
-        private readonly UrlGeneratorInterface $urlGenerator,
+        UrlGeneratorInterface $urlGenerator,
         TranslatorInterface $translator,
         private readonly MessageBusInterface $messageBus,
         private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
     ) {
-        $this->translator = $translator;
+        parent::__construct($urlGenerator, $translator);
     }
 
     public function accepts(Request $request, ?PaymentInterface $payment): bool
@@ -56,23 +55,22 @@ final class FailedResponseProcessor extends AbstractProcessor
         $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
         $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
+        return $this->getRedirectUrl($payment, $request);
+    }
+
+    private function getRedirectUrl(PaymentInterface $payment, Request $request): string
+    {
         $order = $payment->getOrder();
         Assert::notNull($order);
 
-        return $this->getRedirectUrl($order);
-    }
-
-    private function getRedirectUrl(OrderInterface $order): string
-    {
         $tokenValue = $order->getTokenValue();
 
         if (null === $tokenValue) {
-            return $this->urlGenerator->generate(self::CHECKOUT_FINALIZATION_REDIRECT);
+            return $this->generateUrl(self::CHECKOUT_FINALIZATION_REDIRECT, $request, $payment);
         }
 
-        return $this->urlGenerator->generate(
-            self::FAILURE_REDIRECT_TARGET,
-            ['tokenValue' => $order->getTokenValue()],
-        );
+        return $this->generateUrl(self::FAILURE_REDIRECT_TARGET, $request, $payment, [
+            'tokenValue' => $tokenValue,
+        ]);
     }
 }

@@ -3,44 +3,44 @@
 <container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
-        <defaults public="true"/>
+        <defaults public="true" />
 
         <service
-                class="Sylius\AdyenPlugin\Normalizer\AdditionalDetailsNormalizer"
-                id="sylius_adyen.normalizer.additional_details"
+            class="Sylius\AdyenPlugin\Normalizer\AdditionalDetailsNormalizer"
+            id="sylius_adyen.normalizer.additional_details"
         >
-            <argument type="service" id="request_stack"/>
-            <argument type="service" id="sylius_adyen.normalizer.shipping_line_generator"/>
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="sylius_adyen.normalizer.shipping_line_generator" />
 
-            <tag name="serializer.normalizer" priority="100"/>
+            <tag name="serializer.normalizer" priority="100" />
         </service>
 
         <service
             class="Sylius\AdyenPlugin\Normalizer\AddressNormalizer"
             id="sylius_adyen.normalizer.address"
         >
-            <argument type="service" id="sylius_adyen.resolver.address.street_address"/>
+            <argument type="service" id="sylius_adyen.resolver.address.street_address" />
 
-            <tag name="serializer.normalizer" priority="100"/>
+            <tag name="serializer.normalizer" priority="100" />
         </service>
 
         <service
             class="Sylius\AdyenPlugin\Normalizer\OrderItemToLineItemNormalizer"
             id="sylius_adyen.normalizer.order_item_to_line_item"
         >
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="router" />
+            <argument type="service" id="sylius_adyen.resolver.product.thumbnail_url" />
+            <argument>%locale%</argument>
 
-            <argument type="service" id="request_stack"/>
-            <argument type="service" id="router"/>
-            <argument type="service" id="sylius_adyen.resolver.product.thumbnail_url"/>
-
-            <tag name="serializer.normalizer" priority="100"/>
+            <tag name="serializer.normalizer" priority="100" />
         </service>
 
         <service
             class="Sylius\AdyenPlugin\Normalizer\ShippingLineGenerator"
             id="sylius_adyen.normalizer.shipping_line_generator"
         >
-            <argument type="service" id="translator"/>
+            <argument type="service" id="translator" />
         </service>
 
     </services>

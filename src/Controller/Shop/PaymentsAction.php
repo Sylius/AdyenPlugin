@@ -62,7 +62,7 @@ class PaymentsAction
         $payment = $this->getPayablePayment($order);
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $payment->getMethod();
-        $url = $this->prepareTargetUrl($paymentMethod);
+        $url = $this->prepareTargetUrl($paymentMethod, $request);
         /**
          * @var AdyenTokenInterface $customerIdentifier
          */
@@ -101,12 +101,13 @@ class PaymentsAction
         }
     }
 
-    private function prepareTargetUrl(PaymentMethodInterface $paymentMethod): string
+    private function prepareTargetUrl(PaymentMethodInterface $paymentMethod, Request $request): string
     {
         return $this->urlGenerator->generate(
             self::REDIRECT_TARGET_ACTION,
             [
                 'code' => $paymentMethod->getCode(),
+                '_locale' => $request->getLocale(),
             ],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );

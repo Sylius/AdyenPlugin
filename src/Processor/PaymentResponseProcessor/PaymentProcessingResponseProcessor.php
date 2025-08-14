@@ -29,12 +29,12 @@ final class PaymentProcessingResponseProcessor extends AbstractProcessor
     public const REDIRECT_TARGET_ROUTE = 'sylius_shop_homepage';
 
     public function __construct(
-        private readonly UrlGeneratorInterface $urlGenerator,
+        UrlGeneratorInterface $urlGenerator,
         TranslatorInterface $translator,
         private readonly MessageBusInterface $messageBus,
         private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
     ) {
-        $this->translator = $translator;
+        parent::__construct($urlGenerator, $translator);
     }
 
     public function accepts(Request $request, ?PaymentInterface $payment): bool
@@ -52,6 +52,6 @@ final class PaymentProcessingResponseProcessor extends AbstractProcessor
 
         $this->addFlash($request, self::FLASH_INFO, self::LABEL_PROCESSING);
 
-        return $this->urlGenerator->generate(self::REDIRECT_TARGET_ROUTE);
+        return $this->generateUrl(self::REDIRECT_TARGET_ROUTE, $request, $payment);
     }
 }

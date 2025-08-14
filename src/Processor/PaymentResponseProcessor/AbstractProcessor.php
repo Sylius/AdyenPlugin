@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 abstract class AbstractProcessor implements ProcessorInterface
@@ -26,7 +27,11 @@ abstract class AbstractProcessor implements ProcessorInterface
 
     public const FLASH_ERROR = 'error';
 
-    protected ?TranslatorInterface $translator;
+    public function __construct(
+        protected readonly UrlGeneratorInterface $urlGenerator,
+        protected readonly TranslatorInterface $translator,
+    ) {
+    }
 
     protected function isResultCodeSupportedForPayment(?PaymentInterface $payment, array $resultCodes): bool
     {
@@ -50,13 +55,34 @@ abstract class AbstractProcessor implements ProcessorInterface
         Request $request,
         string $type,
         string $message,
+        ?string $locale = null,
     ): void {
-        if (null !== $this->translator) {
-            $message = $this->translator->trans($message);
-        }
+        $message = $this->translator->trans($message, locale: $locale ?? $this->getLocale($request));
+
         /** @var Session $session */
         $session = $request->getSession();
 
         $session->getFlashBag()->add($type, $message);
+    }
+
+    protected function generateUrl(
+        string $targetRoute,
+        Request $request,
+        ?PaymentInterface $payment,
+        array $parameters = [],
+        int $referenceType = UrlGeneratorInterface::ABSOLUTE_PATH,
+    ): string {
+        return $this->urlGenerator->generate(
+            $targetRoute,
+            array_merge($parameters, ['_locale' => $this->getLocale($request, $payment)]),
+            $referenceType,
+        );
+    }
+
+    private function getLocale(
+        Request $request,
+        ?PaymentInterface $payment = null,
+    ): string {
+        return $payment?->getOrder()?->getLocaleCode() ?? $request->getLocale();
     }
 }
