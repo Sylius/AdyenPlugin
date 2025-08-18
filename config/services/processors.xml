@@ -18,6 +18,7 @@
         <service
             id="sylius_adyen.processor.order.reverse_payment"
             class="Sylius\AdyenPlugin\Processor\OrderPayment\ReverseOrderPaymentProcessor"
+            public="true"
         >
             <argument type="service" id="sylius.command_bus" />
             <argument type="service" id="sylius_abstraction.state_machine" />
