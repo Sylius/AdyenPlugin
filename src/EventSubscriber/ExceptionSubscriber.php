@@ -4,6 +4,7 @@ namespace Sylius\AdyenPlugin\EventSubscriber;
 
 
 use Adyen\AdyenException;
+use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
 use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -47,6 +48,13 @@ class ExceptionSubscriber implements EventSubscriberInterface
         if ($exception instanceof NoCommandResolvedException) {
             $event->setResponse(new JsonResponse([
                 'error' => 'No command resolved for notification',
+                'details' => $exception->getMessage(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY));
+        }
+
+        if ($exception instanceof UnmappedAdyenActionException) {
+            $event->setResponse(new JsonResponse([
+                'error' => 'Unmapped Adyen action',
                 'details' => $exception->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY));
         }
