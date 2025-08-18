@@ -1,33 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
     <services>
         <defaults public="true"/>
-
-        <service
-            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FailedResponseProcessor"
-            id="sylius_adyen.processor.payment_response_processor.failed_response"
-        >
-            <argument type="service" id="router"/>
-            <argument type="service" id="translator"/>
-            <argument type="service" id="sylius.command_bus"/>
-            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
-
-            <tag name="sylius_adyen.processor.payment_response"/>
-        </service>
-
-        <service
-            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor"
-            id="sylius_adyen.processor.payment_response_processor.successful_response"
-        >
-            <argument type="service" id="router"/>
-            <argument type="service" id="translator"/>
-            <argument type="service" id="sylius.command_bus"/>
-            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
-
-            <tag name="sylius_adyen.processor.payment_response"/>
-        </service>
 
         <service
             class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor"
@@ -35,15 +14,22 @@
         >
             <argument type="tagged_iterator" tag="sylius_adyen.processor.payment_response"/>
             <argument type="service" id="router"/>
-            <argument type="service" id="sylius.context.cart.composite"/>
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\PaymentProcessingResponseProcessor"
-            id="sylius_adyen.processor.payment_response_processor.payment_processing_response"
+            id="sylius_adyen.processor.payment_response_processor.abstract"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\AbstractProcessor"
+            abstract="true"
         >
-            <argument type="service" id="router"/>
-            <argument type="service" id="translator"/>
+            <argument type="service" id="router" />
+            <argument type="service" id="translator" />
+        </service>
+
+        <service
+            id="sylius_adyen.processor.payment_response_processor.failed_response"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FailedResponseProcessor"
+            parent="sylius_adyen.processor.payment_response_processor.abstract"
+        >
             <argument type="service" id="sylius.command_bus"/>
             <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
 
@@ -51,15 +37,33 @@
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FallbackResponseProcessor"
-            id="sylius_adyen.processor.payment_response_processor.fallback_response"
+            id="sylius_adyen.processor.payment_response_processor.successful_response"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor"
+            parent="sylius_adyen.processor.payment_response_processor.abstract"
         >
-            <argument type="service" id="router"/>
-            <argument type="service" id="translator"/>
-            <tag name="sylius_adyen.processor.payment_response" priority="-100"/>
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
+
+            <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 
+        <service
+            id="sylius_adyen.processor.payment_response_processor.payment_processing_response"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\PaymentProcessingResponseProcessor"
+            parent="sylius_adyen.processor.payment_response_processor.abstract"
+        >
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
 
+            <tag name="sylius_adyen.processor.payment_response"/>
+        </service>
+
+        <service
+            id="sylius_adyen.processor.payment_response_processor.fallback_response"
+            class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FallbackResponseProcessor"
+            parent="sylius_adyen.processor.payment_response_processor.abstract"
+        >
+            <tag name="sylius_adyen.processor.payment_response" priority="-100"/>
+        </service>
     </services>
 </container>
-

@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Normalizer;
 
 use Sylius\AdyenPlugin\Resolver\Product\ThumbnailUrlResolverInterface;
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -21,25 +22,12 @@ use Webmozart\Assert\Assert;
 
 final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
 {
-    private const DEFAULT_DESCRIPTION_LOCALE = 'en_US';
-
-    /** @var RequestStack */
-    private $requestStack;
-
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
-    /** @var ThumbnailUrlResolverInterface */
-    private $thumbnailUrlResolver;
-
     public function __construct(
-        RequestStack $requestStack,
-        UrlGeneratorInterface $urlGenerator,
-        ThumbnailUrlResolverInterface $thumbnailUrlResolver,
+        private RequestStack $requestStack,
+        private UrlGeneratorInterface $urlGenerator,
+        private ThumbnailUrlResolverInterface $thumbnailUrlResolver,
+        private string $defaultLocale = 'en_US',
     ) {
-        $this->requestStack = $requestStack;
-        $this->urlGenerator = $urlGenerator;
-        $this->thumbnailUrlResolver = $thumbnailUrlResolver;
     }
 
     /**
@@ -63,7 +51,10 @@ final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
     ): array {
         Assert::isInstanceOf($object, OrderItemInterface::class);
 
-        $locale = $this->getLocale();
+        /** @var OrderInterface $order */
+        $order = $object->getOrder();
+
+        $locale = $this->getLocale($order);
 
         $amountWithoutTax = $object->getTotal() - $object->getTaxTotal();
         $productVariant = $object->getVariant();
@@ -83,19 +74,18 @@ final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
             'id' => $object->getId(),
             'productUrl' => $this->urlGenerator->generate('sylius_shop_product_show', [
                 'slug' => (string) $product->getTranslation($locale)->getSlug(),
+                '_locale' => $locale,
             ], UrlGeneratorInterface::ABSOLUTE_URL),
             'imageUrl' => $this->thumbnailUrlResolver->resolve($productVariant),
         ];
     }
 
-    private function getLocale(): string
+    private function getLocale(?OrderInterface $order): string
     {
-        $request = $this->requestStack->getCurrentRequest();
-
-        if (null === $request) {
-            return self::DEFAULT_DESCRIPTION_LOCALE;
-        }
-
-        return $request->getLocale();
+        return
+            $order?->getLocaleCode() ??
+            $this->requestStack->getCurrentRequest()?->getLocale() ??
+            $this->defaultLocale
+        ;
     }
 }

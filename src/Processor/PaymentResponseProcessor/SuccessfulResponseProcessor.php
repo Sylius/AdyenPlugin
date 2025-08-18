@@ -35,12 +35,12 @@ class SuccessfulResponseProcessor extends AbstractProcessor
     public const LABEL_PAYMENT_COMPLETED = 'sylius.payment.completed';
 
     public function __construct(
-        private readonly UrlGeneratorInterface $urlGenerator,
+        UrlGeneratorInterface $urlGenerator,
         TranslatorInterface $translator,
         private readonly MessageBusInterface $messageBus,
         private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
     ) {
-        $this->translator = $translator;
+        parent::__construct($urlGenerator, $translator);
     }
 
     public function accepts(Request $request, ?PaymentInterface $payment): bool
@@ -63,7 +63,7 @@ class SuccessfulResponseProcessor extends AbstractProcessor
             $targetRoute = self::MY_ORDERS_ROUTE_NAME;
         }
 
-        return $this->urlGenerator->generate($targetRoute);
+        return $this->generateUrl($targetRoute, $request, $payment);
     }
 
     private function shouldTheAlternativeThanksPageBeShown(Request $request): bool

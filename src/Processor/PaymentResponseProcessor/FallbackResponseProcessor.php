@@ -16,18 +16,10 @@ namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class FallbackResponseProcessor extends AbstractProcessor
 {
     public const REDIRECT_TARGET_ACTION = 'sylius_adyen_shop_thank_you';
-
-    public function __construct(
-        private readonly UrlGeneratorInterface $urlGenerator,
-        TranslatorInterface $translator,
-    ) {
-        $this->translator = $translator;
-    }
 
     public function accepts(Request $request, ?PaymentInterface $payment): bool
     {
@@ -44,14 +36,10 @@ final class FallbackResponseProcessor extends AbstractProcessor
             $this->setActiveOrderViaPayment($request, $payment);
         }
 
-        return $this->urlGenerator->generate(
-            self::REDIRECT_TARGET_ACTION,
-            [
-                'code' => $code,
-                'tokenValue' => $tokenValue,
-            ],
-            UrlGeneratorInterface::ABSOLUTE_URL,
-        );
+        return $this->generateUrl(self::REDIRECT_TARGET_ACTION, $request, $payment, [
+            'code' => $code,
+            'tokenValue' => $tokenValue,
+        ], UrlGeneratorInterface::ABSOLUTE_URL);
     }
 
     private function setActiveOrderViaPayment(Request $request, PaymentInterface $payment): void

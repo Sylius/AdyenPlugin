@@ -69,6 +69,8 @@ final class PaymentResponseProcessor implements PaymentResponseProcessorInterfac
             return $result;
         }
 
-        return $this->urlGenerator->generate(self::DEFAULT_REDIRECT_ROUTE);
+        return $this->urlGenerator->generate(self::DEFAULT_REDIRECT_ROUTE, [
+            '_locale' => $payment?->getOrder()?->getLocaleCode() ?? $request->getLocale(),
+        ]);
     }
 }
