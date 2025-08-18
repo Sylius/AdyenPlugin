@@ -147,5 +147,14 @@
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
 
+        <service
+            class="Sylius\AdyenPlugin\Bus\Handler\ReversePaymentHandler"
+            id="sylius_adyen.bus.handler.reverse_payment"
+        >
+            <argument type="service" id="sylius_adyen.provider.adyen_client" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
     </services>
 </container>

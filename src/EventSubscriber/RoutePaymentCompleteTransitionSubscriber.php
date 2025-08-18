@@ -17,7 +17,7 @@ use SM\Event\SMEvents;
 use SM\Event\TransitionEvent;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
-use Sylius\AdyenPlugin\PaymentTransitions;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -42,7 +42,7 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
         if (
             !$this->isProcessableAdyenPayment($event) ||
             PaymentInterface::STATE_PROCESSING !== $event->getState() ||
-            PaymentTransitions::TRANSITION_CAPTURE === $event->getTransition()
+            PaymentGraph::TRANSITION_CAPTURE === $event->getTransition()
         ) {
             return;
         }
@@ -60,16 +60,16 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
         $this->messageBus->dispatch(new RequestCapture($order));
 
         $event->setRejected();
-        $event->getStateMachine()->apply(PaymentTransitions::TRANSITION_PROCESS, true);
+        $event->getStateMachine()->apply(PaymentGraph::TRANSITION_PROCESS, true);
     }
 
     private function isProcessableAdyenPayment(TransitionEvent $event): bool
     {
-        if (PaymentTransitions::GRAPH !== $event->getStateMachine()->getGraph()) {
+        if (PaymentGraph::GRAPH !== $event->getStateMachine()->getGraph()) {
             return false;
         }
 
-        if (PaymentTransitions::TRANSITION_COMPLETE !== $event->getTransition()) {
+        if (PaymentGraph::TRANSITION_COMPLETE !== $event->getTransition()) {
             return false;
         }
         if (!isset($this->getObject($event)->getDetails()['pspReference'])) {

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Command;
 
-use Sylius\AdyenPlugin\PaymentTransitions;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 
 final class PaymentCancelledCommand implements PaymentFinalizationCommand
@@ -24,7 +24,7 @@ final class PaymentCancelledCommand implements PaymentFinalizationCommand
 
     public function getPaymentTransition(): string
     {
-        return PaymentTransitions::TRANSITION_CANCEL;
+        return PaymentGraph::TRANSITION_CANCEL;
     }
 
     public function getPayment(): PaymentInterface

@@ -13,22 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Command;
 
-use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class PaymentFailedCommand implements PaymentFinalizationCommand
+final class ReversePayment
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
+    public function __construct(private PaymentInterface $payment)
     {
-        $this->payment = $payment;
-    }
-
-    public function getPaymentTransition(): string
-    {
-        return PaymentGraph::TRANSITION_FAIL;
     }
 
     public function getPayment(): PaymentInterface

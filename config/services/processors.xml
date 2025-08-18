@@ -14,5 +14,13 @@
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="doctrine.orm.entity_manager" />
         </service>
+
+        <service
+            id="sylius_adyen.processor.order.reverse_payment"
+            class="Sylius\AdyenPlugin\Processor\OrderPayment\ReverseOrderPaymentProcessor"
+        >
+            <argument type="service" id="sylius.command_bus" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+        </service>
     </services>
 </container>

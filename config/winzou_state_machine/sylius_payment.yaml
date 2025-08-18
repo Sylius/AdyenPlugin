@@ -1,5 +1,7 @@
 winzou_state_machine:
     sylius_payment:
+        states:
+            processing_reversal: ~
         transitions:
             capture:
                 from: [new, processing, authorized]
@@ -8,8 +10,14 @@ winzou_state_machine:
                 from: [new, authorized]
                 to: processing
             cancel:
-                from: [new, processing, authorized, completed]
+                from: [new, processing, authorized, processing_reversal]
                 to: cancelled
+            refund:
+                from: [completed, processing_reversal]
+                to: refunded
+            reverse:
+                from: [authorized, completed]
+                to: processing_reversal
         callbacks:
             after:
                 sylius_resolve_state:

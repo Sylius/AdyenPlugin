@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Processor\State;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\AdyenPlugin\PaymentTransitions;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -44,8 +44,8 @@ final class PaymentAuthorizationStateProcessor implements PaymentAuthorizeStateP
             return;
         }
 
-        if ($this->stateMachine->can($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_CAPTURE)) {
-            $this->stateMachine->apply($payment, PaymentTransitions::GRAPH, PaymentTransitions::TRANSITION_CAPTURE);
+        if ($this->stateMachine->can($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_CAPTURE)) {
+            $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_CAPTURE);
             $this->entityManager->flush();
         }
     }
