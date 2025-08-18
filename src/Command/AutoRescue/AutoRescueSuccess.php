@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Command\AutoRescue;
 final class AutoRescueSuccess
 {
     public function __construct(
+        public readonly mixed $paymentId,
         public readonly string $merchantReference,
         public readonly string $pspReference,
     ) {
