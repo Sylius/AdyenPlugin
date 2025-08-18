@@ -16,8 +16,7 @@
             id="sylius_adyen.command_handler.auto_rescue_success"
             class="Sylius\AdyenPlugin\CommandHandler\AutoRescue\AutoRescueSuccessHandler"
         >
-            <argument type="service" id="sylius.repository.payment"/>
-            <argument type="service" id="monolog.logger.adyen"/>
+            <argument type="service" id="sylius.repository.payment" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
@@ -26,6 +25,15 @@
                 id="sylius_adyen.command_handler.auto_rescue_failed"
                 class="Sylius\AdyenPlugin\CommandHandler\AutoRescue\AutoRescueFailedHandler"
         >
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+
+        <service
+                id="sylius_adyen.command_handler.flag_payment_rescue_scheduled"
+                class="Sylius\AdyenPlugin\CommandHandler\AutoRescue\FlagPaymentRescueScheduledHandler"
+        >
+            <argument type="service" id="sylius.repository.payment" />
+
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
     </services>
