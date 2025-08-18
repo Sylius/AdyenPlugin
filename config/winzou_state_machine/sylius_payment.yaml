@@ -2,12 +2,17 @@ winzou_state_machine:
     sylius_payment:
         transitions:
             capture:
-              from: [ new, processing, authorized ]
-              to: completed
+                from: [new, processing, authorized]
+                to: completed
             process:
-              from: [ authorized ]
-              to: processing
+                from: [new, authorized]
+                to: processing
         callbacks:
             after:
                 sylius_resolve_state:
-                    on: [ "complete", "process", "refund", "authorize", "capture" ]
+                    on: ["complete", "process", "refund", "authorize", "capture"]
+                auto_capture:
+                    on: ["authorize"]
+                    do: ["@sylius_adyen.processor.authorization_state", "process"]
+                    args: ["object"]
+                    priority: 100

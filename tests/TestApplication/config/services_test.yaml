@@ -1,0 +1,21 @@
+services:
+    # Override the Adyen client provider with the stub for functional testing
+    sylius_adyen.provider.adyen_client:
+        class: Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientProviderStub
+        arguments:
+            - '@sylius_adyen.test.adyen_client_stub'
+        public: true
+
+    # Register the Adyen client stub
+    sylius_adyen.test.adyen_client_stub:
+        class: Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub
+        public: true
+
+    # Test cart context for order resolution
+    sylius_adyen.test.cart_context:
+        class: Tests\Sylius\AdyenPlugin\Functional\Service\TestCartContext
+        public: true
+        arguments:
+            - '@sylius.context.cart.new'
+        tags:
+            - { name: sylius.context.cart, priority: 100 }
