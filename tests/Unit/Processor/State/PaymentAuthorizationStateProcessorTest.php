@@ -14,15 +14,18 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Processor\State;
 
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\AdyenPlugin\PaymentTransitions;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Processor\State\PaymentAuthorizationStateProcessor;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Payment;
+use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class PaymentAuthorizationStateProcessorTest extends TestCase
 {
@@ -43,37 +46,26 @@ final class PaymentAuthorizationStateProcessorTest extends TestCase
         );
     }
 
-    public function testProcessWithNullPaymentMethod(): void
-    {
-        $payment = $this->createMock(Payment::class);
-        $payment->expects($this->once())
-            ->method('getMethod')
-            ->willReturn(null);
+    #[DataProvider('provideEarlyReturnCases')]
+    public function testProcessReturnsEarlyWhen(
+        mixed $paymentMethod,
+        ?GatewayConfig $gatewayConfig,
+    ): void {
+        $payment = $this->createMock(PaymentInterface::class);
 
-        $this->stateMachine->expects($this->never())
-            ->method('can');
-
-        $this->stateMachine->expects($this->never())
-            ->method('apply');
-
-        $this->entityManager->expects($this->never())
-            ->method('flush');
-
-        $this->processor->process($payment);
-    }
-
-    public function testProcessWithNullGatewayConfig(): void
-    {
-        $payment = $this->createMock(Payment::class);
-        $paymentMethod = $this->createMock(PaymentMethod::class);
+        if ($paymentMethod === 'mock') {
+            $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+        }
 
         $payment->expects($this->once())
             ->method('getMethod')
             ->willReturn($paymentMethod);
 
-        $paymentMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn(null);
+        if ($paymentMethod !== null) {
+            $paymentMethod->expects($this->once())
+                ->method('getGatewayConfig')
+                ->willReturn($gatewayConfig);
+        }
 
         $this->stateMachine->expects($this->never())
             ->method('can');
@@ -87,10 +79,24 @@ final class PaymentAuthorizationStateProcessorTest extends TestCase
         $this->processor->process($payment);
     }
 
-    public function testProcessWithNonAdyenGateway(): void
+    public static function provideEarlyReturnCases(): iterable
     {
-        $payment = $this->createMock(Payment::class);
-        $paymentMethod = $this->createMock(PaymentMethod::class);
+        yield 'payment method is null' => [
+            'paymentMethod' => null,
+            'gatewayConfig' => null,
+        ];
+
+        yield 'gateway config is null' => [
+            'paymentMethod' => 'mock',
+            'gatewayConfig' => null,
+        ];
+    }
+
+    #[DataProvider('provideNonAdyenGatewayFactoryNames')]
+    public function testProcessReturnsEarlyForNonAdyenGateway(string $factoryName): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
         $gatewayConfig = $this->createMock(GatewayConfig::class);
 
         $payment->expects($this->once())
@@ -103,7 +109,7 @@ final class PaymentAuthorizationStateProcessorTest extends TestCase
 
         $gatewayConfig->expects($this->once())
             ->method('getFactoryName')
-            ->willReturn('paypal');
+            ->willReturn($factoryName);
 
         $this->stateMachine->expects($this->never())
             ->method('can');
@@ -117,10 +123,23 @@ final class PaymentAuthorizationStateProcessorTest extends TestCase
         $this->processor->process($payment);
     }
 
-    public function testProcessWhenCannotTransitionToCapture(): void
+    public static function provideNonAdyenGatewayFactoryNames(): iterable
     {
-        $payment = $this->createMock(Payment::class);
-        $paymentMethod = $this->createMock(PaymentMethod::class);
+        yield 'PayPal gateway' => ['paypal'];
+        yield 'Stripe gateway' => ['stripe'];
+        yield 'Offline gateway' => ['offline'];
+        yield 'Bank transfer gateway' => ['bank_transfer'];
+        yield 'Empty factory name' => [''];
+    }
+
+    #[DataProvider('provideStateMachineTransitionScenarios')]
+    public function testProcessHandlesStateMachineTransitions(
+        bool $canTransition,
+        bool $shouldApplyTransition,
+        bool $shouldFlush,
+    ): void {
+        $payment = $this->createMock(PaymentInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
         $gatewayConfig = $this->createMock(GatewayConfig::class);
 
         $payment->expects($this->once())
@@ -139,44 +158,211 @@ final class PaymentAuthorizationStateProcessorTest extends TestCase
             ->method('can')
             ->with(
                 $payment,
-                PaymentTransitions::GRAPH,
-                PaymentTransitions::TRANSITION_CAPTURE,
+                PaymentGraph::GRAPH,
+                PaymentGraph::TRANSITION_CAPTURE,
             )
-            ->willReturn(false);
+            ->willReturn($canTransition);
 
-        $this->stateMachine->expects($this->never())
-            ->method('apply');
+        if ($shouldApplyTransition) {
+            $this->stateMachine->expects($this->once())
+                ->method('apply')
+                ->with(
+                    $payment,
+                    PaymentGraph::GRAPH,
+                    PaymentGraph::TRANSITION_CAPTURE,
+                );
+        } else {
+            $this->stateMachine->expects($this->never())
+                ->method('apply');
+        }
 
-        $this->entityManager->expects($this->never())
-            ->method('flush');
+        if ($shouldFlush) {
+            $this->entityManager->expects($this->once())
+                ->method('flush');
+        } else {
+            $this->entityManager->expects($this->never())
+                ->method('flush');
+        }
 
         $this->processor->process($payment);
     }
 
-    public function testProcessSuccessfullyAppliesAuthorizeTransition(): void
+    public static function provideStateMachineTransitionScenarios(): iterable
     {
-        $payment = $this->createMock(Payment::class);
-        $paymentMethod = $this->createMock(PaymentMethod::class);
-        $gatewayConfig = $this->createMock(GatewayConfig::class);
+        yield 'can transition to capture' => [
+            'canTransition' => true,
+            'shouldApplyTransition' => true,
+            'shouldFlush' => true,
+        ];
 
-        $payment->expects($this->once())
+        yield 'cannot transition to capture' => [
+            'canTransition' => false,
+            'shouldApplyTransition' => false,
+            'shouldFlush' => false,
+        ];
+    }
+
+    #[DataProvider('provideCompleteFlowScenarios')]
+    public function testCompleteFlowScenarios(
+        mixed $paymentMethod,
+        mixed $gatewayConfig,
+        ?string $factoryName,
+        bool $canTransition,
+        int $getMethodCalls,
+        int $getGatewayConfigCalls,
+        int $getFactoryNameCalls,
+        int $canCalls,
+        int $applyCalls,
+        int $flushCalls,
+    ): void {
+        $payment = $this->createMock(PaymentInterface::class);
+
+        if ($paymentMethod === 'mock') {
+            $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+        }
+
+        if ($gatewayConfig === 'mock') {
+            $gatewayConfig = $this->createMock(GatewayConfig::class);
+        }
+
+        $payment->expects($this->exactly($getMethodCalls))
             ->method('getMethod')
             ->willReturn($paymentMethod);
 
-        $paymentMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
+        if ($paymentMethod !== null && $getGatewayConfigCalls > 0) {
+            $paymentMethod->expects($this->exactly($getGatewayConfigCalls))
+                ->method('getGatewayConfig')
+                ->willReturn($gatewayConfig);
+        }
 
-        $gatewayConfig->expects($this->once())
-            ->method('getFactoryName')
-            ->willReturn(AdyenClientProviderInterface::FACTORY_NAME);
+        if ($gatewayConfig !== null && $getFactoryNameCalls > 0) {
+            $gatewayConfig->expects($this->exactly($getFactoryNameCalls))
+                ->method('getFactoryName')
+                ->willReturn($factoryName);
+        }
+
+        if ($canCalls > 0) {
+            $this->stateMachine->expects($this->exactly($canCalls))
+                ->method('can')
+                ->with(
+                    $payment,
+                    PaymentGraph::GRAPH,
+                    PaymentGraph::TRANSITION_CAPTURE,
+                )
+                ->willReturn($canTransition);
+        } else {
+            $this->stateMachine->expects($this->never())
+                ->method('can');
+        }
+
+        if ($applyCalls > 0) {
+            $this->stateMachine->expects($this->exactly($applyCalls))
+                ->method('apply')
+                ->with(
+                    $payment,
+                    PaymentGraph::GRAPH,
+                    PaymentGraph::TRANSITION_CAPTURE,
+                );
+        } else {
+            $this->stateMachine->expects($this->never())
+                ->method('apply');
+        }
+
+        if ($flushCalls > 0) {
+            $this->entityManager->expects($this->exactly($flushCalls))
+                ->method('flush');
+        } else {
+            $this->entityManager->expects($this->never())
+                ->method('flush');
+        }
+
+        $this->processor->process($payment);
+    }
+
+    public static function provideCompleteFlowScenarios(): iterable
+    {
+        yield 'null payment method stops processing' => [
+            'paymentMethod' => null,
+            'gatewayConfig' => null,
+            'factoryName' => null,
+            'canTransition' => false,
+            'getMethodCalls' => 1,
+            'getGatewayConfigCalls' => 0,
+            'getFactoryNameCalls' => 0,
+            'canCalls' => 0,
+            'applyCalls' => 0,
+            'flushCalls' => 0,
+        ];
+
+        yield 'null gateway config stops processing' => [
+            'paymentMethod' => 'mock',
+            'gatewayConfig' => null,
+            'factoryName' => null,
+            'canTransition' => false,
+            'getMethodCalls' => 1,
+            'getGatewayConfigCalls' => 1,
+            'getFactoryNameCalls' => 0,
+            'canCalls' => 0,
+            'applyCalls' => 0,
+            'flushCalls' => 0,
+        ];
+
+        yield 'non-adyen gateway stops processing' => [
+            'paymentMethod' => 'mock',
+            'gatewayConfig' => 'mock',
+            'factoryName' => 'stripe',
+            'canTransition' => false,
+            'getMethodCalls' => 1,
+            'getGatewayConfigCalls' => 1,
+            'getFactoryNameCalls' => 1,
+            'canCalls' => 0,
+            'applyCalls' => 0,
+            'flushCalls' => 0,
+        ];
+
+        yield 'adyen gateway but cannot transition' => [
+            'paymentMethod' => 'mock',
+            'gatewayConfig' => 'mock',
+            'factoryName' => AdyenClientProviderInterface::FACTORY_NAME,
+            'canTransition' => false,
+            'getMethodCalls' => 1,
+            'getGatewayConfigCalls' => 1,
+            'getFactoryNameCalls' => 1,
+            'canCalls' => 1,
+            'applyCalls' => 0,
+            'flushCalls' => 0,
+        ];
+
+        yield 'successful adyen payment capture' => [
+            'paymentMethod' => 'mock',
+            'gatewayConfig' => 'mock',
+            'factoryName' => AdyenClientProviderInterface::FACTORY_NAME,
+            'canTransition' => true,
+            'getMethodCalls' => 1,
+            'getGatewayConfigCalls' => 1,
+            'getFactoryNameCalls' => 1,
+            'canCalls' => 1,
+            'applyCalls' => 1,
+            'flushCalls' => 1,
+        ];
+    }
+
+    public function testProcessWithConcretePaymentAndPaymentMethod(): void
+    {
+        $payment = new Payment();
+        $paymentMethod = new PaymentMethod();
+        $gatewayConfig = new GatewayConfig();
+
+        $gatewayConfig->setFactoryName(AdyenClientProviderInterface::FACTORY_NAME);
+        $paymentMethod->setGatewayConfig($gatewayConfig);
+        $payment->setMethod($paymentMethod);
 
         $this->stateMachine->expects($this->once())
             ->method('can')
             ->with(
                 $payment,
-                PaymentTransitions::GRAPH,
-                PaymentTransitions::TRANSITION_CAPTURE,
+                PaymentGraph::GRAPH,
+                PaymentGraph::TRANSITION_CAPTURE,
             )
             ->willReturn(true);
 
@@ -184,8 +370,8 @@ final class PaymentAuthorizationStateProcessorTest extends TestCase
             ->method('apply')
             ->with(
                 $payment,
-                PaymentTransitions::GRAPH,
-                PaymentTransitions::TRANSITION_CAPTURE,
+                PaymentGraph::GRAPH,
+                PaymentGraph::TRANSITION_CAPTURE,
             );
 
         $this->entityManager->expects($this->once())

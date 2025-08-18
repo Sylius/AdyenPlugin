@@ -64,6 +64,7 @@ class AlterPaymentHandlerTest extends TestCase
         $paymentWithoutAdyenConfiguration->setMethod($nonAdyenPaymentMethod);
 
         $paymentWithoutReference = clone $paymentWithoutAdyenConfiguration;
+        $paymentWithoutReference->getMethod()->getGatewayConfig()->setFactoryName(AdyenClientProvider::FACTORY_NAME);
         $paymentWithoutReference->getMethod()->getGatewayConfig()->setConfig([
             AdyenClientProvider::FACTORY_NAME => 1,
         ]);
@@ -138,6 +139,7 @@ class AlterPaymentHandlerTest extends TestCase
     public function testForValidPayment(string $commandClass, callable $setupMocker): void
     {
         $config = new GatewayConfig();
+        $config->setFactoryName(AdyenClientProvider::FACTORY_NAME);
         $config->setConfig([
             AdyenClientProvider::FACTORY_NAME => 1,
         ]);

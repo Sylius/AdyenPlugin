@@ -88,6 +88,14 @@ final class AdyenClientStub implements AdyenClientInterface
         ];
     }
 
+    public function requestReversal(PaymentInterface $payment): array
+    {
+        return [
+            'status' => 'received',
+            'pspReference' => 'REVERSAL_PSP_REF',
+        ];
+    }
+
     public function removeStoredToken(
         string $paymentReference,
         AdyenTokenInterface $adyenToken,
