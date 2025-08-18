@@ -39,8 +39,7 @@ class NotificationItemData
     /** @var ?bool */
     public $success;
 
-    /** @var ?string */
-    public $pspReference;
+    public string $pspReference;
 
     /** @var ?string */
     public $originalReference;
