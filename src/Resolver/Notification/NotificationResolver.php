@@ -38,10 +38,10 @@ final class NotificationResolver implements NotificationResolverInterface
     public function resolve(string $paymentCode, Request $request): array
     {
         $result = [];
-        foreach ($this->denormalizeRequestData($request) as $item) {
-            $item->paymentCode = $paymentCode;
+        foreach ($this->denormalizeRequestData($request) as $notificationItemData) {
+            $notificationItemData->paymentCode = $paymentCode;
 
-            $violations = $this->validator->validate($item);
+            $violations = $this->validator->validate($notificationItemData);
             if ($violations->count() > 0) {
                 $this->logger->warning(
                     'Invalid notification item received from Adyen: ' . $this->formatViolations($violations)
@@ -49,7 +49,7 @@ final class NotificationResolver implements NotificationResolverInterface
                 continue;
             }
 
-            $result[] = $item;
+            $result[] = $notificationItemData;
         }
 
         return $result;
