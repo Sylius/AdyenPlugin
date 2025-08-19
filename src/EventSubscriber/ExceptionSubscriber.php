@@ -4,17 +4,23 @@ namespace Sylius\AdyenPlugin\EventSubscriber;
 
 
 use Adyen\AdyenException;
+use Psr\Log\LoggerInterface;
+use Sylius\AdyenPlugin\Exception\NoCommandResolvedException;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
-use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 class ExceptionSubscriber implements EventSubscriberInterface
 {
+    public function __construct(private readonly LoggerInterface $logger)
+    {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -31,6 +37,15 @@ class ExceptionSubscriber implements EventSubscriberInterface
                 'error' => 'Unprocessable Payment',
                 'details' => $exception->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY));
+        }
+
+        if ($exception instanceof HttpException) {
+            $event->setResponse(new JsonResponse([
+                'error' => $exception->getMessage(),
+                'details' => [
+                    'status' => $exception->getStatusCode(),
+                ]
+            ], $exception->getStatusCode()));
         }
 
         if ($exception instanceof AdyenException) {
@@ -50,6 +65,11 @@ class ExceptionSubscriber implements EventSubscriberInterface
                 'error' => 'No command resolved for notification',
                 'details' => $exception->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY));
+
+            $this->logger->error(
+                'No command resolved for notification: {message}',
+                ['message' => $exception->getMessage()]
+            );
         }
 
         if ($exception instanceof UnmappedAdyenActionException) {
