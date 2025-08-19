@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin\Unit\Processor\PaymentResponseProcessor;
+namespace Tests\Sylius\AdyenPlugin\Functional\ResponseProcessing\PaymentResponseProcessor;
 
 use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;

@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Processor\State;
+namespace Sylius\AdyenPlugin\Processor\Payment;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
@@ -20,7 +20,7 @@ use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 
-final class PaymentAuthorizationStateProcessor implements PaymentAuthorizeStateProcessorInterface
+final class AuthorizationStateProcessor implements AuthorizationStateProcessorInterface
 {
     public function __construct(
         private StateMachineInterface $stateMachine,

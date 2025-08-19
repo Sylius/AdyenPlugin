@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin\Unit\Processor\State;
+namespace Tests\Sylius\AdyenPlugin\Unit\Processor\Payment;
 
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -19,7 +19,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
-use Sylius\AdyenPlugin\Processor\State\PaymentAuthorizationStateProcessor;
+use Sylius\AdyenPlugin\Processor\Payment\AuthorizationStateProcessor;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Payment;
@@ -27,20 +27,20 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 
-final class PaymentAuthorizationStateProcessorTest extends TestCase
+final class AuthorizationStateProcessorTest extends TestCase
 {
     private MockObject|StateMachineInterface $stateMachine;
 
     private EntityManagerInterface|MockObject $entityManager;
 
-    private PaymentAuthorizationStateProcessor $processor;
+    private AuthorizationStateProcessor $processor;
 
     protected function setUp(): void
     {
         $this->stateMachine = $this->createMock(StateMachineInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
-        $this->processor = new PaymentAuthorizationStateProcessor(
+        $this->processor = new AuthorizationStateProcessor(
             $this->stateMachine,
             $this->entityManager,
         );

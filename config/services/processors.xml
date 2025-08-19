@@ -10,7 +10,7 @@
 
         <service
             id="sylius_adyen.processor.authorization_state"
-            class="Sylius\AdyenPlugin\Processor\State\PaymentAuthorizationStateProcessor"
+            class="Sylius\AdyenPlugin\Processor\Payment\AuthorizationStateProcessor"
         >
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="doctrine.orm.entity_manager" />
