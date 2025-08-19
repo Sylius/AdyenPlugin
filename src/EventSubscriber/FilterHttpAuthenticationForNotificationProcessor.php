@@ -53,7 +53,7 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
 
     private function getConfiguration(string $code): array
     {
-        $paymentMethod = $this->paymentMethodRepository->findOneForAdyenAndCode($code);
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
         if (null === $paymentMethod) {
             throw new NotFoundHttpException();
         }

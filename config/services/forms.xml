@@ -18,7 +18,7 @@
                 id="sylius_adyen.form.extension.payment_type"
         >
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
-            <argument type="service" id="sylius_adyen.repository.payment_method"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius.context.shopper"/>
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <tag name="form.type_extension" />

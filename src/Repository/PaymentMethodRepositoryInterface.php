@@ -15,19 +15,14 @@ namespace Sylius\AdyenPlugin\Repository;
 
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface as BasePaymentMethodRepositoryInterface;
 
-interface PaymentMethodRepositoryInterface
+interface PaymentMethodRepositoryInterface extends BasePaymentMethodRepositoryInterface
 {
-    public function find(int $id): ?PaymentMethodInterface;
+    public function getOneAdyenForCode(string $code): ?PaymentMethodInterface;
 
     public function findOneByChannel(ChannelInterface $channel): ?PaymentMethodInterface;
 
-    public function findOneForAdyenAndCode(string $code): ?PaymentMethodInterface;
-
-    /**
-     * @return PaymentMethodInterface[]
-     */
+    /** @return PaymentMethodInterface[] */
     public function findAllByChannel(ChannelInterface $channel): array;
-
-    public function getOneForAdyenAndCode(string $code): PaymentMethodInterface;
 }

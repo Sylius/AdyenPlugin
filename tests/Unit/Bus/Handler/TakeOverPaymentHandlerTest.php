@@ -54,7 +54,7 @@ class TakeOverPaymentHandlerTest extends TestCase
     {
         $this->paymentMethodRepository
             ->expects($this->never())
-            ->method('getOneForAdyenAndCode')
+            ->method('getOneAdyenForCode')
         ;
 
         $paymentMethod = new PaymentMethod();
@@ -85,7 +85,7 @@ class TakeOverPaymentHandlerTest extends TestCase
 
         $this->paymentMethodRepository
             ->expects($this->once())
-            ->method('getOneForAdyenAndCode')
+            ->method('getOneAdyenForCode')
             ->with(
                 $this->equalTo(self::NEW_TEST_PAYMENT_CODE),
             )

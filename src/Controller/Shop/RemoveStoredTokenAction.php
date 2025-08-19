@@ -77,7 +77,7 @@ class RemoveStoredTokenAction
             throw TokenRemovalFailureException::forAnonymous();
         }
 
-        $paymentMethod = $this->paymentMethodRepository->getOneForAdyenAndCode($code);
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
 
         $token = $this->adyenTokenRepository->findOneByPaymentMethodAndCustomer($paymentMethod, $customer);
         if (null === $token) {

@@ -9,7 +9,7 @@
             class="Sylius\AdyenPlugin\EventSubscriber\FilterHttpAuthenticationForNotificationProcessor"
             id="sylius_adyen.event_subscriber.filter_http_authentication_for_notification_processor"
         >
-            <argument type="service" id="sylius_adyen.repository.payment_method"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="monolog.logger.adyen"/>
             <tag name="kernel.event_subscriber"/>
         </service>

@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
+use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -42,7 +43,11 @@ final class TakeOverPaymentHandler
             return;
         }
 
-        $paymentMethod = $this->paymentMethodRepository->getOneForAdyenAndCode($command->getPaymentCode());
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($command->getPaymentCode());
+        if (null === $paymentMethod) {
+            throw new AdyenNotFoundException();
+        }
+
         $payment->setMethod($paymentMethod);
 
         $this->persistPayment($payment);
