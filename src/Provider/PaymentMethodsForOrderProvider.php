@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Provider;
 
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -84,6 +85,9 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
         ?AdyenTokenInterface $adyenToken = null,
     ): array {
         $method = $this->getPaymentMethod($order, $code);
+        if (null === $method) {
+            throw new AdyenNotFoundException();
+        }
 
         try {
             $client = $this->adyenClientProvider->getClientForCode((string) $method->getCode());
@@ -102,10 +106,10 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
         return array_intersect_key($array, array_flip(self::CONFIGURATION_KEYS_WHITELIST));
     }
 
-    private function getPaymentMethod(OrderInterface $order, ?string $code = null): PaymentMethodInterface
+    private function getPaymentMethod(OrderInterface $order, ?string $code = null): ?PaymentMethodInterface
     {
         if (null !== $code) {
-            return $this->paymentMethodRepository->getOneForAdyenAndCode($code);
+            return $this->paymentMethodRepository->getOneAdyenForCode($code);
         }
 
         $method = $order->getLastPayment()?->getMethod();

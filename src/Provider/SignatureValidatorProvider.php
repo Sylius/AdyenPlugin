@@ -29,7 +29,7 @@ final class SignatureValidatorProvider implements SignatureValidatorProviderInte
 
     public function getValidatorForCode(string $code): SignatureValidator
     {
-        $paymentMethod = $this->paymentMethodRepository->findOneForAdyenAndCode($code);
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
 
         if (null === $paymentMethod) {
             throw new AdyenNotConfiguredException($code);

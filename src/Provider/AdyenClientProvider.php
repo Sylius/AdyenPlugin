@@ -97,7 +97,7 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
 
     public function getClientForCode(string $code): AdyenClientInterface
     {
-        $paymentMethod = $this->paymentMethodRepository->findOneForAdyenAndCode($code);
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
 
         if (null === $paymentMethod) {
             throw new UnprocessablePaymentException();

@@ -44,7 +44,7 @@
             class="Sylius\AdyenPlugin\Bus\Handler\TakeOverPaymentHandler"
             id="sylius_adyen.bus.handler.take_over_payment"
         >
-            <argument type="service" id="sylius_adyen.repository.payment_method"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius.manager.payment"/>
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
@@ -64,9 +64,9 @@
             id="sylius_adyen.bus.handler.refund_payment_generated"
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
-            <argument type="service" id="sylius_adyen.repository.payment"/>
-            <argument type="service" id="sylius_adyen.repository.payment_method"/>
-            <argument type="service" id="sylius_adyen.repository.refund_payment"/>
+            <argument type="service" id="sylius.repository.payment"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_refund.repository.refund_payment"/>
             <argument type="service" id="sylius.command_bus" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />

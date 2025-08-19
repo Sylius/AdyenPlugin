@@ -57,7 +57,7 @@
 
             <argument type="service" id="security.token_storage"/>
             <argument type="service" id="sylius_adyen.repository.adyen_token"/>
-            <argument type="service" id="sylius_adyen.repository.payment_method"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
 
             <tag name="controller.service_arguments"/>

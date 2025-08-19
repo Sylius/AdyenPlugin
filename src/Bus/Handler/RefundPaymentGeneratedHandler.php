@@ -16,11 +16,12 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use Sylius\AdyenPlugin\Repository\PaymentRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
+use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -42,6 +43,7 @@ final class RefundPaymentGeneratedHandler
 
     public function __invoke(RefundPaymentGenerated $refundPaymentGenerated): void
     {
+        /** @var PaymentInterface $payment */
         $payment = $this->paymentRepository->find($refundPaymentGenerated->paymentId());
         $paymentMethod = $this->paymentMethodRepository->find($refundPaymentGenerated->paymentMethodId());
 
@@ -61,6 +63,7 @@ final class RefundPaymentGeneratedHandler
         RefundPaymentGenerated $refundPaymentGenerated,
         PaymentInterface $payment,
     ): void {
+        /** @var RefundPaymentInterface $refund */
         $refund = $this->refundPaymentRepository->find($refundPaymentGenerated->id());
         if (null === $refund) {
             return;

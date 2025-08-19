@@ -11,11 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Repository;
+namespace Sylius\AdyenPlugin\Exception;
 
-use Sylius\Component\Core\Model\PaymentInterface;
-
-interface PaymentRepositoryInterface
+class AdyenNotFoundException extends \InvalidArgumentException
 {
-    public function find(int $id): ?PaymentInterface;
+    public function __construct(string $message = 'Adyen not found')
+    {
+        parent::__construct($message);
+    }
 }

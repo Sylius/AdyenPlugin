@@ -14,10 +14,9 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Repository;
 
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 
-interface RefundPaymentRepositoryInterface
+interface RefundPaymentRepositoryInterface extends RepositoryInterface
 {
     public function getForOrderNumberAndRefundPaymentId(string $orderNumber, int $paymentId): RefundPaymentInterface;
-
-    public function find(int $id): ?RefundPaymentInterface;
 }
