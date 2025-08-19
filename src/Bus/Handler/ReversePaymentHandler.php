@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\ReversePayment;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -26,6 +26,7 @@ final class ReversePaymentHandler
     public function __construct(
         private AdyenClientProviderInterface $adyenClientProvider,
         private StateMachineInterface $stateMachine,
+        private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 
@@ -34,7 +35,7 @@ final class ReversePaymentHandler
         $payment = $command->getPayment();
 
         if (
-            !AdyenPaymentMethodChecker::isAdyenPayment($payment) ||
+            !$this->adyenPaymentMethodChecker->isAdyenPayment($payment) ||
             !$this->stateMachine->can($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_REVERSE)
         ) {
             return;

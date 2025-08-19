@@ -26,6 +26,7 @@ return static function (ECSConfig $config): void {
         'src',
         'tests/Behat',
         'tests/Unit',
+        'tests/Functional',
         'tests/HttpClientStub.php',
         'tests/TestApplication/src',
     ]);

@@ -14,19 +14,21 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Processor\Refund;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 
 final class RefundPaymentStateProcessor implements RefundPaymentStateProcessorInterface
 {
-    public function __construct(private StateMachineInterface $stateMachine)
-    {
+    public function __construct(
+        private StateMachineInterface $stateMachine,
+        private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+    ) {
     }
 
     public function process(RefundPaymentInterface $refundPayment): void
     {
-        if (!AdyenPaymentMethodChecker::isAdyenPaymentMethod($refundPayment->getPaymentMethod())) {
+        if (!$this->adyenPaymentMethodChecker->isAdyenPaymentMethod($refundPayment->getPaymentMethod())) {
             return;
         }
 
@@ -34,7 +36,7 @@ final class RefundPaymentStateProcessor implements RefundPaymentStateProcessorIn
         $payment = $order->getLastPayment();
         if (
             null === $payment ||
-            !AdyenPaymentMethodChecker::isAdyenPayment($payment) ||
+            !$this->adyenPaymentMethodChecker->isAdyenPayment($payment) ||
             $refundPayment->getAmount() !== $payment->getAmount() ||
             $refundPayment->getCurrencyCode() !== $payment->getCurrencyCode()
         ) {

@@ -13,15 +13,13 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Processor\Order;
 
-use Payum\Core\Model\GatewayConfigInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Processor\Order\UpdateOrderPaymentStateProcessor;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\OrderPaymentTransitions;
 
@@ -31,10 +29,16 @@ final class CancelOrderPaymentProcessorTest extends TestCase
 
     private MockObject|StateMachineInterface $stateMachine;
 
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
     protected function setUp(): void
     {
         $this->stateMachine = $this->createMock(StateMachineInterface::class);
-        $this->processor = new UpdateOrderPaymentStateProcessor($this->stateMachine);
+        $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
+        $this->processor = new UpdateOrderPaymentStateProcessor(
+            $this->stateMachine,
+            $this->adyenPaymentMethodChecker,
+        );
     }
 
     public function testDoesNothingWhenOrderIsNull(): void
@@ -99,23 +103,7 @@ final class CancelOrderPaymentProcessorTest extends TestCase
 
     public function testDoesNothingWhenPaymentIsNotAdyen(): void
     {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'stripe']);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
         $payment = $this->createMock(PaymentInterface::class);
-        $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
 
         $order = $this->createMock(OrderInterface::class);
         $order
@@ -128,71 +116,11 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->method('getLastPayment')
             ->willReturn($payment);
 
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('can');
-
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('apply');
-
-        $this->processor->process($order);
-    }
-
-    public function testDoesNothingWhenPaymentMethodIsNull(): void
-    {
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment
+        $this->adyenPaymentMethodChecker
             ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn(null);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
-
-        $order
-            ->expects($this->once())
-            ->method('getLastPayment')
-            ->willReturn($payment);
-
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('can');
-
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('apply');
-
-        $this->processor->process($order);
-    }
-
-    public function testDoesNothingWhenGatewayConfigIsNull(): void
-    {
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn(null);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
-
-        $order
-            ->expects($this->once())
-            ->method('getLastPayment')
-            ->willReturn($payment);
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(false);
 
         $this->stateMachine
             ->expects($this->never())
@@ -207,23 +135,7 @@ final class CancelOrderPaymentProcessorTest extends TestCase
 
     public function testAppliesCancelTransitionWhenCanTransition(): void
     {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => AdyenClientProviderInterface::FACTORY_NAME]);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
         $payment = $this->createMock(PaymentInterface::class);
-        $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
 
         $order = $this->createMock(OrderInterface::class);
         $order
@@ -235,6 +147,12 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('getLastPayment')
             ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
 
         $this->stateMachine
             ->expects($this->once())
@@ -252,23 +170,7 @@ final class CancelOrderPaymentProcessorTest extends TestCase
 
     public function testDoesNotApplyCancelTransitionWhenCannotTransition(): void
     {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => AdyenClientProviderInterface::FACTORY_NAME]);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
         $payment = $this->createMock(PaymentInterface::class);
-        $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
 
         $order = $this->createMock(OrderInterface::class);
         $order
@@ -280,6 +182,12 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('getLastPayment')
             ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
 
         $matcher = $this->exactly(2);
         $this->stateMachine
@@ -296,103 +204,6 @@ final class CancelOrderPaymentProcessorTest extends TestCase
 
                 return false;
             });
-
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('apply');
-
-        $this->processor->process($order);
-    }
-
-    public function testChecksFactoryNameFromGatewayConfigWhenConfigArrayIsEmpty(): void
-    {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getConfig')
-            ->willReturn([]);
-
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getFactoryName')
-            ->willReturn(AdyenClientProviderInterface::FACTORY_NAME);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
-
-        $order
-            ->expects($this->once())
-            ->method('getLastPayment')
-            ->willReturn($payment);
-
-        $this->stateMachine
-            ->expects($this->once())
-            ->method('can')
-            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
-            ->willReturn(true);
-
-        $this->stateMachine
-            ->expects($this->once())
-            ->method('apply')
-            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL);
-
-        $this->processor->process($order);
-    }
-
-    public function testDoesNothingWhenFactoryNameDoesNotMatchAdyen(): void
-    {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getConfig')
-            ->willReturn([]);
-
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getFactoryName')
-            ->willReturn('stripe');
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
-
-        $order
-            ->expects($this->once())
-            ->method('getLastPayment')
-            ->willReturn($payment);
-
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('can');
 
         $this->stateMachine
             ->expects($this->never())

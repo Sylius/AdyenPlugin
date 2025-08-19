@@ -13,76 +13,68 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\StateMachine\Guard;
 
-use Payum\Core\Model\GatewayConfigInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\StateMachine\Guard\OrderPaymentGuard;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class OrderPaymentGuardTest extends TestCase
 {
     private OrderPaymentGuard $guard;
 
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
     protected function setUp(): void
     {
-        $this->guard = new OrderPaymentGuard();
+        $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
+        $this->guard = new OrderPaymentGuard($this->adyenPaymentMethodChecker);
     }
 
     public function testItAllowsCancellationForAdyenPayment(): void
     {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig->method('getConfig')->willReturn(['factory_name' => AdyenClientProviderInterface::FACTORY_NAME]);
-        $gatewayConfig->method('getFactoryName')->willReturn(AdyenClientProviderInterface::FACTORY_NAME);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod->method('getGatewayConfig')->willReturn($gatewayConfig);
-
         $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn($paymentMethod);
         $payment->method('getState')->willReturn(PaymentInterface::STATE_NEW);
 
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
 
         self::assertTrue($this->guard->canBeCancelled($order));
     }
 
     public function testItDeniesCancellationForAdyenPaymentInProcessingReversalState(): void
     {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig->method('getConfig')->willReturn(['factory_name' => AdyenClientProviderInterface::FACTORY_NAME]);
-        $gatewayConfig->method('getFactoryName')->willReturn(AdyenClientProviderInterface::FACTORY_NAME);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod->method('getGatewayConfig')->willReturn($gatewayConfig);
-
         $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn($paymentMethod);
         $payment->method('getState')->willReturn(PaymentGraph::STATE_PROCESSING_REVERSAL);
 
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
 
         self::assertFalse($this->guard->canBeCancelled($order));
     }
 
     public function testItDeniesCancellationForNonAdyenPayment(): void
     {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig->method('getConfig')->willReturn(['factory_name' => 'stripe']);
-        $gatewayConfig->method('getFactoryName')->willReturn('stripe');
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod->method('getGatewayConfig')->willReturn($gatewayConfig);
-
         $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn($paymentMethod);
-
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(false);
 
         self::assertFalse($this->guard->canBeCancelled($order));
     }
@@ -98,61 +90,14 @@ final class OrderPaymentGuardTest extends TestCase
     public function testItDeniesCancellationWhenPaymentMethodIsNull(): void
     {
         $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn(null);
-
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(false);
 
         self::assertFalse($this->guard->canBeCancelled($order));
-    }
-
-    public function testItDeniesCancellationWhenGatewayConfigIsNull(): void
-    {
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod->method('getGatewayConfig')->willReturn(null);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn($paymentMethod);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order->method('getLastPayment')->willReturn($payment);
-
-        self::assertFalse($this->guard->canBeCancelled($order));
-    }
-
-    public function testItDeniesCancellationWhenFactoryNameIsNotSet(): void
-    {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig->method('getConfig')->willReturn([]);
-        $gatewayConfig->method('getFactoryName')->willReturn(null);
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod->method('getGatewayConfig')->willReturn($gatewayConfig);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn($paymentMethod);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order->method('getLastPayment')->willReturn($payment);
-
-        self::assertFalse($this->guard->canBeCancelled($order));
-    }
-
-    public function testItPrioritizesFactoryNameFromConfigOverGatewayFactoryName(): void
-    {
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $gatewayConfig->method('getConfig')->willReturn(['factory_name' => AdyenClientProviderInterface::FACTORY_NAME]);
-        $gatewayConfig->method('getFactoryName')->willReturn('some_other_factory');
-
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $paymentMethod->method('getGatewayConfig')->willReturn($gatewayConfig);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment->method('getMethod')->willReturn($paymentMethod);
-
-        $order = $this->createMock(OrderInterface::class);
-        $order->method('getLastPayment')->willReturn($payment);
-
-        self::assertTrue($this->guard->canBeCancelled($order));
     }
 }

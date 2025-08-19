@@ -15,13 +15,18 @@ namespace Sylius\AdyenPlugin\EventSubscriber;
 
 use SM\Event\SMEvents;
 use SM\Event\TransitionEvent;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Sylius\RefundPlugin\StateResolver\RefundPaymentTransitions;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 final class FilterManualRefundConfirmationSubscriber implements EventSubscriberInterface
 {
+    public function __construct(
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+    ) {
+    }
+
     public static function getSubscribedEvents(): array
     {
         return [
@@ -40,7 +45,7 @@ final class FilterManualRefundConfirmationSubscriber implements EventSubscriberI
 
         /** @var RefundPaymentInterface $object */
         $object = $event->getStateMachine()->getObject();
-        if (AdyenPaymentMethodChecker::isAdyenPaymentMethod($object->getPaymentMethod())) {
+        if ($this->adyenPaymentMethodChecker->isAdyenPaymentMethod($object->getPaymentMethod())) {
             $event->setRejected();
         }
     }

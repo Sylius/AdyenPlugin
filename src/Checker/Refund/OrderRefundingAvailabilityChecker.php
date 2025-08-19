@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Checker\Refund;
 
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
@@ -26,6 +26,7 @@ final class OrderRefundingAvailabilityChecker implements OrderRefundingAvailabil
     public function __construct(
         private readonly OrderRefundingAvailabilityCheckerInterface $decoratedChecker,
         private readonly OrderRepositoryInterface $orderRepository,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 
@@ -45,7 +46,7 @@ final class OrderRefundingAvailabilityChecker implements OrderRefundingAvailabil
 
     private function paymentCannotBeRefunded(PaymentInterface $payment): bool
     {
-        return AdyenPaymentMethodChecker::isAdyenPayment($payment) && (
+        return $this->adyenPaymentMethodChecker->isAdyenPayment($payment) && (
             in_array($payment->getState(), [
                 PaymentGraph::STATE_PROCESSING_REVERSAL,
                 PaymentInterface::STATE_COMPLETED,

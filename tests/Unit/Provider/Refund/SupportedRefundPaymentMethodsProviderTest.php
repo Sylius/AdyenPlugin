@@ -15,8 +15,8 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Provider\Refund;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Provider\Refund\SupportedRefundPaymentMethodsProvider;
-use Sylius\Bundle\PayumBundle\Model\GatewayConfigInterface;
 use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -27,12 +27,15 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
 {
     private MockObject|MockRefundPaymentMethodsProvider $decoratedProvider;
 
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
     private SupportedRefundPaymentMethodsProvider $provider;
 
     protected function setUp(): void
     {
         $this->decoratedProvider = $this->createMock(MockRefundPaymentMethodsProvider::class);
-        $this->provider = new SupportedRefundPaymentMethodsProvider($this->decoratedProvider);
+        $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
+        $this->provider = new SupportedRefundPaymentMethodsProvider($this->decoratedProvider, $this->adyenPaymentMethodChecker);
     }
 
     public function test_it_delegates_find_for_channel_to_decorated_provider(): void
@@ -76,26 +79,17 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
     {
         $order = $this->createMock(OrderInterface::class);
         $payment = $this->createMock(PaymentInterface::class);
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-        $expectedMethods = [$paymentMethod];
+        $expectedMethods = [$this->createMock(PaymentMethodInterface::class)];
 
         $order->expects($this->once())
             ->method('getLastPayment')
             ->with(PaymentInterface::STATE_COMPLETED)
             ->willReturn($payment);
 
-        $payment->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-
-        $paymentMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $gatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'adyen']);
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
 
         $this->decoratedProvider
             ->expects($this->once())
@@ -112,14 +106,8 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
     {
         $order = $this->createMock(OrderInterface::class);
         $payment = $this->createMock(PaymentInterface::class);
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-
         $adyenMethod = $this->createMock(PaymentMethodInterface::class);
-        $adyenGatewayConfig = $this->createMock(GatewayConfigInterface::class);
         $nonAdyenMethod = $this->createMock(PaymentMethodInterface::class);
-        $nonAdyenGatewayConfig = $this->createMock(GatewayConfigInterface::class);
-
         $allMethods = [$adyenMethod, $nonAdyenMethod];
 
         $order->expects($this->once())
@@ -127,35 +115,16 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
             ->with(PaymentInterface::STATE_COMPLETED)
             ->willReturn($payment);
 
-        $payment->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(false);
 
-        $paymentMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $gatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'paypal']);
-
-        // Mock Adyen method
-        $adyenMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($adyenGatewayConfig);
-
-        $adyenGatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'adyen']);
-
-        // Mock non-Adyen method
-        $nonAdyenMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($nonAdyenGatewayConfig);
-
-        $nonAdyenGatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'stripe']);
+        $this->adyenPaymentMethodChecker->expects($this->exactly(2))
+            ->method('isAdyenPaymentMethod')
+            ->willReturnCallback(function ($method) use ($adyenMethod) {
+                return $method === $adyenMethod;
+            });
 
         $this->decoratedProvider
             ->expects($this->once())
@@ -168,116 +137,6 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
         self::assertCount(1, $result);
         self::assertContains($nonAdyenMethod, $result);
         self::assertNotContains($adyenMethod, $result);
-    }
-
-    public function test_it_handles_payment_method_with_null_gateway_config(): void
-    {
-        $order = $this->createMock(OrderInterface::class);
-        $payment = $this->createMock(PaymentInterface::class);
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-
-        $methodWithNullConfig = $this->createMock(PaymentMethodInterface::class);
-        $validMethod = $this->createMock(PaymentMethodInterface::class);
-        $validGatewayConfig = $this->createMock(GatewayConfigInterface::class);
-
-        $allMethods = [$methodWithNullConfig, $validMethod];
-
-        $order->expects($this->once())
-            ->method('getLastPayment')
-            ->with(PaymentInterface::STATE_COMPLETED)
-            ->willReturn($payment);
-
-        $payment->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-
-        $paymentMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $gatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'paypal']);
-
-        // Method with null gateway config
-        $methodWithNullConfig->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn(null);
-
-        // Valid method
-        $validMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($validGatewayConfig);
-
-        $validGatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'stripe']);
-
-        $this->decoratedProvider
-            ->expects($this->once())
-            ->method('findForOrder')
-            ->with($order)
-            ->willReturn($allMethods);
-
-        $result = $this->provider->findForOrder($order);
-
-        self::assertCount(2, $result);
-        self::assertContains($methodWithNullConfig, $result);
-        self::assertContains($validMethod, $result);
-    }
-
-    public function test_it_handles_gateway_config_with_factory_name_fallback(): void
-    {
-        $order = $this->createMock(OrderInterface::class);
-        $payment = $this->createMock(PaymentInterface::class);
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
-
-        $methodWithFactoryNameFallback = $this->createMock(PaymentMethodInterface::class);
-        $fallbackGatewayConfig = $this->createMock(GatewayConfigInterface::class);
-
-        $allMethods = [$methodWithFactoryNameFallback];
-
-        $order->expects($this->once())
-            ->method('getLastPayment')
-            ->with(PaymentInterface::STATE_COMPLETED)
-            ->willReturn($payment);
-
-        $payment->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
-
-        $paymentMethod->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $gatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => 'paypal']);
-
-        // Method that uses getFactoryName() fallback
-        $methodWithFactoryNameFallback->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($fallbackGatewayConfig);
-
-        $fallbackGatewayConfig->expects($this->once())
-            ->method('getConfig')
-            ->willReturn([]); // No factory_name in config
-
-        $fallbackGatewayConfig->expects($this->once())
-            ->method('getFactoryName')
-            ->willReturn('adyen');
-
-        $this->decoratedProvider
-            ->expects($this->once())
-            ->method('findForOrder')
-            ->with($order)
-            ->willReturn($allMethods);
-
-        $result = $this->provider->findForOrder($order);
-
-        self::assertCount(0, $result);
     }
 }
 

@@ -13,16 +13,14 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Checker\Refund;
 
-use Payum\Core\Model\GatewayConfigInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Checker\Refund\OrderRefundingAvailabilityChecker;
 use Sylius\AdyenPlugin\PaymentGraph;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\RefundPlugin\Checker\OrderRefundingAvailabilityCheckerInterface;
 use Webmozart\Assert\InvalidArgumentException;
@@ -35,14 +33,19 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
 
     private MockObject|OrderRepositoryInterface $orderRepository;
 
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
     protected function setUp(): void
     {
         $this->decoratedChecker = $this->createMock(OrderRefundingAvailabilityCheckerInterface::class);
         $this->orderRepository = $this->createMock(OrderRepositoryInterface::class);
 
+        $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
+
         $this->checker = new OrderRefundingAvailabilityChecker(
             $this->decoratedChecker,
             $this->orderRepository,
+            $this->adyenPaymentMethodChecker,
         );
     }
 
@@ -64,16 +67,11 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
     #[DataProvider('delegationScenariosProvider')]
     public function testDelegatesToDecoratedChecker(
         bool $hasPayment,
-        bool $hasMethod,
-        bool $hasGatewayConfig,
-        ?array $config,
-        ?string $factoryName,
+        bool $isAdyenPayment,
     ): void {
         $orderNumber = 'ORDER-123';
         $order = $this->createMock(OrderInterface::class);
         $payment = $this->createMock(PaymentInterface::class);
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
 
         $this->orderRepository
             ->expects($this->once())
@@ -87,31 +85,11 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
             ->willReturn($hasPayment ? $payment : null);
 
         if ($hasPayment) {
-            $payment
+            $this->adyenPaymentMethodChecker
                 ->expects($this->once())
-                ->method('getMethod')
-                ->willReturn($hasMethod ? $paymentMethod : null);
-        }
-
-        if ($hasMethod) {
-            $paymentMethod
-                ->expects($this->once())
-                ->method('getGatewayConfig')
-                ->willReturn($hasGatewayConfig ? $gatewayConfig : null);
-        }
-
-        if ($hasGatewayConfig) {
-            $gatewayConfig
-                ->expects($this->once())
-                ->method('getConfig')
-                ->willReturn($config);
-
-            if ($factoryName !== null) {
-                $gatewayConfig
-                    ->expects($this->once())
-                    ->method('getFactoryName')
-                    ->willReturn($factoryName);
-            }
+                ->method('isAdyenPayment')
+                ->with($payment)
+                ->willReturn($isAdyenPayment);
         }
 
         $this->decoratedChecker
@@ -127,44 +105,14 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
 
     public static function delegationScenariosProvider(): \Generator
     {
-        yield 'no completed payment' => [
+        yield 'no payment' => [
             'hasPayment' => false,
-            'hasMethod' => false,
-            'hasGatewayConfig' => false,
-            'config' => null,
-            'factoryName' => null,
+            'isAdyenPayment' => false,
         ];
 
-        yield 'payment has no method' => [
+        yield 'non-Adyen payment' => [
             'hasPayment' => true,
-            'hasMethod' => false,
-            'hasGatewayConfig' => false,
-            'config' => null,
-            'factoryName' => null,
-        ];
-
-        yield 'payment method has no gateway config' => [
-            'hasPayment' => true,
-            'hasMethod' => true,
-            'hasGatewayConfig' => false,
-            'config' => null,
-            'factoryName' => null,
-        ];
-
-        yield 'non-Adyen payment via config' => [
-            'hasPayment' => true,
-            'hasMethod' => true,
-            'hasGatewayConfig' => true,
-            'config' => ['factory_name' => 'stripe'],
-            'factoryName' => null,
-        ];
-
-        yield 'non-Adyen payment via factory name' => [
-            'hasPayment' => true,
-            'hasMethod' => true,
-            'hasGatewayConfig' => true,
-            'config' => [],
-            'factoryName' => 'paypal',
+            'isAdyenPayment' => false,
         ];
     }
 
@@ -175,8 +123,6 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
         $orderNumber = 'ORDER-123';
         $order = $this->createMock(OrderInterface::class);
         $payment = $this->createMock(PaymentInterface::class);
-        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
-        $gatewayConfig = $this->createMock(GatewayConfigInterface::class);
 
         $this->orderRepository
             ->expects($this->once())
@@ -189,25 +135,16 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
             ->method('getLastPayment')
             ->willReturn($payment);
 
-        $payment
+        $this->adyenPaymentMethodChecker
             ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
 
         $payment
             ->expects($this->once())
             ->method('getState')
             ->willReturn($paymentState);
-
-        $paymentMethod
-            ->expects($this->once())
-            ->method('getGatewayConfig')
-            ->willReturn($gatewayConfig);
-
-        $gatewayConfig
-            ->expects($this->once())
-            ->method('getConfig')
-            ->willReturn(['factory_name' => AdyenClientProviderInterface::FACTORY_NAME]);
 
         $this->decoratedChecker
             ->expects($this->never())

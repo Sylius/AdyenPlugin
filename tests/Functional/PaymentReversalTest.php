@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
@@ -22,6 +23,7 @@ use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\Amount;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -29,14 +31,12 @@ use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\OrderPaymentStates;
-use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
+use Sylius\Component\Order\OrderTransitions;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
-use Sylius\Component\Order\OrderTransitions;
-use Sylius\Abstraction\StateMachine\StateMachineInterface;
 
 final class PaymentReversalTest extends WebTestCase
 {

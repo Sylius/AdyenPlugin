@@ -21,12 +21,23 @@
         />
 
         <service
+            id="sylius_adyen.checker.adyen_payment_method"
+            class="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker"
+        />
+
+        <service
+            id="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface"
+            alias="sylius_adyen.checker.adyen_payment_method"
+        />
+
+        <service
             id="sylius_adyen.checker.refund.order_refunds_list_availability"
             class="Sylius\AdyenPlugin\Checker\Refund\OrderRefundsListAvailabilityChecker"
             decorates="sylius_refund.checker.order_refunds_list_availability"
         >
             <argument type="service" id=".inner" />
             <argument type="service" id="sylius.repository.order" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
 
         <service
@@ -36,6 +47,7 @@
         >
             <argument type="service" id=".inner" />
             <argument type="service" id="sylius.repository.order" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
     </services>
 </container>

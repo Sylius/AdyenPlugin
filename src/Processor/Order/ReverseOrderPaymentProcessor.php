@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Processor\Order;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\ReversePayment;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
@@ -26,6 +26,7 @@ final class ReverseOrderPaymentProcessor implements OrderPaymentProcessorInterfa
     public function __construct(
         private readonly MessageBusInterface $commandBus,
         private readonly StateMachineInterface $stateMachine,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 
@@ -36,7 +37,7 @@ final class ReverseOrderPaymentProcessor implements OrderPaymentProcessorInterfa
         }
 
         $payment = $order->getLastPayment(PaymentInterface::STATE_COMPLETED);
-        if (null !== $payment && AdyenPaymentMethodChecker::isAdyenPayment($payment)) {
+        if (null !== $payment && $this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             $this->commandBus->dispatch(new ReversePayment($payment));
 
             return;

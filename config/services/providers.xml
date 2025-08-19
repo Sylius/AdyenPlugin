@@ -25,6 +25,7 @@
             decorates="sylius_refund.provider.refund_payment_methods"
         >
             <argument type="service" id=".inner" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
     </services>
 </container>

@@ -22,6 +22,7 @@
         >
             <argument type="service" id="sylius.command_bus" />
             <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
 
         <service
@@ -29,6 +30,7 @@
             class="Sylius\AdyenPlugin\Processor\Order\UpdateOrderPaymentStateProcessor"
         >
             <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
 
         <service
@@ -36,6 +38,7 @@
             class="Sylius\AdyenPlugin\Processor\Refund\RefundPaymentStateProcessor"
         >
             <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
     </services>
 </container>

@@ -55,6 +55,7 @@
             id="sylius_adyen.bus.handler.request_capture"
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
@@ -68,6 +69,7 @@
             <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius_refund.repository.refund_payment"/>
             <argument type="service" id="sylius.command_bus" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
 
             <tag name="messenger.message_handler" bus="sylius.event_bus" />
         </service>
@@ -153,6 +155,7 @@
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client" />
             <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>

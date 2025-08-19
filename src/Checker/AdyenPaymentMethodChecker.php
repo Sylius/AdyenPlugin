@@ -17,9 +17,9 @@ use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
 
-final class AdyenPaymentMethodChecker
+final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterface
 {
-    public static function isAdyenPayment(PaymentInterface $payment): bool
+    public function isAdyenPayment(PaymentInterface $payment): bool
     {
         /** @var PaymentMethodInterface|null $method */
         $method = $payment->getMethod();
@@ -27,10 +27,10 @@ final class AdyenPaymentMethodChecker
             return false;
         }
 
-        return self::isAdyenPaymentMethod($method);
+        return $this->isAdyenPaymentMethod($method);
     }
 
-    public static function isAdyenPaymentMethod(PaymentMethodInterface $paymentMethod): bool
+    public function isAdyenPaymentMethod(PaymentMethodInterface $paymentMethod): bool
     {
         $gatewayConfig = $paymentMethod->getGatewayConfig();
         if (null === $gatewayConfig) {

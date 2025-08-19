@@ -15,10 +15,11 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
 use Payum\Core\Model\GatewayConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
 use Sylius\AdyenPlugin\Bus\Handler\RefundPaymentGeneratedHandler;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepository;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\Component\Core\Model\Order;
@@ -42,20 +43,17 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
 
     use AdyenClientTrait;
 
-    /** @var PaymentRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $paymentRepository;
+    private MockObject|PaymentRepositoryInterface $paymentRepository;
 
-    /** @var PaymentMethodRepository|\PHPUnit\Framework\MockObject\MockObject */
-    private $paymentMethodRepository;
+    private MockObject|PaymentMethodRepositoryInterface $paymentMethodRepository;
 
-    /** @var RefundPaymentGeneratedHandler */
-    private $handler;
+    private MockObject|RefundPaymentRepositoryInterface $refundPaymentRepository;
 
-    /** @var RefundPaymentRepositoryInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
-    private $refundPaymentRepository;
+    private MessageBusInterface|MockObject $messageBus;
 
-    /** @var MessageBusInterface|mixed|\PHPUnit\Framework\MockObject\MockObject */
-    private $messageBus;
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
+    private RefundPaymentGeneratedHandler $handler;
 
     protected function setUp(): void
     {
@@ -66,13 +64,55 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
         $this->refundPaymentRepository = $this->createMock(RefundPaymentRepositoryInterface::class);
         $this->messageBus = $this->createMock(MessageBusInterface::class);
 
+        $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
+
         $this->handler = new RefundPaymentGeneratedHandler(
             $this->adyenClientProvider,
             $this->paymentRepository,
             $this->paymentMethodRepository,
             $this->refundPaymentRepository,
             $this->messageBus,
+            $this->adyenPaymentMethodChecker,
         );
+    }
+
+    #[DataProvider('provideForTestUnacceptable')]
+    public function testUnacceptable(?PaymentInterface $payment = null): void
+    {
+        $this->paymentRepository
+            ->method('find')
+            ->willReturn($payment);
+
+        if (null !== $payment) {
+            $paymentMethod = $payment->getMethod();
+            $this->paymentMethodRepository
+                ->method('find')
+                ->willReturn($paymentMethod)
+            ;
+
+            if (null !== $paymentMethod) {
+                $this->adyenPaymentMethodChecker->expects($this->once())
+                    ->method('isAdyenPaymentMethod')
+                    ->with($paymentMethod)
+                    ->willReturn(false);
+            }
+        }
+
+        ($this->handler)(
+            new RefundPaymentGenerated(
+                1,
+                'Brzęczyszczykiewicz',
+                10,
+                'EUR',
+                1,
+                1,
+            )
+        );
+
+        $this->adyenClientProvider
+            ->expects($this->never())
+            ->method('getForPaymentMethod')
+        ;
     }
 
     public static function provideForTestUnacceptable(): array
@@ -96,37 +136,6 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
                 $paymentWithNonAdyenPaymentMethod,
             ],
         ];
-    }
-
-    #[DataProvider('provideForTestUnacceptable')]
-    public function testUnacceptable(?PaymentInterface $payment = null): void
-    {
-        $this->paymentRepository
-            ->method('find')
-            ->willReturn($payment);
-
-        if (null !== $payment) {
-            $this->paymentMethodRepository
-                ->method('find')
-                ->willReturn($payment->getMethod())
-            ;
-        }
-
-        ($this->handler)(
-            new RefundPaymentGenerated(
-                1,
-                'Brzęczyszczykiewicz',
-                10,
-                'EUR',
-                1,
-                1,
-            )
-        );
-
-        $this->adyenClientProvider
-            ->expects($this->never())
-            ->method('getForPaymentMethod')
-        ;
     }
 
     public function testAffirmative(): void
@@ -156,6 +165,11 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
             ->method('find')
             ->willReturn($paymentMethod)
         ;
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn(true);
 
         $command = new RefundPaymentGenerated(
             42,

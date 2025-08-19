@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Processor\Order;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\OrderPaymentTransitions;
@@ -23,6 +23,7 @@ final class UpdateOrderPaymentStateProcessor implements OrderPaymentProcessorInt
 {
     public function __construct(
         private readonly StateMachineInterface $stateMachine,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 
@@ -33,7 +34,7 @@ final class UpdateOrderPaymentStateProcessor implements OrderPaymentProcessorInt
         }
 
         $payment = $order->getLastPayment();
-        if (null === $payment || !AdyenPaymentMethodChecker::isAdyenPayment($payment)) {
+        if (null === $payment || !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             return;
         }
 

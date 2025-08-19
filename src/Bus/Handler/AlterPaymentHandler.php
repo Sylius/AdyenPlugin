@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\AdyenPlugin\Bus\Command\AlterPaymentCommand;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -28,15 +28,17 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class AlterPaymentHandler
 {
-    public function __construct(private readonly AdyenClientProviderInterface $adyenClientProvider)
-    {
+    public function __construct(
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+    ) {
     }
 
     public function __invoke(AlterPaymentCommand $alterPaymentCommand): void
     {
         $payment = $this->getPayment($alterPaymentCommand->getOrder());
 
-        if (null === $payment || !AdyenPaymentMethodChecker::isAdyenPayment($payment)) {
+        if (null === $payment || !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             return;
         }
 

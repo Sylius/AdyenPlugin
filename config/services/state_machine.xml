@@ -8,8 +8,12 @@
     <services>
         <defaults public="true"/>
 
-        <service id="sylius_adyen.state_machine.guard.payment" class="Sylius\AdyenPlugin\StateMachine\Guard\AdyenPaymentGuard" />
+        <service id="sylius_adyen.state_machine.guard.payment" class="Sylius\AdyenPlugin\StateMachine\Guard\AdyenPaymentGuard">
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
 
-        <service id="sylius_adyen.state_machine.guard.order_payment" class="Sylius\AdyenPlugin\StateMachine\Guard\OrderPaymentGuard" />
+        <service id="sylius_adyen.state_machine.guard.order_payment" class="Sylius\AdyenPlugin\StateMachine\Guard\OrderPaymentGuard">
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
     </services>
 </container>

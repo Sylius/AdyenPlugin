@@ -22,9 +22,9 @@ use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
 final class AdyenClientStub implements AdyenClientInterface
 {
     private array $submitPaymentResponse = [];
-    
+
     private array $reversalResponse = [];
-    
+
     private ?array $lastReversalRequest = null;
 
     private ?\Exception $exception = null;
@@ -39,13 +39,13 @@ final class AdyenClientStub implements AdyenClientInterface
     {
         $this->exception = $exception;
     }
-    
+
     public function setReversalResponse(array $response): void
     {
         $this->reversalResponse = $response;
         $this->exception = null;
     }
-    
+
     public function getLastReversalRequest(): ?array
     {
         return $this->lastReversalRequest;
@@ -109,11 +109,11 @@ final class AdyenClientStub implements AdyenClientInterface
         $this->lastReversalRequest = [
             'paymentPspReference' => $details['pspReference'] ?? null,
         ];
-        
+
         if (!empty($this->reversalResponse)) {
             return $this->reversalResponse;
         }
-        
+
         return [
             'status' => 'received',
             'pspReference' => 'REVERSAL_PSP_REF',
