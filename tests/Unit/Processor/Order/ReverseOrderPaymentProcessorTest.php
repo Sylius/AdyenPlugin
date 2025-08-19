@@ -31,7 +31,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
 {
     private ReverseOrderPaymentProcessor $processor;
 
-    private MockObject|MessageBusInterface $commandBus;
+    private MessageBusInterface|MockObject $commandBus;
 
     private MockObject|StateMachineInterface $stateMachine;
 
@@ -110,7 +110,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('getConfig')
             ->willReturn([]);
-        
+
         $gatewayConfig
             ->expects($this->once())
             ->method('getFactoryName')
@@ -164,6 +164,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
                 if ($state === PaymentInterface::STATE_COMPLETED) {
                     return null;
                 }
+
                 return $lastPayment;
             });
 
@@ -197,6 +198,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
                 if ($state === PaymentInterface::STATE_COMPLETED) {
                     return null;
                 }
+
                 return $lastPayment;
             });
 
@@ -272,6 +274,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
                 if ($state === PaymentInterface::STATE_COMPLETED) {
                     return $completedPayment;
                 }
+
                 return $lastPayment;
             });
 
@@ -311,6 +314,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
                 if ($state === PaymentInterface::STATE_COMPLETED) {
                     return $completedPayment;
                 }
+
                 return $lastPayment;
             });
 
@@ -355,6 +359,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
                 if ($state === PaymentInterface::STATE_COMPLETED) {
                     return $completedPayment;
                 }
+
                 return $lastPayment;
             });
 

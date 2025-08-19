@@ -51,6 +51,7 @@ final class OrderRefundsListAvailabilityChecker implements OrderRefundingAvailab
                 PaymentGraph::STATE_PROCESSING_REVERSAL,
                 PaymentInterface::STATE_COMPLETED,
                 PaymentInterface::STATE_CANCELLED,
+                PaymentInterface::STATE_REFUNDED,
             ], true)
         );
     }

@@ -49,6 +49,7 @@ final class OrderRefundingAvailabilityChecker implements OrderRefundingAvailabil
             in_array($payment->getState(), [
                 PaymentGraph::STATE_PROCESSING_REVERSAL,
                 PaymentInterface::STATE_COMPLETED,
+                PaymentInterface::STATE_REFUNDED,
             ], true)
         );
     }

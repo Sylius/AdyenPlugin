@@ -184,7 +184,7 @@ class PaymentRefundedHandlerTest extends TestCase
                 $order,
                 $expectedAmount,
                 $expectedCurrency,
-                RefundPaymentInterface::STATE_COMPLETED,
+                RefundPaymentInterface::STATE_NEW,
                 $paymentMethod,
             )
             ->willReturn($refundPayment);
@@ -198,13 +198,15 @@ class PaymentRefundedHandlerTest extends TestCase
             )
             ->willReturn($adyenReference);
 
-        $this->referenceRepository->expects($this->once())
-            ->method('add')
-            ->with($adyenReference);
-
-        $this->entityManager->expects($this->once())
+        $matcher = $this->exactly(2);
+        $this->entityManager->expects($matcher)
             ->method('persist')
-            ->with($refundPayment);
+            ->willReturnCallback(function ($arg) use ($matcher, $adyenReference, $refundPayment) {
+                match ($matcher->numberOfInvocations()) {
+                    1 => $this->assertSame($refundPayment, $arg),
+                    2 => $this->assertSame($adyenReference, $arg),
+                };
+            });
         $this->entityManager->expects($this->once())
             ->method('flush');
 
@@ -376,11 +378,15 @@ class PaymentRefundedHandlerTest extends TestCase
             ->method('createForRefund')
             ->willReturn($adyenReference);
 
-        $this->referenceRepository->expects($this->once())
-            ->method('add');
-
-        $this->entityManager->expects($this->once())
-            ->method('persist');
+        $matcher = $this->exactly(2);
+        $this->entityManager->expects($matcher)
+            ->method('persist')
+            ->willReturnCallback(function ($arg) use ($matcher, $adyenReference, $refundPayment) {
+                match ($matcher->numberOfInvocations()) {
+                    1 => $this->assertSame($refundPayment, $arg),
+                    2 => $this->assertSame($adyenReference, $arg),
+                };
+            });
         $this->entityManager->expects($this->once())
             ->method('flush');
 

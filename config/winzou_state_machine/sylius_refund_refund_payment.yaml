@@ -6,3 +6,10 @@ winzou_state_machine:
             confirm:
                 from: [new]
                 to: completed
+        callbacks:
+            after:
+                process_refund_payment:
+                    on: ["confirm"]
+                    do: ["@sylius_adyen.processor.refund.refund_payment_state", "process"]
+                    args: ["object"]
+                    priority: 100

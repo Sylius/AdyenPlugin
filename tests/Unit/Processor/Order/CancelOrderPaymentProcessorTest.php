@@ -17,7 +17,7 @@ use Payum\Core\Model\GatewayConfigInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\AdyenPlugin\Processor\Order\CancelOrderPaymentProcessor;
+use Sylius\AdyenPlugin\Processor\Order\UpdateOrderPaymentStateProcessor;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -27,14 +27,14 @@ use Sylius\Component\Core\OrderPaymentTransitions;
 
 final class CancelOrderPaymentProcessorTest extends TestCase
 {
-    private CancelOrderPaymentProcessor $processor;
+    private UpdateOrderPaymentStateProcessor $processor;
 
     private MockObject|StateMachineInterface $stateMachine;
 
     protected function setUp(): void
     {
         $this->stateMachine = $this->createMock(StateMachineInterface::class);
-        $this->processor = new CancelOrderPaymentProcessor($this->stateMachine);
+        $this->processor = new UpdateOrderPaymentStateProcessor($this->stateMachine);
     }
 
     public function testDoesNothingWhenOrderIsNull(): void
@@ -281,11 +281,21 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->method('getLastPayment')
             ->willReturn($payment);
 
+        $matcher = $this->exactly(2);
         $this->stateMachine
-            ->expects($this->once())
+            ->expects($matcher)
             ->method('can')
-            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
-            ->willReturn(false);
+            ->willReturnCallback(function ($arg1, $arg2, $arg3) use ($matcher, $order) {
+                $this->assertSame($order, $arg1);
+                $this->assertSame(OrderPaymentTransitions::GRAPH, $arg2);
+
+                match ($matcher->numberOfInvocations()) {
+                    1 => $this->assertSame(OrderPaymentTransitions::TRANSITION_CANCEL, $arg3),
+                    2 => $this->assertSame(OrderPaymentTransitions::TRANSITION_REFUND, $arg3),
+                };
+
+                return false;
+            });
 
         $this->stateMachine
             ->expects($this->never())
@@ -301,7 +311,7 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('getConfig')
             ->willReturn([]);
-        
+
         $gatewayConfig
             ->expects($this->once())
             ->method('getFactoryName')
@@ -351,7 +361,7 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('getConfig')
             ->willReturn([]);
-        
+
         $gatewayConfig
             ->expects($this->once())
             ->method('getFactoryName')

@@ -27,9 +27,9 @@ winzou_state_machine:
                     do: ["@sylius_adyen.processor.authorization_state", "process"]
                     args: ["object"]
                     priority: 100
-                cancel_order_payment_after_reversal:
-                    on: ["cancel"]
-                    do: ["@sylius_adyen.processor.order.cancel_order_payment", "process"]
+                process_order_payment_after_reversal:
+                    on: ["cancel", "refund"]
+                    do: ["@sylius_adyen.processor.order.update_order_payment_state", "process"]
                     args: ["object.getOrder()"]
             guard:
                 guard_complete:

@@ -25,8 +25,15 @@
         </service>
 
         <service
-            id="sylius_adyen.processor.order.cancel_order_payment"
-            class="Sylius\AdyenPlugin\Processor\Order\CancelOrderPaymentProcessor"
+            id="sylius_adyen.processor.order.update_order_payment_state"
+            class="Sylius\AdyenPlugin\Processor\Order\UpdateOrderPaymentStateProcessor"
+        >
+            <argument type="service" id="sylius_abstraction.state_machine" />
+        </service>
+
+        <service
+            id="sylius_adyen.processor.refund.refund_payment_state"
+            class="Sylius\AdyenPlugin\Processor\Refund\RefundPaymentStateProcessor"
         >
             <argument type="service" id="sylius_abstraction.state_machine" />
         </service>

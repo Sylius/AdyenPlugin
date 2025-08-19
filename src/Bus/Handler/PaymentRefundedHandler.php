@@ -85,28 +85,22 @@ final class PaymentRefundedHandler
                 return null;
             }
 
-            $refundPayment = $this->createRefundPayment(
+            return $this->createRefundPaymentWithReference(
                 $order,
+                $payment,
                 $paymentMethod,
+                $refundPspReference,
                 $notificationData->amount->value ?? $payment->getAmount(),
                 $notificationData->amount->currency ?? $payment->getCurrencyCode(),
             );
-
-            $reference = $this->referenceFactory->createForRefund(
-                $refundPspReference,
-                $payment,
-                $refundPayment,
-            );
-
-            $this->referenceRepository->add($reference);
-
-            return $refundPayment;
         }
     }
 
-    private function createRefundPayment(
+    private function createRefundPaymentWithReference(
         OrderInterface $order,
+        PaymentInterface $payment,
         PaymentMethodInterface $paymentMethod,
+        string $refundPspReference,
         int $amount,
         string $currencyCode,
     ): RefundPaymentInterface {
@@ -114,11 +108,18 @@ final class PaymentRefundedHandler
             $order,
             $amount,
             $currencyCode,
-            RefundPaymentInterface::STATE_COMPLETED, // Already processed by Adyen
+            RefundPaymentInterface::STATE_NEW,
             $paymentMethod,
         );
 
+        $reference = $this->referenceFactory->createForRefund(
+            $refundPspReference,
+            $payment,
+            $refundPayment,
+        );
+
         $this->entityManager->persist($refundPayment);
+        $this->entityManager->persist($reference);
         $this->entityManager->flush();
 
         return $refundPayment;

@@ -19,10 +19,10 @@ use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\OrderPaymentTransitions;
 
-final class CancelOrderPaymentProcessor implements OrderPaymentProcessorInterface
+final class UpdateOrderPaymentStateProcessor implements OrderPaymentProcessorInterface
 {
     public function __construct(
-        private StateMachineInterface $stateMachine,
+        private readonly StateMachineInterface $stateMachine,
     ) {
     }
 
@@ -31,6 +31,7 @@ final class CancelOrderPaymentProcessor implements OrderPaymentProcessorInterfac
         if (null === $order || $order->getPaymentState() !== OrderPaymentStates::STATE_PAID) {
             return;
         }
+
         $payment = $order->getLastPayment();
         if (null === $payment || !AdyenPaymentMethodChecker::isAdyenPayment($payment)) {
             return;
@@ -38,6 +39,12 @@ final class CancelOrderPaymentProcessor implements OrderPaymentProcessorInterfac
 
         if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)) {
             $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL);
+
+            return;
+        }
+
+        if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_REFUND)) {
+            $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_REFUND);
         }
     }
 }

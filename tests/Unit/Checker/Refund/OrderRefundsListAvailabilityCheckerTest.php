@@ -231,5 +231,9 @@ final class OrderRefundsListAvailabilityCheckerTest extends TestCase
         yield 'Adyen payment in cancelled state' => [
             'paymentState' => PaymentInterface::STATE_CANCELLED,
         ];
+
+        yield 'Adyen payment in refunded state' => [
+            'paymentState' => PaymentInterface::STATE_REFUNDED,
+        ];
     }
 }
