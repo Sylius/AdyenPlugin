@@ -31,7 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
-class CheckoutProcessTest extends WebTestCase
+final class CheckoutProcessTest extends WebTestCase
 {
     private AdyenClientStub $adyenClientStub;
 
