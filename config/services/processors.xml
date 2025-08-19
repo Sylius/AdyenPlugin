@@ -6,10 +6,11 @@
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
 >
     <services>
+        <defaults public="true" />
+
         <service
             id="sylius_adyen.processor.authorization_state"
             class="Sylius\AdyenPlugin\Processor\State\PaymentAuthorizationStateProcessor"
-            public="true"
         >
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="doctrine.orm.entity_manager" />
@@ -17,10 +18,16 @@
 
         <service
             id="sylius_adyen.processor.order.reverse_payment"
-            class="Sylius\AdyenPlugin\Processor\OrderPayment\ReverseOrderPaymentProcessor"
-            public="true"
+            class="Sylius\AdyenPlugin\Processor\Order\ReverseOrderPaymentProcessor"
         >
             <argument type="service" id="sylius.command_bus" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+        </service>
+
+        <service
+            id="sylius_adyen.processor.order.cancel_order_payment"
+            class="Sylius\AdyenPlugin\Processor\Order\CancelOrderPaymentProcessor"
+        >
             <argument type="service" id="sylius_abstraction.state_machine" />
         </service>
     </services>

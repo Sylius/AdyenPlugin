@@ -1,0 +1,43 @@
+<?php
+
+/*
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Sylius\AdyenPlugin\Processor\Order;
+
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker;
+use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\OrderPaymentStates;
+use Sylius\Component\Core\OrderPaymentTransitions;
+
+final class CancelOrderPaymentProcessor implements OrderPaymentProcessorInterface
+{
+    public function __construct(
+        private StateMachineInterface $stateMachine,
+    ) {
+    }
+
+    public function process(?OrderInterface $order): void
+    {
+        if (null === $order || $order->getPaymentState() !== OrderPaymentStates::STATE_PAID) {
+            return;
+        }
+        $payment = $order->getLastPayment();
+        if (null === $payment || !AdyenPaymentMethodChecker::isAdyenPayment($payment)) {
+            return;
+        }
+
+        if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)) {
+            $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL);
+        }
+    }
+}

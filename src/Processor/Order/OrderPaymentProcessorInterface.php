@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Processor\OrderPayment;
+namespace Sylius\AdyenPlugin\Processor\Order;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
 interface OrderPaymentProcessorInterface
 {
-    public function process(OrderInterface $order): void;
+    public function process(?OrderInterface $order): void;
 }

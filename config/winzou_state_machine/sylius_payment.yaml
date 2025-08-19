@@ -16,7 +16,7 @@ winzou_state_machine:
                 from: [completed, processing_reversal]
                 to: refunded
             reverse:
-                from: [authorized, completed]
+                from: [completed]
                 to: processing_reversal
         callbacks:
             after:
@@ -27,6 +27,10 @@ winzou_state_machine:
                     do: ["@sylius_adyen.processor.authorization_state", "process"]
                     args: ["object"]
                     priority: 100
+                cancel_order_payment_after_reversal:
+                    on: ["cancel"]
+                    do: ["@sylius_adyen.processor.order.cancel_order_payment", "process"]
+                    args: ["object.getOrder()"]
             guard:
                 guard_complete:
                     on: ["complete"]
