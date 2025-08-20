@@ -34,15 +34,6 @@ class SuccessfulResponseProcessor extends AbstractProcessor
 
     public const LABEL_PAYMENT_COMPLETED = 'sylius.payment.completed';
 
-    public function __construct(
-        UrlGeneratorInterface $urlGenerator,
-        TranslatorInterface $translator,
-        private readonly MessageBusInterface $messageBus,
-        private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
-    ) {
-        parent::__construct($urlGenerator, $translator);
-    }
-
     public function accepts(Request $request, ?PaymentInterface $payment): bool
     {
         return $this->isResultCodeSupportedForPayment($payment, self::PAYMENT_PROCEED_CODES);
@@ -54,9 +45,6 @@ class SuccessfulResponseProcessor extends AbstractProcessor
         PaymentInterface $payment,
     ): string {
         $targetRoute = self::THANKS_ROUTE_NAME;
-
-        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
-        $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
         if ($this->shouldTheAlternativeThanksPageBeShown($request)) {
             $this->addFlash($request, self::FLASH_INFO, self::LABEL_PAYMENT_COMPLETED);
