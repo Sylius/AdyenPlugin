@@ -1,3 +1,3 @@
 import './checkout';
 import './dropin';
-import './express-checkout';
+import './express-checkout/main';

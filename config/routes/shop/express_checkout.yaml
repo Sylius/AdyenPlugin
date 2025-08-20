@@ -1,8 +1,8 @@
-sylius_adyen_shop_express_checkout_google_pay_cart_configuration:
-    path: /adyen/express-checkout/google-pay/cart-configuration
+sylius_adyen_shop_express_checkout_cart_configuration:
+    path: /adyen/express-checkout/cart-configuration
     methods: [GET]
     defaults:
-        _controller: sylius_adyen.controller.shop.express_checkout.google_pay.cart_configuration
+        _controller: sylius_adyen.controller.shop.express_checkout.cart_configuration
 
 sylius_adyen_shop_express_checkout_google_pay_shipping_options:
     path: /adyen/express-checkout/google-pay/shipping-options

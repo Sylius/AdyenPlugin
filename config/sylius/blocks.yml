@@ -29,6 +29,18 @@ sylius_ui:
 
         sylius.shop.cart.summary:
             blocks:
-                adyen:
-                    template: "@SyliusAdyenPlugin/Shop/Cart/Summary/adyen.html.twig"
+                express_checkout:
+                    template: "@SyliusAdyenPlugin/Shop/Cart/Summary/express_checkout.html.twig"
                     priority: -10
+
+        sylius.shop.cart.summary.express_checkout:
+            blocks:
+                google_pay:
+                    template: "@SyliusAdyenPlugin/Shop/Cart/Summary/ExpressCheckout/google_pay.html.twig"
+                    priority: 200
+                apple_pay:
+                    template: "@SyliusAdyenPlugin/Shop/Cart/Summary/ExpressCheckout/apple_pay.html.twig"
+                    priority: 100
+                paypal:
+                    template: "@SyliusAdyenPlugin/Shop/Cart/Summary/ExpressCheckout/paypal.html.twig"
+                    priority: 0

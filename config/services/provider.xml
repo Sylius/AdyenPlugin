@@ -40,5 +40,22 @@
         <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CountryProviderInterface"
                  alias="sylius_adyen.provider.express_checkout.google_pay.country" />
 
+        <service
+            id="sylius_adyen.provider.express_checkout.cart.google_pay_configuration"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\GooglePayConfigurationProvider"
+        >
+            <argument type="service" id="router"/>
+            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"/>
+            <tag name="sylius_adyen.express_checkout.cart.configuration" key="googlePay" />
+        </service>
+
+        <service
+            id="sylius_adyen.provider.express_checkout.cart.paypal_configuration"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\PaypalConfigurationProvider"
+        >
+            <argument type="service" id="router"/>
+            <tag name="sylius_adyen.express_checkout.cart.configuration" key="paypal" />
+        </service>
+
     </services>
 </container>

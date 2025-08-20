@@ -15,13 +15,12 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay;
 
 use Doctrine\Persistence\ObjectManager;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CustomerProviderInterface;
+use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
-use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -73,7 +72,7 @@ class CheckoutAction
         $order->getShipments()->first()->setMethod($shippingMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
 
-        $paymentMethod = $this->paymentMethodRepository->findOneBy(['code' => AdyenClientProviderInterface::FACTORY_NAME]);
+        $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
         $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
 
