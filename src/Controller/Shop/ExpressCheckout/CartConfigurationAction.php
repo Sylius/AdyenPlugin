@@ -11,28 +11,35 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay;
+namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ConfigurationProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CountryProviderInterface;
-use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Webmozart\Assert\Assert;
 
 class CartConfigurationAction
 {
+    /** @var array<ConfigurationProviderInterface> */
+    private array $configurationProviders;
+
     public function __construct(
+        iterable $configurationProviders,
         private readonly CartContextInterface $cartContext,
         private readonly PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
         private readonly CountryProviderInterface $countryProvider,
-        private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly TransactionInfoProviderInterface $transactionInfoProvider,
     ) {
+        Assert::allIsInstanceOf(
+            $configurationProviders,
+            ConfigurationProviderInterface::class,
+            sprintf('All configuration providers must implement "%s".', ConfigurationProviderInterface::class),
+        );
+        $this->configurationProviders = $configurationProviders instanceof \Traversable ? iterator_to_array($configurationProviders) : $configurationProviders;
     }
 
     public function __invoke(Request $request): JsonResponse
@@ -43,19 +50,20 @@ class CartConfigurationAction
         $config = $this->paymentMethodsForOrderProvider->provideConfiguration($order, AdyenClientProviderInterface::FACTORY_NAME);
         Assert::isArray($config);
 
-        return new JsonResponse([
+        $configuration = [
             'paymentMethods' => $config['paymentMethods'],
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],
             'shippingOptionRequired' => $order->isShippingRequired(),
-            'transactionInfo' => $this->transactionInfoProvider->provide($order),
             'allowedCountryCodes' => $this->countryProvider->getAllowedCountryCodes($order->getChannel()),
-            'path' => [
-                'shippingOptions' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_google_pay_shipping_options'),
-                'checkout' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_google_pay_checkout'),
-                'payments' => $this->urlGenerator->generate('sylius_adyen_shop_payments', ['code' => AdyenClientProviderInterface::FACTORY_NAME]),
-            ],
-        ]);
+        ];
+
+        /** @var ConfigurationProviderInterface $provider */
+        foreach ($this->configurationProviders as $key => $provider) {
+            $configuration[$key] = $provider->getConfiguration($order);
+        }
+
+        return new JsonResponse($configuration);
     }
 }

@@ -64,3 +64,9 @@ button.adyen-checkout__applepay__button {
 .adyen-payment-error .error-icon {
     margin-right: 10px;
 }
+
+#googlepay-container,
+#applepay-container,
+#paypal-container {
+    margin: 0.5rem 0;
+}

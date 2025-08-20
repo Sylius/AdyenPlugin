@@ -6,14 +6,13 @@
         <defaults public="true"/>
 
         <service
-            id="sylius_adyen.controller.shop.express_checkout.google_pay.cart_configuration"
-            class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay\CartConfigurationAction"
+            id="sylius_adyen.controller.shop.express_checkout.cart_configuration"
+            class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\CartConfigurationAction"
         >
+            <argument type="tagged_iterator" tag="sylius_adyen.express_checkout.cart.configuration" index-by="key" />
             <argument type="service" id="sylius.context.cart.composite"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.country"/>
-            <argument type="service" id="router"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"/>
 
             <tag name="controller.service_arguments"/>
         </service>
