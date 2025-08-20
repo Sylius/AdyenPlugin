@@ -10,7 +10,6 @@
             id="sylius_adyen.bus.handler.authorize_payment"
         >
             <argument type="service" id="sylius_abstraction.state_machine"/>
-            <argument type="service" id="sylius.repository.order"/>
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
