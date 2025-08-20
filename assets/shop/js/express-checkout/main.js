@@ -1,7 +1,6 @@
 import { SELECTORS } from './constants.js';
 import { loadConfiguration } from './utils.js';
 import { GooglePayHandler } from './googlepay.js';
-import { PayPalHandler } from './paypal.js';
 
 const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
@@ -18,19 +17,6 @@ const initExpressCheckout = async ($container) => {
         environment: configuration.environment,
         countryCode: configuration.allowedCountryCodes[0],
     });
-
-    // Initialize PayPal
-    // const paypalHandler = new PayPalHandler(configuration);
-    // const payPal = new PayPal(checkout, paypalHandler.getConfig());
-
-    // payPal
-    //     .isAvailable()
-    //     .then(() => {
-    //         payPal.mount(SELECTORS.PAYPAL_MOUNT);
-    //     })
-    //     .catch(e => {
-    //         console.error('PayPal is not available:', e);
-    //     });
 
     const googlePayHandler = new GooglePayHandler(configuration);
     const googlePay = new GooglePay(checkout, googlePayHandler.getConfig());
