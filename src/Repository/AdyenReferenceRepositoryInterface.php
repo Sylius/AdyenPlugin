@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Repository;
 
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
+use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 
 interface AdyenReferenceRepositoryInterface extends RepositoryInterface
@@ -21,4 +22,6 @@ interface AdyenReferenceRepositoryInterface extends RepositoryInterface
     public function getOneByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface;
 
     public function getOneForRefundByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface;
+
+    public function findAllByPayment(PaymentInterface $payment): array;
 }

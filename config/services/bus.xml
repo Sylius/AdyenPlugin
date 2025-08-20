@@ -44,6 +44,7 @@
             id="sylius_adyen.bus.handler.take_over_payment"
         >
             <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.clearer.payment_references"/>
             <argument type="service" id="sylius.manager.payment"/>
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />

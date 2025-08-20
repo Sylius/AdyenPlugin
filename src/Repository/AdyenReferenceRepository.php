@@ -17,25 +17,10 @@ use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
+use Sylius\Component\Core\Model\PaymentInterface;
 
 final class AdyenReferenceRepository extends EntityRepository implements AdyenReferenceRepositoryInterface
 {
-    private function getQueryBuilderForCodeAndReference(string $code, string $pspReference): QueryBuilder
-    {
-        $qb = $this
-            ->createQueryBuilder('r')
-            ->innerJoin('r.payment', 'p')
-            ->innerJoin('p.method', 'pm')
-            ->where('r.pspReference = :reference AND pm.code = :code')
-            ->setParameters([
-                'reference' => $pspReference,
-                'code' => $code,
-            ])
-        ;
-
-        return $qb;
-    }
-
     public function getOneByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface
     {
         return $this->getQueryBuilderForCodeAndReference($code, $pspReference)->getQuery()->getSingleResult();
@@ -50,5 +35,31 @@ final class AdyenReferenceRepository extends EntityRepository implements AdyenRe
         $qb->andWhere('r.refundPayment IS NOT NULL');
 
         return $qb->getQuery()->getSingleResult();
+    }
+
+    public function findAllByPayment(PaymentInterface $payment): array
+    {
+        return $this->createQueryBuilder('r')
+            ->where('r.payment = :payment')
+            ->setParameter('payment', $payment)
+            ->getQuery()
+            ->getResult()
+        ;
+    }
+
+    private function getQueryBuilderForCodeAndReference(string $code, string $pspReference): QueryBuilder
+    {
+        $qb = $this
+            ->createQueryBuilder('r')
+            ->innerJoin('r.payment', 'p')
+            ->innerJoin('p.method', 'pm')
+            ->where('r.pspReference = :reference AND pm.code = :code')
+            ->setParameters([
+                'reference' => $pspReference,
+                'code' => $code,
+            ])
+        ;
+
+        return $qb;
     }
 }
