@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Functional\Stub;
 
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -98,7 +99,7 @@ final class AdyenClientStub implements AdyenClientInterface
         RefundPaymentGenerated $refund,
     ): array {
         return [
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
             'pspReference' => 'REFUND_PSP_REF',
         ];
     }
@@ -110,12 +111,12 @@ final class AdyenClientStub implements AdyenClientInterface
             'paymentPspReference' => $details['pspReference'] ?? null,
         ];
 
-        if (!empty($this->reversalResponse)) {
+        if ([] !== $this->reversalResponse) {
             return $this->reversalResponse;
         }
 
         return [
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
             'pspReference' => 'REVERSAL_PSP_REF',
         ];
     }
@@ -124,16 +125,13 @@ final class AdyenClientStub implements AdyenClientInterface
         string $paymentReference,
         AdyenTokenInterface $adyenToken,
     ): array {
-        return [
-            'status' => 'success',
-            'message' => 'Token removed',
-        ];
+        return [];
     }
 
     public function requestCancellation(PaymentInterface $payment): array
     {
         return [
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
             'pspReference' => 'CANCEL_PSP_REF',
         ];
     }
@@ -141,7 +139,7 @@ final class AdyenClientStub implements AdyenClientInterface
     public function requestCapture(PaymentInterface $payment): array
     {
         return [
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
             'pspReference' => 'CAPTURE_PSP_REF',
         ];
     }

@@ -43,10 +43,7 @@ final class PaymentRefundedHandler
 
     public function __invoke(PaymentRefunded $command): void
     {
-        $payment = $command->getPayment();
-        $notificationData = $command->getNotificationData();
-
-        $refundPayment = $this->resolveRefundPayment($payment, $notificationData);
+        $refundPayment = $this->resolveRefundPayment($command->payment, $command->notificationData);
 
         if (null === $refundPayment) {
             return;

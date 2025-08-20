@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\ReversePayment;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -47,7 +48,7 @@ final class ReversePaymentHandler
         $client = $this->adyenClientProvider->getForPaymentMethod($method);
         $data = $client->requestReversal($payment);
 
-        if ('received' !== $data['status']) {
+        if (ResponseStatus::RECEIVED !== $data['status']) {
             throw new \RuntimeException(sprintf(
                 'Reversal request for payment %s failed with status: %s',
                 $payment->getId(),

@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
@@ -179,7 +180,7 @@ final class PaymentReversalTest extends WebTestCase
         $this->adyenClientStub->setReversalResponse([
             'paymentPspReference' => 'TEST_PSP_REF_123',
             'pspReference' => 'REVERSAL_PSP_REF_999',
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
         ]);
 
         $this->stateMachine->apply($this->testOrder, OrderTransitions::GRAPH, OrderTransitions::TRANSITION_CANCEL);
@@ -200,7 +201,7 @@ final class PaymentReversalTest extends WebTestCase
         $this->adyenClientStub->setReversalResponse([
             'paymentPspReference' => 'TEST_PSP_REF_123',
             'pspReference' => 'REVERSAL_PSP_REF_456',
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
         ]);
 
         // Initiate order cancellation which will trigger reversal
@@ -234,7 +235,7 @@ final class PaymentReversalTest extends WebTestCase
         $this->adyenClientStub->setReversalResponse([
             'paymentPspReference' => 'TEST_PSP_REF_123',
             'pspReference' => 'REVERSAL_PSP_REF_456',
-            'status' => 'received',
+            'status' => ResponseStatus::RECEIVED,
         ]);
 
         // Initiate order cancellation which will trigger reversal
