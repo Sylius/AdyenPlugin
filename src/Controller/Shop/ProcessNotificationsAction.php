@@ -55,7 +55,7 @@ class ProcessNotificationsAction
             } catch (NoCommandResolvedException $ex) {
                 $this->logger->error(sprintf(
                     'Tried to dispatch an unknown command. Notification body: %s',
-                    json_encode($notificationItem, JSON_PARTIAL_OUTPUT_ON_ERROR),
+                    json_encode($notificationItem, \JSON_PARTIAL_OUTPUT_ON_ERROR),
                 ));
             }
         }

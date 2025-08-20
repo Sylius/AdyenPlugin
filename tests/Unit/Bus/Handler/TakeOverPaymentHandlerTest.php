@@ -14,9 +14,12 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Bus\Handler\TakeOverPaymentHandler;
+use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
+use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
@@ -30,22 +33,23 @@ class TakeOverPaymentHandlerTest extends TestCase
 
     private const NEW_TEST_PAYMENT_CODE = 'Szczebrzeszyn';
 
-    /** @var PaymentMethodRepositoryInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $paymentMethodRepository;
+    private MockObject|PaymentMethodRepositoryInterface $paymentMethodRepository;
 
-    /** @var EntityManagerInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $paymentManager;
+    private MockObject|PaymentReferencesClearerInterface $paymentReferencesClearer;
 
-    /** @var TakeOverPaymentHandler */
-    private $handler;
+    private EntityManagerInterface|MockObject $paymentManager;
+
+    private TakeOverPaymentHandler $handler;
 
     protected function setUp(): void
     {
         $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
+        $this->paymentReferencesClearer = $this->createMock(PaymentReferencesClearerInterface::class);
         $this->paymentManager = $this->createMock(EntityManagerInterface::class);
 
         $this->handler = new TakeOverPaymentHandler(
             $this->paymentMethodRepository,
+            $this->paymentReferencesClearer,
             $this->paymentManager,
         );
     }
@@ -55,6 +59,11 @@ class TakeOverPaymentHandlerTest extends TestCase
         $this->paymentMethodRepository
             ->expects($this->never())
             ->method('getOneAdyenForCode')
+        ;
+
+        $this->paymentReferencesClearer
+            ->expects($this->never())
+            ->method('clear')
         ;
 
         $paymentMethod = new PaymentMethod();
@@ -67,6 +76,41 @@ class TakeOverPaymentHandlerTest extends TestCase
         ($this->handler)($command);
     }
 
+    public function testThrowsExceptionWhenPaymentMethodNotFound(): void
+    {
+        $this->expectException(AdyenNotFoundException::class);
+
+        $paymentMethod = new PaymentMethod();
+        $paymentMethod->setCode(self::TEST_PAYMENT_CODE);
+
+        $this->paymentMethodRepository
+            ->expects($this->once())
+            ->method('getOneAdyenForCode')
+            ->with(self::NEW_TEST_PAYMENT_CODE)
+            ->willReturn(null)
+        ;
+
+        $this->paymentReferencesClearer
+            ->expects($this->never())
+            ->method('clear')
+        ;
+
+        $this->paymentManager
+            ->expects($this->never())
+            ->method('persist')
+        ;
+
+        $this->paymentManager
+            ->expects($this->never())
+            ->method('flush')
+        ;
+
+        $payment = $this->createPayment($paymentMethod);
+        $command = new TakeOverPayment($payment->getOrder(), self::NEW_TEST_PAYMENT_CODE);
+
+        ($this->handler)($command);
+    }
+
     public function testChange(): void
     {
         $this->paymentManager
@@ -75,6 +119,11 @@ class TakeOverPaymentHandlerTest extends TestCase
             ->with(
                 $this->isInstanceOf(PaymentInterface::class),
             )
+        ;
+
+        $this->paymentManager
+            ->expects($this->once())
+            ->method('flush')
         ;
 
         $paymentMethod = new PaymentMethod();
@@ -93,6 +142,13 @@ class TakeOverPaymentHandlerTest extends TestCase
         ;
 
         $payment = $this->createPayment($paymentMethod);
+
+        $this->paymentReferencesClearer
+            ->expects($this->once())
+            ->method('clear')
+            ->with($payment)
+        ;
+
         $command = new TakeOverPayment($payment->getOrder(), self::NEW_TEST_PAYMENT_CODE);
 
         ($this->handler)($command);

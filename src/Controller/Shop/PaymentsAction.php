@@ -18,6 +18,7 @@ use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
+use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
@@ -45,6 +46,7 @@ class PaymentsAction
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
+        private readonly PaymentReferencesClearerInterface $paymentReferencesClearer,
         MessageBusInterface $messageBus,
     ) {
         $this->messageBus = $messageBus;
@@ -71,6 +73,8 @@ class PaymentsAction
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
 
         try {
+            $this->paymentReferencesClearer->clear($payment);
+
             $result = $client->submitPayment(
                 $url,
                 $request->request->all(),

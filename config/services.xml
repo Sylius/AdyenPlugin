@@ -47,6 +47,12 @@
             <argument type="service" id="sylius.command_bus"/>
         </service>
 
+        <service
+            id="sylius_adyen.clearer.payment_references"
+            class="Sylius\AdyenPlugin\Clearer\PaymentReferencesClearer"
+        >
+            <argument type="service" id="sylius_adyen.repository.adyen_reference" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
+        </service>
     </services>
-
 </container>
