@@ -78,8 +78,8 @@ class PaymentCommandFactoryTest extends TestCase
         $command = $this->factory->createForEvent('ignored_event', $payment, $notificationData);
 
         $this->assertInstanceOf(PaymentRefunded::class, $command);
-        $this->assertSame($payment, $command->getPayment());
-        $this->assertSame($notificationData, $command->getNotificationData());
+        $this->assertSame($payment, $command->payment);
+        $this->assertSame($notificationData, $command->notificationData);
     }
 
     public function testCreateForEventThrowsExceptionForUnmappedEvent(): void

@@ -19,7 +19,6 @@ use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Payment\PaymentTransitions;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 #[AsMessageHandler]
@@ -27,20 +26,17 @@ final class PaymentFinalizationHandler
 {
     public function __construct(
         private readonly StateMachineInterface $stateMachine,
-        private readonly RepositoryInterface $orderRepository,
     ) {
     }
 
     public function __invoke(PaymentFinalizationCommand $command): void
     {
         $payment = $command->getPayment();
-
         if (!$this->isAccepted($payment)) {
             return;
         }
 
         $this->updatePaymentState($payment, $command->getPaymentTransition());
-        $this->updatePayment($payment);
     }
 
     private function updatePaymentState(PaymentInterface $payment, string $transition): void
@@ -48,17 +44,6 @@ final class PaymentFinalizationHandler
         if ($this->stateMachine->can($payment, PaymentTransitions::GRAPH, $transition)) {
             $this->stateMachine->apply($payment, PaymentTransitions::GRAPH, $transition);
         }
-    }
-
-    // TODO: dafaq is this? //
-    private function updatePayment(PaymentInterface $payment): void
-    {
-        $order = $payment->getOrder();
-        if (null === $order) {
-            return;
-        }
-
-        $this->orderRepository->add($order);
     }
 
     private function isAccepted(PaymentInterface $payment): bool

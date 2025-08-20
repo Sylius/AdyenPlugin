@@ -25,24 +25,19 @@ use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\OrderPaymentStates;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
 
 class PaymentFinalizationHandlerTest extends TestCase
 {
-    private MockObject|RepositoryInterface $orderRepository;
-
     private MockObject|StateMachineInterface $stateMachine;
 
     private PaymentFinalizationHandler $handler;
 
     protected function setUp(): void
     {
-        $this->orderRepository = $this->createMock(RepositoryInterface::class);
         $this->stateMachine = $this->createMock(StateMachineInterface::class);
 
         $this->handler = new PaymentFinalizationHandler(
             $this->stateMachine,
-            $this->orderRepository,
         );
     }
 
@@ -72,15 +67,6 @@ class PaymentFinalizationHandlerTest extends TestCase
             ->with($payment, PaymentGraph::GRAPH, $this->equalTo($command->getPaymentTransition()))
         ;
 
-        $this
-            ->orderRepository
-            ->expects($this->once())
-            ->method('add')
-            ->with(
-                $this->equalTo($order),
-            )
-        ;
-
         ($this->handler)($command);
     }
 
@@ -92,9 +78,9 @@ class PaymentFinalizationHandlerTest extends TestCase
         $payment = new Payment();
         $payment->setOrder($order);
 
-        $this->orderRepository
+        $this->stateMachine
             ->expects($this->never())
-            ->method('add')
+            ->method('can')
         ;
 
         $command = new AuthorizePayment($payment);

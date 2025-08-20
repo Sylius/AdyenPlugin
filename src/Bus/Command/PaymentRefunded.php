@@ -18,25 +18,9 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class PaymentRefunded
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    /** @var NotificationItemData */
-    private $notificationData;
-
-    public function __construct(PaymentInterface $payment, NotificationItemData $notificationData)
-    {
-        $this->payment = $payment;
-        $this->notificationData = $notificationData;
-    }
-
-    public function getPayment(): PaymentInterface
-    {
-        return $this->payment;
-    }
-
-    public function getNotificationData(): NotificationItemData
-    {
-        return $this->notificationData;
+    public function __construct(
+        public readonly PaymentInterface $payment,
+        public readonly NotificationItemData $notificationData,
+    ) {
     }
 }
