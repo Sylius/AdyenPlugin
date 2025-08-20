@@ -30,6 +30,8 @@ final class AdyenClientStub implements AdyenClientInterface
 
     private ?array $lastReversalRequest = null;
 
+    private array $paymentLinkResponse = [];
+
     private ?\Exception $exception = null;
 
     public function setSubmitPaymentResponse(array $response): void
@@ -52,6 +54,12 @@ final class AdyenClientStub implements AdyenClientInterface
     public function setReversalResponse(array $response): void
     {
         $this->reversalResponse = $response;
+        $this->exception = null;
+    }
+
+    public function setPaymentLinkResponse(array $response): void
+    {
+        $this->paymentLinkResponse = $response;
         $this->exception = null;
     }
 
@@ -173,6 +181,30 @@ final class AdyenClientStub implements AdyenClientInterface
         return [
             'status' => ResponseStatus::RECEIVED,
             'pspReference' => 'CAPTURE_PSP_REF',
+        ];
+    }
+
+    public function generatePaymentLink(PaymentInterface $payment): array
+    {
+        if ($this->exception !== null) {
+            throw $this->exception;
+        }
+
+        if ([] !== $this->paymentLinkResponse) {
+            return $this->paymentLinkResponse;
+        }
+
+        return [
+            'id' => 'PAYMENT_LINK_ID',
+            'url' => 'https://test.adyen.link/PL123456789',
+            'expiresAt' => '2024-12-31T23:59:59Z',
+            'reference' => $payment->getOrder()?->getNumber() ?? 'REF123',
+            'amount' => [
+                'value' => $payment->getAmount(),
+                'currency' => $payment->getCurrencyCode(),
+            ],
+            'merchantAccount' => 'TestMerchant',
+            'status' => 'active',
         ];
     }
 }

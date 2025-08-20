@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -57,4 +58,6 @@ interface ClientPayloadFactoryInterface
     ): array;
 
     public function createForReversal(ArrayObject $options, PaymentInterface $payment): PaymentReversalRequest;
+
+    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): PaymentLinkRequest;
 }

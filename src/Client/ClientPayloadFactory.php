@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\PaymentDetails;
+use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
@@ -245,6 +246,28 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
         return new PaymentReversalRequest($payload);
+    }
+
+    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): PaymentLinkRequest
+    {
+        $order = $payment->getOrder();
+        Assert::notNull($order);
+
+        $payload = $this->getOrderDataForPayment($order);
+        $payload = $payload + [
+            'reference' => (string) $order->getNumber(),
+            'merchantAccount' => $options['merchantAccount'],
+            'countryCode' => $order->getBillingAddress()?->getCountryCode() ?? self::NO_COUNTRY_AVAILABLE_PLACEHOLDER,
+        ];
+        unset($payload['shopperIp']);
+
+        if ($order->getLocaleCode() !== null) {
+            $payload['shopperLocale'] = str_replace('_', '-', $order->getLocaleCode());
+        }
+
+        $payload = $this->versionResolver->appendVersionConstraints($payload);
+
+        return new PaymentLinkRequest($payload);
     }
 
     private function filterArray(array $payload, array $keysWhitelist): array

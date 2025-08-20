@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Client;
 use Adyen\Client;
 use Adyen\Service\Checkout;
 use Adyen\Service\Checkout\ModificationsApi;
+use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Modification;
 use Adyen\Service\Recurring;
 use Payum\Core\Bridge\Spl\ArrayObject;
@@ -142,6 +143,15 @@ final class AdyenClient implements AdyenClientInterface
         return $response->toArray();
     }
 
+    public function generatePaymentLink(PaymentInterface $payment): array
+    {
+        $response = $this->getPaymentLinksApi()->paymentLinks(
+            $this->clientPayloadFactory->createForPaymentLink($this->options, $payment),
+        );
+
+        return $response->toArray();
+    }
+
     public function getEnvironment(): string
     {
         return (string) $this->options['environment'];
@@ -152,6 +162,11 @@ final class AdyenClient implements AdyenClientInterface
         return new Checkout(
             $this->transport,
         );
+    }
+
+    private function getPaymentLinksApi(): PaymentLinksApi
+    {
+        return new PaymentLinksApi($this->transport);
     }
 
     private function getModificationsApi(): ModificationsApi
