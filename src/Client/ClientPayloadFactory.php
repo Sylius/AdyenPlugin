@@ -255,15 +255,20 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->getOrderDataForPayment($order);
         $payload = $payload + [
+            'amount' => [
+                'value' => $order->getTotal(),
+                'currency' => $order->getCurrencyCode(),
+            ],
             'reference' => (string) $order->getNumber(),
-            'merchantAccount' => $options['merchantAccount'],
             'countryCode' => $order->getBillingAddress()?->getCountryCode() ?? self::NO_COUNTRY_AVAILABLE_PLACEHOLDER,
+            'merchantAccount' => $options['merchantAccount'],
         ];
-        unset($payload['shopperIp']);
 
         if ($order->getLocaleCode() !== null) {
             $payload['shopperLocale'] = str_replace('_', '-', $order->getLocaleCode());
         }
+
+        unset($payload['shopperIp']);
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 

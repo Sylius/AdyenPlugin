@@ -55,5 +55,14 @@
             <argument type="service" id="sylius_adyen.repository.adyen_reference" />
             <argument type="service" id="doctrine.orm.entity_manager" />
         </service>
+
+        <service
+            id="sylius_adyen.twig.extension.adyen_payment_checker"
+            class="Sylius\AdyenPlugin\Twig\Extension\AdyenPaymentCheckerExtension"
+        >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+
+            <tag name="twig.extension" />
+        </service>
     </services>
 </container>

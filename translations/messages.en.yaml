@@ -37,6 +37,7 @@ sylius_adyen:
             message: Message
             date_time: Date time
             search: Search
+        send_payment_link: Send payment link
     form:
         product_variant:
             commodity_code: Commodity Code
