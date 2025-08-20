@@ -19,15 +19,34 @@ final class EventCodeResolver implements EventCodeResolverInterface
 {
     public function resolve(NotificationItemData $notificationData): string
     {
-        if (self::AUTHORIZATION !== $notificationData->eventCode) {
+        if (self::EVENT_CANCEL_OR_REFUND === $notificationData->eventCode) {
+            return $this->resolveReversal($notificationData);
+        }
+
+        if (self::EVENT_AUTHORIZATION !== $notificationData->eventCode) {
             return (string) $notificationData->eventCode;
         }
 
         // Adyen doesn't provide a "card" payment method name but specifies a brand for each, so make it generic
         if (isset($notificationData->additionalData['expiryDate'])) {
-            return self::AUTHORIZATION;
+            return self::EVENT_AUTHORIZATION;
         }
 
-        return self::PAYMENT_METHOD_TYPES[$notificationData->paymentMethod] ?? self::CAPTURE;
+        return self::PAYMENT_METHOD_TYPES[$notificationData->paymentMethod] ?? self::EVENT_CAPTURE;
+    }
+
+    private function resolveReversal(NotificationItemData $notificationData): string
+    {
+        $modificationAction = $notificationData->additionalData['modification.action'] ?? null;
+
+        if (self::MODIFICATION_CANCEL === $modificationAction) {
+            return self::EVENT_CANCELLATION;
+        }
+
+        if (self::MODIFICATION_REFUND === $modificationAction) {
+            return self::EVENT_REFUND;
+        }
+
+        return (string) $notificationData->eventCode;
     }
 }

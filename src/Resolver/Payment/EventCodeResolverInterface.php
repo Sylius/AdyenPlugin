@@ -17,16 +17,26 @@ use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 
 interface EventCodeResolverInterface
 {
-    public const CAPTURE = 'capture';
+    public const EVENT_CANCEL_OR_REFUND = 'cancel_or_refund';
 
-    public const AUTHORIZATION = 'authorisation';
+    public const EVENT_CAPTURE = 'capture';
+
+    public const EVENT_AUTHORIZATION = 'authorisation';
+
+    public const EVENT_CANCELLATION = 'cancellation';
+
+    public const EVENT_REFUND = 'refund';
+
+    public const MODIFICATION_REFUND = 'refund';
+
+    public const MODIFICATION_CANCEL = 'cancel';
 
     public const PAYMENT_METHOD_TYPES = [
-        'amazonpay' => self::AUTHORIZATION,
-        'applepay' => self::AUTHORIZATION,
-        'klarna' => self::AUTHORIZATION,
-        'paywithgoogle' => self::AUTHORIZATION,
-        'twint' => self::AUTHORIZATION,
+        'amazonpay' => self::EVENT_AUTHORIZATION,
+        'applepay' => self::EVENT_AUTHORIZATION,
+        'klarna' => self::EVENT_AUTHORIZATION,
+        'paywithgoogle' => self::EVENT_AUTHORIZATION,
+        'twint' => self::EVENT_AUTHORIZATION,
     ];
 
     public function resolve(NotificationItemData $notificationData): string;

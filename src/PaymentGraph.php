@@ -15,7 +15,11 @@ namespace Sylius\AdyenPlugin;
 
 use Sylius\Component\Payment\PaymentTransitions as BasePaymentTransitions;
 
-interface PaymentTransitions extends BasePaymentTransitions
+interface PaymentGraph extends BasePaymentTransitions
 {
+    public const STATE_PROCESSING_REVERSAL = 'processing_reversal';
+
     public const TRANSITION_CAPTURE = 'capture';
+
+    public const TRANSITION_REVERSE = 'reverse';
 }

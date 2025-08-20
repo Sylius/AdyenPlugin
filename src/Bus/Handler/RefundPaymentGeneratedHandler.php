@@ -14,10 +14,10 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
-use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
@@ -30,14 +30,13 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class RefundPaymentGeneratedHandler
 {
-    use GatewayConfigFromPaymentTrait;
-
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly RefundPaymentRepositoryInterface $refundPaymentRepository,
         private readonly MessageBusInterface $messageBus,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 
@@ -47,9 +46,10 @@ final class RefundPaymentGeneratedHandler
         $payment = $this->paymentRepository->find($refundPaymentGenerated->paymentId());
         $paymentMethod = $this->paymentMethodRepository->find($refundPaymentGenerated->paymentMethodId());
 
-        if (null === $payment ||
+        if (
+            null === $payment ||
             null === $paymentMethod ||
-            !isset($this->getGatewayConfig($paymentMethod)->getConfig()[AdyenClientProviderInterface::FACTORY_NAME])
+            !$this->adyenPaymentMethodChecker->isAdyenPaymentMethod($paymentMethod)
         ) {
             return;
         }
@@ -85,10 +85,7 @@ final class RefundPaymentGeneratedHandler
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
 
-        $result = $client->requestRefund(
-            $payment,
-            $refundPaymentGenerated,
-        );
+        $result = $client->requestRefund($payment, $refundPaymentGenerated);
 
         Assert::keyExists($result, 'pspReference');
 

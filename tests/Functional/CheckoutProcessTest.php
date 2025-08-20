@@ -14,24 +14,23 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
-use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
-class CheckoutProcessTest extends WebTestCase
+final class CheckoutProcessTest extends WebTestCase
 {
     private AdyenClientStub $adyenClientStub;
 
@@ -615,7 +614,7 @@ class CheckoutProcessTest extends WebTestCase
         $command = $this->paymentCommandFactory->createForEvent(
             $eventCode,
             $payment,
-            $notificationData
+            $notificationData,
         );
 
         $this->messageBus->dispatch($command);

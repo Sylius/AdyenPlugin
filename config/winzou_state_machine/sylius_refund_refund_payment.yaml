@@ -2,6 +2,14 @@ winzou_state_machine:
     sylius_refund_refund_payment:
         class: Sylius\RefundPlugin\Entity\RefundPayment
         transitions:
+            # Special case for automated refunds
             confirm:
                 from: [new]
                 to: completed
+        callbacks:
+            after:
+                process_refund_payment:
+                    on: ["confirm"]
+                    do: ["@sylius_adyen.processor.refund.refund_payment_state", "process"]
+                    args: ["object"]
+                    priority: 100

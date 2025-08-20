@@ -16,9 +16,9 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\AdyenPlugin\Bus\Command\AlterPaymentCommand;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -28,17 +28,17 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class AlterPaymentHandler
 {
-    use GatewayConfigFromPaymentTrait;
-
-    public function __construct(private readonly AdyenClientProviderInterface $adyenClientProvider)
-    {
+    public function __construct(
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+    ) {
     }
 
     public function __invoke(AlterPaymentCommand $alterPaymentCommand): void
     {
         $payment = $this->getPayment($alterPaymentCommand->getOrder());
 
-        if (null === $payment || !$this->isAdyenPayment($payment)) {
+        if (null === $payment || !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             return;
         }
 
@@ -47,42 +47,6 @@ final class AlterPaymentHandler
 
         $client = $this->adyenClientProvider->getForPaymentMethod($method);
         $this->dispatchRemoteAction($payment, $alterPaymentCommand, $client);
-    }
-
-    private function isCompleted(OrderInterface $order): bool
-    {
-        return PaymentInterface::STATE_COMPLETED === $order->getPaymentState();
-    }
-
-    private function isAdyenPayment(PaymentInterface $payment): bool
-    {
-        /**
-         * @var ?PaymentMethodInterface $method
-         */
-        $method = $payment->getMethod();
-        if (
-            null === $method ||
-            null === $method->getGatewayConfig() ||
-            !isset($this->getGatewayConfig($method)->getConfig()[AdyenClientProviderInterface::FACTORY_NAME])
-        ) {
-            return false;
-        }
-
-        return true;
-    }
-
-    private function getPayment(OrderInterface $order): ?PaymentInterface
-    {
-        if ($this->isCompleted($order)) {
-            return null;
-        }
-
-        $payment = $order->getLastPayment(PaymentInterface::STATE_AUTHORIZED);
-        if (null === $payment) {
-            return null;
-        }
-
-        return $payment;
     }
 
     private function dispatchRemoteAction(
@@ -99,5 +63,24 @@ final class AlterPaymentHandler
         if ($alterPaymentCommand instanceof CancelPayment) {
             $adyenClient->requestCancellation($payment);
         }
+    }
+
+    private function getPayment(OrderInterface $order): ?PaymentInterface
+    {
+        if ($this->isCompleted($order)) {
+            return null;
+        }
+
+        $payment = $order->getLastPayment(PaymentInterface::STATE_AUTHORIZED);
+        if (null === $payment) {
+            return null;
+        }
+
+        return $payment;
+    }
+
+    private function isCompleted(OrderInterface $order): bool
+    {
+        return PaymentInterface::STATE_COMPLETED === $order->getPaymentState();
     }
 }

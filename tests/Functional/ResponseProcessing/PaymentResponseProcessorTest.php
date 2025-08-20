@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin\Unit\Processor;
+namespace Tests\Sylius\AdyenPlugin\Functional\ResponseProcessing;
 
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\ProcessorInterface;
@@ -19,7 +19,7 @@ use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Tests\Sylius\AdyenPlugin\Unit\Processor\PaymentResponseProcessor\AbstractProcessor;
+use Tests\Sylius\AdyenPlugin\Functional\ResponseProcessing\PaymentResponseProcessor\AbstractProcessor;
 
 class PaymentResponseProcessorTest extends KernelTestCase
 {

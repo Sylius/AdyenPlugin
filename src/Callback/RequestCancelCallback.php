@@ -29,7 +29,9 @@ final class RequestCancelCallback
 
     public function __invoke(OrderInterface $order): void
     {
-        if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)) {
+        if (
+            $this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
+        ) {
             $this->messageBus->dispatch(new CancelPayment($order));
         }
     }

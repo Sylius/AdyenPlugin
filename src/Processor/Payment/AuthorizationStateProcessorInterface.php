@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Processor\State;
+namespace Sylius\AdyenPlugin\Processor\Payment;
 
 use Sylius\Component\Core\Model\PaymentInterface;
 
-interface PaymentAuthorizeStateProcessorInterface
+interface AuthorizationStateProcessorInterface
 {
     public function process(PaymentInterface $payment): void;
 }

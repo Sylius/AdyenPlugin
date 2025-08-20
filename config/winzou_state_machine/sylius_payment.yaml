@@ -1,5 +1,7 @@
 winzou_state_machine:
     sylius_payment:
+        states:
+            processing_reversal: ~
         transitions:
             capture:
                 from: [new, processing, authorized]
@@ -7,6 +9,15 @@ winzou_state_machine:
             process:
                 from: [new, authorized]
                 to: processing
+            cancel:
+                from: [new, processing, authorized, processing_reversal]
+                to: cancelled
+            refund:
+                from: [completed, processing_reversal]
+                to: refunded
+            reverse:
+                from: [completed]
+                to: processing_reversal
         callbacks:
             after:
                 sylius_resolve_state:
@@ -16,3 +27,12 @@ winzou_state_machine:
                     do: ["@sylius_adyen.processor.authorization_state", "process"]
                     args: ["object"]
                     priority: 100
+                process_order_payment_after_reversal:
+                    on: ["cancel", "refund"]
+                    do: ["@sylius_adyen.processor.order.update_order_payment_state", "process"]
+                    args: ["object.getOrder()"]
+            guard:
+                guard_complete:
+                    on: ["complete"]
+                    do: ["@sylius_adyen.state_machine.guard.payment", "canBeCompleted"]
+                    args: ["object"]

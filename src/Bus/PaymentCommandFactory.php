@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus;
 
 use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
@@ -22,39 +23,39 @@ use Webmozart\Assert\Assert;
 
 final class PaymentCommandFactory implements PaymentCommandFactoryInterface
 {
-    /** @var array */
-    private $mapping = [];
-
-    /** @var EventCodeResolverInterface */
-    private $eventCodeResolver;
-
     public function __construct(
-        EventCodeResolverInterface $eventCodeResolver,
-        array $mapping = [],
+        private EventCodeResolverInterface $eventCodeResolver,
+        private array $mapping = [],
     ) {
         $this->mapping = array_merge_recursive(self::MAPPING, $mapping);
-        $this->eventCodeResolver = $eventCodeResolver;
     }
 
     public function createForEvent(
         string $event,
         PaymentInterface $payment,
         ?NotificationItemData $notificationItemData = null,
-    ): PaymentLifecycleCommand {
+    ): object {
         if (null !== $notificationItemData) {
             $event = $this->eventCodeResolver->resolve($notificationItemData);
         }
 
-        return $this->createObject($event, $payment);
+        return $this->createObject($event, $payment, $notificationItemData);
     }
 
-    private function createObject(string $eventName, PaymentInterface $payment): PaymentLifecycleCommand
-    {
+    private function createObject(
+        string $eventName,
+        PaymentInterface $payment,
+        ?NotificationItemData $notificationItemData = null,
+    ): PaymentLifecycleCommand|PaymentRefunded {
         if (!isset($this->mapping[$eventName])) {
             throw new UnmappedAdyenActionException(sprintf('Event "%s" has no handler registered', $eventName));
         }
 
         $class = (string) $this->mapping[$eventName];
+
+        if ($class === PaymentRefunded::class && $notificationItemData !== null) {
+            return new PaymentRefunded($payment, $notificationItemData);
+        }
 
         $result = new $class($payment);
         Assert::isInstanceOf($result, PaymentLifecycleCommand::class);

@@ -60,6 +60,8 @@ interface AdyenClientInterface
         RefundPaymentGenerated $refund,
     ): array;
 
+    public function requestReversal(PaymentInterface $payment): array;
+
     public function removeStoredToken(
         string $paymentReference,
         AdyenTokenInterface $adyenToken,

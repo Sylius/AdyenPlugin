@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Payment\PaymentTransitions;
@@ -49,6 +50,7 @@ final class PaymentFinalizationHandler
         }
     }
 
+    // TODO: dafaq is this? //
     private function updatePayment(PaymentInterface $payment): void
     {
         $order = $payment->getOrder();
@@ -61,6 +63,9 @@ final class PaymentFinalizationHandler
 
     private function isAccepted(PaymentInterface $payment): bool
     {
-        return OrderPaymentStates::STATE_PAID !== $payment->getOrder()?->getPaymentState();
+        return
+            OrderPaymentStates::STATE_PAID !== $payment->getOrder()?->getPaymentState() ||
+            $payment->getState() === PaymentGraph::STATE_PROCESSING_REVERSAL
+        ;
     }
 }

@@ -44,3 +44,7 @@ sylius_adyen:
     runtime:
         invalid_signature: Invalid notification signature provided
         payment_failed_try_again: Payment failed, please try again
+
+sylius:
+    ui:
+        processing_reversal: Processing Reversal

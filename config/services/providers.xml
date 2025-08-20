@@ -14,10 +14,18 @@
         >
             <argument type="tagged_iterator" tag="sylius_adyen.esd.collector" index-by="type" />
         </service>
-
         <service
             id="Sylius\AdyenPlugin\Provider\EsdTypeProviderInterface"
             alias="sylius_adyen.provider.esd_type"
         />
+
+        <service
+            id="sylius_adyen.provider.refund_payment_methods"
+            class="Sylius\AdyenPlugin\Provider\Refund\SupportedRefundPaymentMethodsProvider"
+            decorates="sylius_refund.provider.refund_payment_methods"
+        >
+            <argument type="service" id=".inner" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
     </services>
 </container>

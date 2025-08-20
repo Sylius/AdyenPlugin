@@ -21,7 +21,7 @@ use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\CapturePayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
 use Sylius\AdyenPlugin\Bus\Handler\PaymentFinalizationHandler;
-use Sylius\AdyenPlugin\PaymentTransitions;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -63,13 +63,13 @@ class PaymentFinalizationHandlerTest extends TestCase
         $this->stateMachine
             ->expects($this->once())
             ->method('can')
-            ->with($payment, PaymentTransitions::GRAPH, $this->equalTo($command->getPaymentTransition()))
+            ->with($payment, PaymentGraph::GRAPH, $this->equalTo($command->getPaymentTransition()))
             ->willReturn($canTransition)
         ;
         $this->stateMachine
             ->expects($canTransition ? $this->once() : $this->never())
             ->method('apply')
-            ->with($payment, PaymentTransitions::GRAPH, $this->equalTo($command->getPaymentTransition()))
+            ->with($payment, PaymentGraph::GRAPH, $this->equalTo($command->getPaymentTransition()))
         ;
 
         $this
