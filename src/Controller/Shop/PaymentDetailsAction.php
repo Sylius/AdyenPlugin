@@ -42,7 +42,7 @@ class PaymentDetailsAction
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
         $result = $client->paymentDetails($request->request->all());
-
+        // save $pspReference here
         $payment->setDetails($result);
 
         return new JsonResponse(

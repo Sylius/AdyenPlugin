@@ -5,8 +5,8 @@
         <defaults public="true"/>
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction"
                 id="sylius_adyen.controller.shop.payment_details"
+                class="Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction"
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
