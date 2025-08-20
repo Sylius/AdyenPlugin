@@ -10,6 +10,7 @@
         <id name="id" column="id" type="integer">
             <generator strategy="AUTO"/>
         </id>
+
         <field name="pspReference" type="string" column="psp_reference" length="64" unique="true" />
 
         <field name="createdAt" column="created_at" type="datetime">
@@ -19,7 +20,9 @@
             <gedmo:timestampable on="update"/>
         </field>
 
-        <many-to-one field="payment" target-entity="Sylius\Component\Payment\Model\PaymentInterface" />
+        <many-to-one field="payment" target-entity="Sylius\Component\Payment\Model\PaymentInterface">
+            <join-column name="payment_id" on-delete="CASCADE"/>
+        </many-to-one>
         <one-to-one field="refundPayment" target-entity="Sylius\RefundPlugin\Entity\RefundPaymentInterface">
             <join-column name="refund_payment_id"/>
         </one-to-one>
