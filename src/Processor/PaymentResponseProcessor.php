@@ -22,37 +22,11 @@ final class PaymentResponseProcessor implements PaymentResponseProcessorInterfac
 {
     private const DEFAULT_REDIRECT_ROUTE = 'sylius_shop_order_thank_you';
 
-    /** @var iterable<ProcessorInterface> */
-    private $processors;
-
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
-    /**
-     * @param iterable<ProcessorInterface> $processors
-     */
+    /** @param iterable<ProcessorInterface> $processors */
     public function __construct(
-        iterable $processors,
-        UrlGeneratorInterface $urlGenerator,
+        private readonly iterable $processors,
+        private readonly UrlGeneratorInterface $urlGenerator,
     ) {
-        $this->processors = $processors;
-        $this->urlGenerator = $urlGenerator;
-    }
-
-    private function processForPaymentSpecified(
-        string $code,
-        Request $request,
-        PaymentInterface $payment,
-    ): ?string {
-        foreach ($this->processors as $processor) {
-            if (!$processor->accepts($request, $payment)) {
-                continue;
-            }
-
-            return $processor->process($code, $request, $payment);
-        }
-
-        return null;
     }
 
     public function process(
@@ -72,5 +46,21 @@ final class PaymentResponseProcessor implements PaymentResponseProcessorInterfac
         return $this->urlGenerator->generate(self::DEFAULT_REDIRECT_ROUTE, [
             '_locale' => $payment?->getOrder()?->getLocaleCode() ?? $request->getLocale(),
         ]);
+    }
+
+    private function processForPaymentSpecified(
+        string $code,
+        Request $request,
+        PaymentInterface $payment,
+    ): ?string {
+        foreach ($this->processors as $processor) {
+            if (!$processor->accepts($request, $payment)) {
+                continue;
+            }
+
+            return $processor->process($code, $request, $payment);
+        }
+
+        return null;
     }
 }
