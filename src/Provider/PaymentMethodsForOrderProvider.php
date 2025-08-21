@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Provider;
 
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
@@ -36,6 +37,7 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
 
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         MessageBusInterface $messageBus,
     ) {
@@ -47,7 +49,7 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
         $paymentMethod = $this->getPaymentMethod($order, $code);
         $token = $this->getToken($paymentMethod, $order);
 
-        if (!isset($this->getGatewayConfig($paymentMethod)->getConfig()[AdyenClientProviderInterface::FACTORY_NAME])) {
+        if (!$this->adyenPaymentMethodChecker->isAdyenPaymentMethod($paymentMethod)) {
             return null;
         }
 
