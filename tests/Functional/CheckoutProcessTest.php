@@ -15,9 +15,10 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
+use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
@@ -35,6 +36,10 @@ final class CheckoutProcessTest extends WebTestCase
     private AdyenClientStub $adyenClientStub;
 
     private PaymentsAction $paymentsAction;
+
+    private PaymentDetailsAction $paymentsDetailsAction;
+
+    private ProcessNotificationsAction $processNotificationsAction;
 
     private OrderInterface $testOrder;
 
@@ -62,7 +67,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchant_account' => 'test_merchant',
             'api_key' => 'test_api_key',
             'client_key' => 'test_client_key',
-            'hmac_key' => 'test_hmac_key',
+            'hmacKey' => '70E6897824A012655666C5235F50D44F2CDF284A91352B2E8F53B1D5A0189A43',
         ]);
 
         self::$sharedPaymentMethod->setGatewayConfig($gatewayConfig);
@@ -106,8 +111,10 @@ final class CheckoutProcessTest extends WebTestCase
         $testCartContext->setOrder($this->testOrder);
 
         $this->paymentsAction = $container->get('sylius_adyen.controller.shop.payments');
+        $this->paymentsDetailsAction = $container->get('sylius_adyen.controller.shop.payment_details');
         $this->messageBus = $container->get('sylius.command_bus');
         $this->paymentCommandFactory = $container->get('sylius_adyen.bus.payment_command_factory');
+        $this->processNotificationsAction = $container->get('sylius_adyen.controller.shop.process_notifications');
     }
 
     protected function tearDown(): void
@@ -125,7 +132,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchantReference' => 'ORDER_123',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -178,7 +185,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -210,11 +217,372 @@ final class CheckoutProcessTest extends WebTestCase
         self::assertEquals('redirect', $payment->getDetails()['action']['type']);
     }
 
+    public function testCheckoutWith3DSChallengeShopper(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'ChallengeShopper',
+            'action' => [
+                'type' => 'threeDS2Challenge',
+                'token' => 'test_challenge_token',
+            ],
+            'details' => [
+                ['key' => 'threeds2.challengeResult', 'type' => 'text'],
+            ],
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'encryptedCardNumber' => 'test_encrypted_number',
+                'encryptedExpiryMonth' => 'test_encrypted_month',
+                'encryptedExpiryYear' => 'test_encrypted_year',
+                'encryptedSecurityCode' => 'test_encrypted_cvv',
+            ],
+        ]);
+
+        $response = ($this->paymentsAction)($request);
+
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseData = json_decode($response->getContent(), true);
+        self::assertArrayHasKey('resultCode', $responseData);
+        self::assertEquals('ChallengeShopper', $responseData['resultCode']);
+        self::assertArrayHasKey('action', $responseData);
+        self::assertEquals('threeDS2Challenge', $responseData['action']['type']);
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
+        self::assertArrayHasKey('resultCode', $payment->getDetails());
+        self::assertEquals('ChallengeShopper', $payment->getDetails()['resultCode']);
+        self::assertArrayHasKey('action', $payment->getDetails());
+        self::assertEquals('threeDS2Challenge', $payment->getDetails()['action']['type']);
+    }
+
+    public function test3DSRedirectThenWebhookCompletesPayment(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'RedirectShopper',
+            'pspReference' => 'TEST_PSP_REF_123',
+            'merchantReference' => 'ORDER_123',
+            'action' => [
+                'type' => 'redirect',
+                'url' => 'https://test.adyen.com/3ds-redirect',
+                'method' => 'POST',
+                'data' => [
+                    'MD' => 'test_md',
+                    'PaReq' => 'test_pareq',
+                ],
+            ],
+            'details' => [
+                ['key' => 'MD', 'type' => 'text'],
+                ['key' => 'PaRes', 'type' => 'text'],
+            ],
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'encryptedCardNumber' => 'test_encrypted_number',
+                'encryptedExpiryMonth' => 'test_encrypted_month',
+                'encryptedExpiryYear' => 'test_encrypted_year',
+                'encryptedSecurityCode' => 'test_encrypted_cvv',
+            ],
+        ]);
+
+        $response = ($this->paymentsAction)($request);
+
+        self::assertEquals(200, $response->getStatusCode());
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
+        self::assertEquals('RedirectShopper', $payment->getDetails()['resultCode']);
+
+        $this->simulateWebhook($payment, 'authorisation', true);
+
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+    }
+
+    public function test3DSReturnWithPaymentDetailsCompletesPayment(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'RedirectShopper',
+            'action' => [
+                'type' => 'redirect',
+                'url' => 'https://test.adyen.com/3ds-redirect',
+                'method' => 'POST',
+                'data' => [
+                    'MD' => 'test_md',
+                    'PaReq' => 'test_pareq',
+                ],
+            ],
+            'details' => [
+                ['key' => 'MD', 'type' => 'text'],
+                ['key' => 'PaRes', 'type' => 'text'],
+            ],
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'encryptedCardNumber' => 'test_encrypted_number',
+                'encryptedExpiryMonth' => 'test_encrypted_month',
+                'encryptedExpiryYear' => 'test_encrypted_year',
+                'encryptedSecurityCode' => 'test_encrypted_cvv',
+            ],
+        ]);
+
+        ($this->paymentsAction)($request);
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
+        self::assertEquals('RedirectShopper', $payment->getDetails()['resultCode']);
+
+        $this->adyenClientStub->setPaymentDetailsResponse([
+            'resultCode' => 'Authorised',
+        ]);
+
+        $detailsRequest = $this->createRequest([
+            'details' => [
+                'MD' => 'test_md',
+                'PaRes' => 'test_pares',
+            ],
+        ]);
+
+        $response = ($this->paymentsDetailsAction)($detailsRequest);
+        self::assertEquals(200, $response->getStatusCode());
+        $this->simulateWebhook($payment, 'authorisation', true);
+        self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+    }
+
+    public function test3DSReturnWithPaymentDetailsRefused(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'RedirectShopper',
+            'action' => [
+                'type' => 'redirect',
+                'url' => 'https://test.adyen.com/3ds-redirect',
+                'method' => 'POST',
+                'data' => [
+                    'MD' => 'test_md',
+                    'PaReq' => 'test_pareq',
+                ],
+            ],
+            'details' => [
+                ['key' => 'MD', 'type' => 'text'],
+                ['key' => 'PaRes', 'type' => 'text'],
+            ],
+        ]);
+
+        ($this->paymentsAction)($this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+            ],
+        ]));
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals('RedirectShopper', $payment->getDetails()['resultCode']);
+
+        $this->adyenClientStub->setPaymentDetailsResponse([
+            'resultCode' => 'Refused',
+            'refusalReason' => 'Authentication failed',
+        ]);
+
+        $detailsRequest = $this->createRequest([
+            'details' => [
+                'MD' => 'test_md',
+                'PaRes' => 'test_pares',
+            ],
+        ]);
+
+        $response = ($this->paymentsDetailsAction)($detailsRequest);
+
+        self::assertEquals(200, $response->getStatusCode());
+        $this->simulateWebhook($payment, 'authorisation', false);
+        self::assertEquals('Refused', $payment->getDetails()['resultCode']);
+        self::assertEquals('Authentication failed', $payment->getDetails()['refusalReason']);
+        self::assertEquals(PaymentInterface::STATE_FAILED, $payment->getState());
+    }
+
+    public function test3DSChallengeThenDetailsAuthorisedCompletesPayment(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'ChallengeShopper',
+            'action' => [
+                'type' => 'threeDS2Challenge',
+                'token' => 'test_challenge_token',
+            ],
+            'details' => [
+                ['key' => 'threeds2.challengeResult', 'type' => 'text'],
+            ],
+        ]);
+
+        ($this->paymentsAction)($this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+            ],
+        ]));
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals('ChallengeShopper', $payment->getDetails()['resultCode']);
+
+        $this->adyenClientStub->setPaymentDetailsResponse([
+            'resultCode' => 'Authorised',
+        ]);
+
+        $detailsRequest = $this->createRequest([
+            'details' => [
+                'threeDSResult' => '{"transStatus":"Y"}',
+            ],
+        ]);
+
+        $response = ($this->paymentsDetailsAction)($detailsRequest);
+
+        self::assertEquals(200, $response->getStatusCode());
+        $this->simulateWebhook($payment, 'authorisation', true);
+        self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+    }
+
+    public function test3DSChallengeThenDetailsRefusedFailsPayment(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'ChallengeShopper',
+            'action' => [
+                'type' => 'threeDS2Challenge',
+                'token' => 'test_challenge_token',
+            ],
+            'details' => [
+                ['key' => 'threeds2.challengeResult', 'type' => 'text'],
+            ],
+        ]);
+
+        ($this->paymentsAction)($this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+            ],
+        ]));
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals('ChallengeShopper', $payment->getDetails()['resultCode']);
+
+        $this->adyenClientStub->setPaymentDetailsResponse([
+            'resultCode' => 'Refused',
+            'refusalReason' => 'Authentication failed',
+        ]);
+
+        $detailsRequest = $this->createRequest([
+            'details' => [
+                'threeDSResult' => '{"transStatus":"N"}',
+            ],
+        ]);
+
+        $response = ($this->paymentsDetailsAction)($detailsRequest);
+
+        self::assertEquals(200, $response->getStatusCode());
+        $this->simulateWebhook($payment, 'authorisation', false);
+        self::assertEquals('Refused', $payment->getDetails()['resultCode']);
+        self::assertEquals('Authentication failed', $payment->getDetails()['refusalReason']);
+        self::assertEquals(PaymentInterface::STATE_FAILED, $payment->getState());
+    }
+
+    public function test3DSIdentifyThenDetailsAuthorisedCompletesPayment(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'IdentifyShopper',
+            'action' => [
+                'type' => 'threeDS2',
+                'subtype' => 'fingerprint',
+                'token' => 'test_fingerprint_token',
+                'paymentMethodType' => 'scheme',
+                'authorisationToken' => 'test_authorisation_token',
+                'paymentData' => 'test_payment_data',
+            ],
+        ]);
+
+        ($this->paymentsAction)($this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+            ],
+        ]));
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals('IdentifyShopper', $payment->getDetails()['resultCode']);
+        self::assertEquals('threeDS2', $payment->getDetails()['action']['type']);
+        self::assertEquals('fingerprint', $payment->getDetails()['action']['subtype'] ?? null);
+
+        $this->adyenClientStub->setPaymentDetailsResponse([
+            'resultCode' => 'Authorised',
+        ]);
+
+        $detailsRequest = $this->createRequest([
+            'details' => [
+                'threeDSResult' => '{"fingerprint":"ok"}',
+            ],
+        ]);
+
+        $response = ($this->paymentsDetailsAction)($detailsRequest);
+        self::assertEquals(200, $response->getStatusCode());
+        $this->simulateWebhook($payment, 'authorisation', true);
+        self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+    }
+
+    public function test3DSIdentifyThenDetailsRefusedFailsPayment(): void
+    {
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'IdentifyShopper',
+            'action' => [
+                'type' => 'threeDS2',
+                'subtype' => 'fingerprint',
+                'token' => 'test_fingerprint_token',
+                'paymentMethodType' => 'scheme',
+                'authorisationToken' => 'test_authorisation_token',
+                'paymentData' => 'test_payment_data',
+            ],
+        ]);
+
+        ($this->paymentsAction)($this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+            ],
+        ]));
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertNotNull($payment);
+        self::assertEquals('IdentifyShopper', $payment->getDetails()['resultCode']);
+
+        $this->adyenClientStub->setPaymentDetailsResponse([
+            'resultCode' => 'Refused',
+            'refusalReason' => 'Authentication failed',
+        ]);
+
+        $detailsRequest = $this->createRequest([
+            'details' => [
+                'threeDSResult' => '{"fingerprint":"bad"}',
+            ],
+        ]);
+
+        $response = ($this->paymentsDetailsAction)($detailsRequest);
+        self::assertEquals(200, $response->getStatusCode());
+        $this->simulateWebhook($payment, 'authorisation', false);
+        self::assertEquals('Refused', $payment->getDetails()['resultCode']);
+        self::assertEquals('Authentication failed', $payment->getDetails()['refusalReason']);
+        self::assertEquals(PaymentInterface::STATE_FAILED, $payment->getState());
+    }
+
     public function testCheckoutWithInvalidPaymentMethod(): void
     {
         $this->adyenClientStub->setThrowException(new \Adyen\AdyenException('Invalid payment method', 422));
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => ['type' => 'invalid'],
         ]);
 
@@ -243,7 +611,7 @@ final class CheckoutProcessTest extends WebTestCase
             'pspReference' => 'STORED_PSP_REF',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'storedPaymentMethodId' => 'stored_token_123',
             ],
@@ -277,7 +645,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchantReference' => 'ORDER_123',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -321,7 +689,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'ideal',
                 'issuer' => 'test_issuer',
@@ -348,7 +716,7 @@ final class CheckoutProcessTest extends WebTestCase
             'refusalReason' => 'Insufficient funds',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -379,7 +747,7 @@ final class CheckoutProcessTest extends WebTestCase
             'pspReference' => 'AMOUNT_TEST_PSP_REF',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => ['type' => 'scheme'],
         ]);
 
@@ -424,7 +792,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -479,7 +847,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchantReference' => 'ORDER_123',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -516,7 +884,7 @@ final class CheckoutProcessTest extends WebTestCase
             'pspReference' => 'ORDER_STATE_PSP_REF',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => ['type' => 'scheme'],
         ]);
 
@@ -577,7 +945,7 @@ final class CheckoutProcessTest extends WebTestCase
         return $order;
     }
 
-    private function createCheckoutRequest(array $paymentData): Request
+    private function createRequest(array $paymentData): Request
     {
         $container = self::getContainer();
         $sessionFactory = $container->get('session.factory');
@@ -602,21 +970,23 @@ final class CheckoutProcessTest extends WebTestCase
         return $request;
     }
 
-    private function simulateWebhook(PaymentInterface $payment, string $eventCode = 'authorisation', bool $success = true): void
+    private function simulateWebhook(PaymentInterface $payment, string $eventCode, bool $success): void
     {
-        $notificationData = new NotificationItemData();
-        $notificationData->eventCode = $eventCode;
-        $notificationData->success = $success;
-        $notificationData->pspReference = $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF';
-        $notificationData->merchantReference = $payment->getOrder()?->getNumber() ?? 'TEST_ORDER';
-        $notificationData->paymentMethod = 'scheme';
+        $data['notificationItems'][] = ['NotificationRequestItem' => [
+            'eventCode' => $eventCode,
+            'success' => $success,
+            'pspReference' => $payment->getDetails()['pspReference'],
+            'merchantReference' => $payment->getOrder()?->getNumber(),
+            'paymentMethod' => 'scheme',
+            'amount' => [
+                'value' => 10000,
+                'currency' => 'EUR',
+            ],
+            'additionalData' => [
+                'hmacSignature' => 'PXw8ooqKq7yCsTt3ZKDlQi7wsD+u9IY7VTiW3QtDk7E=',
+            ],
+        ]];
 
-        $command = $this->paymentCommandFactory->createForEvent(
-            $eventCode,
-            $payment,
-            $notificationData,
-        );
-
-        $this->messageBus->dispatch($command);
+        ($this->processNotificationsAction)('adyen_checkout', $this->createRequest($data));
     }
 }

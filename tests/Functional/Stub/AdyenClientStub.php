@@ -24,6 +24,8 @@ final class AdyenClientStub implements AdyenClientInterface
 {
     private array $submitPaymentResponse = [];
 
+    private array $paymentDetailsResponse = [];
+
     private array $reversalResponse = [];
 
     private ?array $lastReversalRequest = null;
@@ -33,6 +35,12 @@ final class AdyenClientStub implements AdyenClientInterface
     public function setSubmitPaymentResponse(array $response): void
     {
         $this->submitPaymentResponse = $response;
+        $this->exception = null;
+    }
+
+    public function setPaymentDetailsResponse(array $response): void
+    {
+        $this->paymentDetailsResponse = $response;
         $this->exception = null;
     }
 
@@ -88,10 +96,34 @@ final class AdyenClientStub implements AdyenClientInterface
         array $receivedPayload,
         ?AdyenTokenInterface $adyenToken = null,
     ): array {
-        return [
-            'resultCode' => 'Authorised',
+        $base = [
             'pspReference' => 'DETAILS_PSP_REF',
+            'merchantReference' => $receivedPayload['merchantReference'] ?? 'TEST_ORDER',
+            'paymentMethod' => [
+                'type' => $receivedPayload['paymentMethod']['type'] ?? 'scheme',
+            ],
+            'amount' => [
+                'currency' => 'USD',
+                'value' => 10000,
+            ],
+            'additionalData' => [
+                'cvcResult' => '0',
+            ],
         ];
+
+        if (isset($receivedPayload['details']['threeDSResult'])) {
+            $base['threeDS2Result'] = [
+                'raw' => $receivedPayload['details']['threeDSResult'],
+            ];
+        }
+
+        $configured = $this->paymentDetailsResponse ?: ['resultCode' => 'Authorised'];
+
+        if (($configured['resultCode'] ?? null) === 'Refused' && !isset($configured['refusalReasonCode'])) {
+            $configured['refusalReasonCode'] = '11'; // 3D Not Authenticated
+        }
+
+        return array_merge($base, $configured);
     }
 
     public function requestRefund(
