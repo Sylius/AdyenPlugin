@@ -17,8 +17,8 @@ use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
+use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
@@ -38,6 +38,8 @@ final class CheckoutProcessTest extends WebTestCase
     private PaymentsAction $paymentsAction;
 
     private PaymentDetailsAction $paymentsDetailsAction;
+
+    private ProcessNotificationsAction $processNotificationsAction;
 
     private OrderInterface $testOrder;
 
@@ -65,7 +67,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchant_account' => 'test_merchant',
             'api_key' => 'test_api_key',
             'client_key' => 'test_client_key',
-            'hmac_key' => 'test_hmac_key',
+            'hmacKey' => '70E6897824A012655666C5235F50D44F2CDF284A91352B2E8F53B1D5A0189A43',
         ]);
 
         self::$sharedPaymentMethod->setGatewayConfig($gatewayConfig);
@@ -112,6 +114,7 @@ final class CheckoutProcessTest extends WebTestCase
         $this->paymentsDetailsAction = $container->get('sylius_adyen.controller.shop.payment_details');
         $this->messageBus = $container->get('sylius.command_bus');
         $this->paymentCommandFactory = $container->get('sylius_adyen.bus.payment_command_factory');
+        $this->processNotificationsAction = $container->get('sylius_adyen.controller.shop.process_notifications');
     }
 
     protected function tearDown(): void
@@ -129,7 +132,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchantReference' => 'ORDER_123',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -182,7 +185,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -227,7 +230,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -260,6 +263,8 @@ final class CheckoutProcessTest extends WebTestCase
     {
         $this->adyenClientStub->setSubmitPaymentResponse([
             'resultCode' => 'RedirectShopper',
+            'pspReference' => 'TEST_PSP_REF_123',
+            'merchantReference' => 'ORDER_123',
             'action' => [
                 'type' => 'redirect',
                 'url' => 'https://test.adyen.com/3ds-redirect',
@@ -275,7 +280,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -318,7 +323,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -339,7 +344,7 @@ final class CheckoutProcessTest extends WebTestCase
             'resultCode' => 'Authorised',
         ]);
 
-        $detailsRequest = $this->createCheckoutRequest([
+        $detailsRequest = $this->createRequest([
             'details' => [
                 'MD' => 'test_md',
                 'PaRes' => 'test_pares',
@@ -372,7 +377,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        ($this->paymentsAction)($this->createCheckoutRequest([
+        ($this->paymentsAction)($this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
             ],
@@ -387,7 +392,7 @@ final class CheckoutProcessTest extends WebTestCase
             'refusalReason' => 'Authentication failed',
         ]);
 
-        $detailsRequest = $this->createCheckoutRequest([
+        $detailsRequest = $this->createRequest([
             'details' => [
                 'MD' => 'test_md',
                 'PaRes' => 'test_pares',
@@ -416,7 +421,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        ($this->paymentsAction)($this->createCheckoutRequest([
+        ($this->paymentsAction)($this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
             ],
@@ -430,7 +435,7 @@ final class CheckoutProcessTest extends WebTestCase
             'resultCode' => 'Authorised',
         ]);
 
-        $detailsRequest = $this->createCheckoutRequest([
+        $detailsRequest = $this->createRequest([
             'details' => [
                 'threeDSResult' => '{"transStatus":"Y"}',
             ],
@@ -457,7 +462,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        ($this->paymentsAction)($this->createCheckoutRequest([
+        ($this->paymentsAction)($this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
             ],
@@ -472,7 +477,7 @@ final class CheckoutProcessTest extends WebTestCase
             'refusalReason' => 'Authentication failed',
         ]);
 
-        $detailsRequest = $this->createCheckoutRequest([
+        $detailsRequest = $this->createRequest([
             'details' => [
                 'threeDSResult' => '{"transStatus":"N"}',
             ],
@@ -501,7 +506,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        ($this->paymentsAction)($this->createCheckoutRequest([
+        ($this->paymentsAction)($this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
             ],
@@ -517,7 +522,7 @@ final class CheckoutProcessTest extends WebTestCase
             'resultCode' => 'Authorised',
         ]);
 
-        $detailsRequest = $this->createCheckoutRequest([
+        $detailsRequest = $this->createRequest([
             'details' => [
                 'threeDSResult' => '{"fingerprint":"ok"}',
             ],
@@ -544,7 +549,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        ($this->paymentsAction)($this->createCheckoutRequest([
+        ($this->paymentsAction)($this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
             ],
@@ -559,7 +564,7 @@ final class CheckoutProcessTest extends WebTestCase
             'refusalReason' => 'Authentication failed',
         ]);
 
-        $detailsRequest = $this->createCheckoutRequest([
+        $detailsRequest = $this->createRequest([
             'details' => [
                 'threeDSResult' => '{"fingerprint":"bad"}',
             ],
@@ -577,7 +582,7 @@ final class CheckoutProcessTest extends WebTestCase
     {
         $this->adyenClientStub->setThrowException(new \Adyen\AdyenException('Invalid payment method', 422));
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => ['type' => 'invalid'],
         ]);
 
@@ -606,7 +611,7 @@ final class CheckoutProcessTest extends WebTestCase
             'pspReference' => 'STORED_PSP_REF',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'storedPaymentMethodId' => 'stored_token_123',
             ],
@@ -640,7 +645,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchantReference' => 'ORDER_123',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -684,7 +689,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'ideal',
                 'issuer' => 'test_issuer',
@@ -711,7 +716,7 @@ final class CheckoutProcessTest extends WebTestCase
             'refusalReason' => 'Insufficient funds',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -742,7 +747,7 @@ final class CheckoutProcessTest extends WebTestCase
             'pspReference' => 'AMOUNT_TEST_PSP_REF',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => ['type' => 'scheme'],
         ]);
 
@@ -787,7 +792,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -842,7 +847,7 @@ final class CheckoutProcessTest extends WebTestCase
             'merchantReference' => 'ORDER_123',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => [
                 'type' => 'scheme',
                 'encryptedCardNumber' => 'test_encrypted_number',
@@ -879,7 +884,7 @@ final class CheckoutProcessTest extends WebTestCase
             'pspReference' => 'ORDER_STATE_PSP_REF',
         ]);
 
-        $request = $this->createCheckoutRequest([
+        $request = $this->createRequest([
             'paymentMethod' => ['type' => 'scheme'],
         ]);
 
@@ -940,7 +945,7 @@ final class CheckoutProcessTest extends WebTestCase
         return $order;
     }
 
-    private function createCheckoutRequest(array $paymentData): Request
+    private function createRequest(array $paymentData): Request
     {
         $container = self::getContainer();
         $sessionFactory = $container->get('session.factory');
@@ -965,21 +970,23 @@ final class CheckoutProcessTest extends WebTestCase
         return $request;
     }
 
-    private function simulateWebhook(PaymentInterface $payment, string $eventCode = 'authorisation', bool $success = true): void
+    private function simulateWebhook(PaymentInterface $payment, string $eventCode, bool $success): void
     {
-        $notificationData = new NotificationItemData();
-        $notificationData->eventCode = $eventCode;
-        $notificationData->success = $success ? 'true' : 'false';
-        $notificationData->pspReference = $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF';
-        $notificationData->merchantReference = $payment->getOrder()?->getNumber() ?? 'TEST_ORDER';
-        $notificationData->paymentMethod = 'scheme';
+        $data['notificationItems'][] = ['NotificationRequestItem' => [
+            'eventCode' => $eventCode,
+            'success' => $success,
+            'pspReference' => $payment->getDetails()['pspReference'],
+            'merchantReference' => $payment->getOrder()?->getNumber(),
+            'paymentMethod' => 'scheme',
+            'amount' => [
+                'value' => 10000,
+                'currency' => 'EUR',
+            ],
+            'additionalData' => [
+                'hmacSignature' => 'PXw8ooqKq7yCsTt3ZKDlQi7wsD+u9IY7VTiW3QtDk7E=',
+            ],
+        ]];
 
-        $command = $this->paymentCommandFactory->createForEvent(
-            $eventCode,
-            $payment,
-            $notificationData,
-        );
-
-        $this->messageBus->dispatch($command);
+        ($this->processNotificationsAction)('adyen_checkout', $this->createRequest($data));
     }
 }
