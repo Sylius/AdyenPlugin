@@ -28,7 +28,6 @@
             class="Sylius\AdyenPlugin\Controller\Shop\DropinConfigurationAction"
             id="sylius_adyen.controller.shop.dropin_configuration"
         >
-
             <argument type="service" id="sylius.context.cart.composite"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
             <argument type="service" id="router"/>
@@ -54,6 +53,19 @@
         >
             <argument type="service" id="sylius_adyen.repository.adyen_reference" />
             <argument type="service" id="doctrine.orm.entity_manager" />
+        </service>
+
+        <service
+            id="sylius_adyen.generator.payment_link"
+            class="Sylius\AdyenPlugin\Generator\PaymentLinkGenerator"
+            public="false"
+        >
+            <argument type="service" id="sylius_adyen.provider.adyen_client" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_adyen.factory.payment_link" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <argument type="service" id="monolog.logger.adyen" />
         </service>
 
         <service

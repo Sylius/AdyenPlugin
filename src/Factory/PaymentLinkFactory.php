@@ -25,8 +25,11 @@ final class PaymentLinkFactory implements PaymentLinkFactoryInterface
         throw new UnsupportedMethodException(__METHOD__);
     }
 
-    public function create(PaymentInterface $payment, string $paymentLinkId): PaymentLinkInterface
-    {
-        return new PaymentLink($payment, $paymentLinkId);
+    public function create(
+        PaymentInterface $payment,
+        string $paymentLinkId,
+        string $paymentLinkUrl,
+    ): PaymentLinkInterface {
+        return new PaymentLink($payment, $paymentLinkId, $paymentLinkUrl);
     }
 }

@@ -20,6 +20,8 @@ interface PaymentLinkInterface extends ResourceInterface
 {
     public function getPaymentLinkId(): ?string;
 
+    public function getPaymentLinkUrl(): ?string;
+
     public function getCreatedAt(): ?\DateTimeInterface;
 
     public function getPayment(): PaymentInterface;

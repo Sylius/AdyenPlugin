@@ -20,5 +20,9 @@ use Sylius\Resource\Factory\FactoryInterface;
 /** @phpstan-extends FactoryInterface<PaymentLinkInterface> */
 interface PaymentLinkFactoryInterface extends FactoryInterface
 {
-    public function create(PaymentInterface $payment, string $paymentLinkId): PaymentLinkInterface;
+    public function create(
+        PaymentInterface $payment,
+        string $paymentLinkId,
+        string $paymentLinkUrl,
+    ): PaymentLinkInterface;
 }

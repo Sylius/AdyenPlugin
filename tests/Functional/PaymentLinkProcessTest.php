@@ -81,6 +81,7 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
         /** @var PaymentLinkInterface $paymentLink */
         $paymentLink = $createdPaymentLinks[0];
         self::assertEquals('PL_TEST_GENERATED_123456', $paymentLink->getPaymentLinkId());
+        self::assertEquals('https://test.adyen.link/PL_TEST_GENERATED_123456', $paymentLink->getPaymentLinkUrl());
         self::assertEquals($payment, $paymentLink->getPayment());
 
         $paymentDetails = $payment->getDetails();
@@ -101,7 +102,7 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
         $payment->setState(PaymentInterface::STATE_PROCESSING);
 
         $paymentLinkId = 'PL_TEST_LINK_ID_123456';
-        $paymentLink = new PaymentLink($payment, $paymentLinkId);
+        $paymentLink = new PaymentLink($payment, $paymentLinkId, 'dummy_link');
 
         $entityManager = $this->getEntityManager();
         $entityManager->persist($paymentLink);

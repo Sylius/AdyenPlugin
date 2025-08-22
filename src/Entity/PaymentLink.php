@@ -24,6 +24,7 @@ class PaymentLink implements PaymentLinkInterface
     public function __construct(
         private readonly PaymentInterface $payment,
         private readonly string $paymentLinkId,
+        private readonly string $paymentLinkUrl,
     ) {
         $this->createdAt = new \DateTimeImmutable();
     }
@@ -36,6 +37,11 @@ class PaymentLink implements PaymentLinkInterface
     public function getPaymentLinkId(): ?string
     {
         return $this->paymentLinkId;
+    }
+
+    public function getPaymentLinkUrl(): ?string
+    {
+        return $this->paymentLinkUrl;
     }
 
     public function getCreatedAt(): ?\DateTimeInterface
