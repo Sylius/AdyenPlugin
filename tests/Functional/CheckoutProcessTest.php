@@ -13,123 +13,26 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
-use Doctrine\Common\DataFixtures\Purger\ORMPurger;
-use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
-use Sylius\Component\Core\Model\Customer;
-use Sylius\Component\Core\Model\Order;
-use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethod;
-use Sylius\Component\Core\OrderCheckoutStates;
-use Sylius\Component\Mailer\Sender\SenderInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Messenger\MessageBusInterface;
-use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
-final class CheckoutProcessTest extends WebTestCase
+final class CheckoutProcessTest extends AbstractAdyenFunctionalTestCase
 {
-    private AdyenClientStub $adyenClientStub;
-
     private PaymentsAction $paymentsAction;
 
     private PaymentDetailsAction $paymentsDetailsAction;
 
     private ProcessNotificationsAction $processNotificationsAction;
 
-    private OrderInterface $testOrder;
-
-    private static PaymentMethod $sharedPaymentMethod;
-
-    private MessageBusInterface $messageBus;
-
-    private PaymentCommandFactoryInterface $paymentCommandFactory;
-
-    private RepositoryInterface $adyenPaymentDetailRepository;
-
-    public static function setUpBeforeClass(): void
+    protected function initializeServices($container): void
     {
-        parent::setUpBeforeClass();
+        $this->setupTestCartContext();
 
-        self::$sharedPaymentMethod = new PaymentMethod();
-        self::$sharedPaymentMethod->setCode('adyen_checkout');
-        self::$sharedPaymentMethod->setCurrentLocale('en_US');
-        self::$sharedPaymentMethod->setFallbackLocale('en_US');
-        self::$sharedPaymentMethod->setName('Adyen Checkout');
-
-        $gatewayConfig = new GatewayConfig();
-        $gatewayConfig->setFactoryName(AdyenClientProviderInterface::FACTORY_NAME);
-        $gatewayConfig->setGatewayName('adyen_checkout');
-        $gatewayConfig->setConfig([
-            'environment' => 'test',
-            'merchant_account' => 'test_merchant',
-            'api_key' => 'test_api_key',
-            'client_key' => 'test_client_key',
-            'hmacKey' => '70E6897824A012655666C5235F50D44F2CDF284A91352B2E8F53B1D5A0189A43',
-        ]);
-
-        self::$sharedPaymentMethod->setGatewayConfig($gatewayConfig);
-    }
-
-    private function purgeDatabase(): void
-    {
-        $container = self::getContainer();
-        $entityManager = $container->get('doctrine.orm.entity_manager');
-
-        $purger = new ORMPurger($entityManager);
-        $purger->setPurgeMode(ORMPurger::PURGE_MODE_DELETE);
-        $purger->purge();
-
-        $entityManager->clear();
-    }
-
-    protected function setUp(): void
-    {
-        self::bootKernel(['environment' => 'test']);
-
-        $container = self::getContainer();
-
-        $this->purgeDatabase();
-        $this->testOrder = $this->createTestOrder();
-
-        $paymentMethodRepository = $container->get('sylius.repository.payment_method');
-        $paymentMethodRepository->add(self::$sharedPaymentMethod);
-
-        $customerRepository = $container->get('sylius.repository.customer');
-        $customerRepository->add($this->testOrder->getCustomer());
-
-        $this->testOrder->getLastPayment()->setMethod(self::$sharedPaymentMethod);
-
-        $orderRepository = $container->get('sylius.repository.order');
-        $orderRepository->add($this->testOrder);
-
-        $this->adyenClientStub = $container->get('sylius_adyen.test.adyen_client_stub');
-
-        $testCartContext = $container->get('sylius_adyen.test.cart_context');
-        $testCartContext->setOrder($this->testOrder);
-
-        $this->paymentsAction = $container->get('sylius_adyen.controller.shop.payments');
-        $this->paymentsDetailsAction = $container->get('sylius_adyen.controller.shop.payment_details');
-        $this->messageBus = $container->get('sylius.command_bus');
-        $this->paymentCommandFactory = $container->get('sylius_adyen.bus.payment_command_factory');
-        $this->processNotificationsAction = $container->get('sylius_adyen.controller.shop.process_notifications');
-        $this->adyenPaymentDetailRepository = $container->get('sylius_adyen.repository.adyen_payment_detail');
-
-        $container->set('sylius.email_sender', $this->createMock(SenderInterface::class));
-    }
-
-    protected function tearDown(): void
-    {
-        $this->purgeDatabase();
-
-        parent::tearDown();
+        $this->paymentsAction = $this->getPaymentsAction();
+        $this->paymentsDetailsAction = $this->getPaymentDetailsAction();
+        $this->processNotificationsAction = $this->getProcessNotificationsAction();
     }
 
     public function testSuccessfulCheckoutWithCardPayment(): void
@@ -625,7 +528,7 @@ final class CheckoutProcessTest extends WebTestCase
             ],
         ]);
 
-        $response = ($this->paymentsAction)($request, 'adyen_checkout');
+        $response = ($this->paymentsAction)($request, self::PAYMENT_METHOD_CODE);
 
         self::assertEquals(200, $response->getStatusCode());
 
@@ -774,8 +677,8 @@ final class CheckoutProcessTest extends WebTestCase
         self::assertEquals(10000, $payment->getAmount());
 
         self::assertNotNull($payment->getMethod());
-        self::assertEquals('adyen_checkout', $payment->getMethod()->getCode());
-        self::assertEquals('Adyen Checkout', $payment->getMethod()->getName());
+        self::assertEquals(self::PAYMENT_METHOD_CODE, $payment->getMethod()->getCode());
+        self::assertEquals(self::PAYMENT_METHOD_NAME, $payment->getMethod()->getName());
     }
 
     public function testPaymentDetailsArePersisted(): void
@@ -914,88 +817,23 @@ final class CheckoutProcessTest extends WebTestCase
 
         $paymentMethod = $payment->getMethod();
         self::assertNotNull($paymentMethod);
-        self::assertEquals('adyen_checkout', $paymentMethod->getCode());
-        self::assertEquals('Adyen Checkout', $paymentMethod->getName());
+        self::assertEquals(self::PAYMENT_METHOD_CODE, $paymentMethod->getCode());
+        self::assertEquals(self::PAYMENT_METHOD_NAME, $paymentMethod->getName());
 
         self::assertEquals(10000, $payment->getAmount());
         self::assertEquals($order->getCurrencyCode(), $payment->getCurrencyCode());
     }
 
-    private function createTestOrder(): OrderInterface
-    {
-        $order = new Order();
-
-        $uniqueId = (int) (microtime(true) * 1000) + rand(1, 999);
-        $uniqueNumber = 'ORDER_' . $uniqueId;
-
-        $reflection = new \ReflectionClass($order);
-        $property = $reflection->getProperty('id');
-        $property->setAccessible(true);
-        $property->setValue($order, $uniqueId);
-
-        $order->setNumber($uniqueNumber);
-        $order->setTokenValue('test_token_' . $uniqueId);
-        $order->setLocaleCode('en_US');
-        $order->setCurrencyCode('USD');
-        $order->setCheckoutState(OrderCheckoutStates::STATE_PAYMENT_SELECTED);
-
-        $customer = new Customer();
-        $customer->setEmail('test' . $uniqueId . '@example.com');
-        $customer->setFirstName('Test');
-        $customer->setLastName('Customer');
-        $order->setCustomer($customer);
-
-        $payment = new Payment();
-        $payment->setState(PaymentInterface::STATE_NEW);
-        $payment->setAmount(10000);
-        $payment->setCurrencyCode('USD');
-        $order->addPayment($payment);
-
-        return $order;
-    }
-
-    private function createRequest(array $paymentData): Request
-    {
-        $container = self::getContainer();
-        $sessionFactory = $container->get('session.factory');
-        $session = $sessionFactory->createSession();
-
-        $request = new Request(
-            [],
-            $paymentData,
-            ['_locale' => 'en_US'],
-            [],
-            [],
-            ['HTTP_HOST' => 'localhost'],
-        );
-        $request->setSession($session);
-        $request->setLocale('en_US');
-
-        $session->set('sylius_order_id', $this->testOrder->getId());
-
-        $requestStack = self::getContainer()->get('request_stack');
-        $requestStack->push($request);
-
-        return $request;
-    }
-
     private function simulateWebhook(PaymentInterface $payment, string $eventCode, bool $success): void
     {
-        $data['notificationItems'][] = ['NotificationRequestItem' => [
-            'eventCode' => $eventCode,
-            'success' => $success,
-            'pspReference' => $payment->getDetails()['pspReference'],
-            'merchantReference' => $payment->getOrder()?->getNumber(),
-            'paymentMethod' => 'scheme',
-            'amount' => [
-                'value' => 10000,
-                'currency' => 'EUR',
-            ],
-            'additionalData' => [
-                'hmacSignature' => 'PXw8ooqKq7yCsTt3ZKDlQi7wsD+u9IY7VTiW3QtDk7E=',
-            ],
-        ]];
+        $webhookData = $this->createWebhookData(
+            $eventCode,
+            $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF',
+            $payment->getOrder()?->getNumber() ?? 'TEST_ORDER',
+            [],
+            $success,
+        );
 
-        ($this->processNotificationsAction)('adyen_checkout', $this->createRequest($data));
+        ($this->processNotificationsAction)(self::PAYMENT_METHOD_CODE, $this->createWebhookRequest($webhookData));
     }
 }
