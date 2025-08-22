@@ -11,11 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver;
+namespace Sylius\AdyenPlugin\Bus\Command;
 
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\Component\Core\Model\PaymentInterface;
 
-interface CommandResolver
+final class AuthorizePaymentByLink
 {
-    public function resolve(string $paymentMethodCode, NotificationItemData $notificationData): object;
+    public function __construct(
+        public readonly PaymentInterface $payment,
+        public readonly NotificationItemData $notificationItemData,
+    ) {
+    }
 }

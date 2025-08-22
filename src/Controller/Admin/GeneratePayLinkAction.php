@@ -65,7 +65,7 @@ final class GeneratePayLinkAction
             $client = $this->adyenClientProvider->getForPaymentMethod($method);
             $response = $client->generatePaymentLink($payment);
 
-            if ($response['status'] !== 'active' || !isset($response['url'])) {
+            if ($response['status'] !== 'active' || !isset($response['url'], $response['id'])) {
                 $this->logger->error('Failed to generate payment link.', [
                     'paymentId' => $id,
                     'response' => $response,
@@ -74,7 +74,7 @@ final class GeneratePayLinkAction
                 throw new \RuntimeException('Failed to generate a valid payment link.');
             }
 
-            $payment->setDetails($response);
+            $payment->setDetails($response + ['paymentLinkId' => $response['id']]);
 
             $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS);
 

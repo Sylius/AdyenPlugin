@@ -169,5 +169,16 @@
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
+
+        <service
+            id="sylius_adyen.bus.handler.authorize_payment_by_link"
+            class="Sylius\AdyenPlugin\Bus\Handler\AuthorizePaymentByLinkHandler"
+        >
+            <argument type="service" id="serializer" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <argument type="service" id="sylius.command_bus" />
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
     </services>
 </container>

@@ -25,6 +25,8 @@ interface EventCodeResolverInterface
 
     public const EVENT_CANCELLATION = 'cancellation';
 
+    public const EVENT_PAY_BY_LINK_AUTHORISATION = 'pay_by_link_authorisation';
+
     public const EVENT_REFUND = 'refund';
 
     public const MODIFICATION_REFUND = 'refund';

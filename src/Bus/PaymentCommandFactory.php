@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus;
 
+use Sylius\AdyenPlugin\Bus\Command\AuthorizePaymentByLink;
 use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
@@ -46,7 +47,7 @@ final class PaymentCommandFactory implements PaymentCommandFactoryInterface
         string $eventName,
         PaymentInterface $payment,
         ?NotificationItemData $notificationItemData = null,
-    ): PaymentLifecycleCommand|PaymentRefunded {
+    ): AuthorizePaymentByLink|PaymentLifecycleCommand|PaymentRefunded {
         if (!isset($this->mapping[$eventName])) {
             throw new UnmappedAdyenActionException(sprintf('Event "%s" has no handler registered', $eventName));
         }
@@ -55,6 +56,9 @@ final class PaymentCommandFactory implements PaymentCommandFactoryInterface
 
         if ($class === PaymentRefunded::class && $notificationItemData !== null) {
             return new PaymentRefunded($payment, $notificationItemData);
+        }
+        if ($class === AuthorizePaymentByLink::class && $notificationItemData !== null) {
+            return new AuthorizePaymentByLink($payment, $notificationItemData);
         }
 
         $result = new $class($payment);

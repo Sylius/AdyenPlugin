@@ -31,6 +31,10 @@ final class EventCodeResolver implements EventCodeResolverInterface
         if (isset($notificationData->additionalData['expiryDate'])) {
             return self::EVENT_AUTHORIZATION;
         }
+        // Event for pay by link has no connection to a payment since there's no reference on our side yet
+        if (isset($notificationData->additionalData['paymentLinkId'])) {
+            return self::EVENT_PAY_BY_LINK_AUTHORISATION;
+        }
 
         return self::PAYMENT_METHOD_TYPES[$notificationData->paymentMethod] ?? self::EVENT_CAPTURE;
     }
@@ -39,14 +43,10 @@ final class EventCodeResolver implements EventCodeResolverInterface
     {
         $modificationAction = $notificationData->additionalData['modification.action'] ?? null;
 
-        if (self::MODIFICATION_CANCEL === $modificationAction) {
-            return self::EVENT_CANCELLATION;
-        }
-
-        if (self::MODIFICATION_REFUND === $modificationAction) {
-            return self::EVENT_REFUND;
-        }
-
-        return (string) $notificationData->eventCode;
+        return match ($modificationAction) {
+            self::MODIFICATION_CANCEL => self::EVENT_CANCELLATION,
+            self::MODIFICATION_REFUND => self::EVENT_REFUND,
+            default => (string) $notificationData->eventCode,
+        };
     }
 }

@@ -44,11 +44,27 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
         $this->logger = $logger;
     }
 
-    public static function getSubscribedEvents()
+    public static function getSubscribedEvents(): array
     {
         return [
             KernelEvents::REQUEST => 'filterAuthentication',
         ];
+    }
+
+    public function filterAuthentication(RequestEvent $requestEvent): void
+    {
+        $request = $requestEvent->getRequest();
+        if (self::ROUTE_NAME !== $request->attributes->get('_route')) {
+            return;
+        }
+
+        $paymentMethodCode = (string) $request->attributes->get('paymentMethodCode');
+
+        if ($this->isAuthenticated($request, $this->getConfiguration($paymentMethodCode))) {
+            return;
+        }
+
+        throw new HttpException(Response::HTTP_FORBIDDEN);
     }
 
     private function getConfiguration(string $code): array
@@ -87,22 +103,5 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
         ));
 
         return false;
-    }
-
-    public function filterAuthentication(RequestEvent $requestEvent): void
-    {
-        $request = $requestEvent->getRequest();
-        if (self::ROUTE_NAME !== $request->attributes->get('_route')) {
-            return;
-        }
-
-        $code = (string) $request->attributes->get('code');
-        $configuration = $this->getConfiguration($code);
-
-        if ($this->isAuthenticated($request, $configuration)) {
-            return;
-        }
-
-        throw new HttpException(Response::HTTP_FORBIDDEN);
     }
 }
