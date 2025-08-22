@@ -17,6 +17,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\Factory\PaymentLinkFactoryInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -36,6 +37,7 @@ final class GeneratePayLinkAction
         private AdyenClientProviderInterface $adyenClientProvider,
         private PaymentRepositoryInterface $paymentRepository,
         private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private PaymentLinkFactoryInterface $paymentLinkFactory,
         private StateMachineInterface $stateMachine,
         private EntityManagerInterface $entityManager,
         private UrlGeneratorInterface $urlGenerator,
@@ -74,7 +76,11 @@ final class GeneratePayLinkAction
                 throw new \RuntimeException('Failed to generate a valid payment link.');
             }
 
-            $payment->setDetails($response + ['paymentLinkId' => $response['id']]);
+            $payment->setDetails($response);
+            $paymentLink = $this->paymentLinkFactory->create($payment, $response['id']);
+
+            $this->entityManager->persist($paymentLink);
+            $this->entityManager->flush(); // Just to make sure it's saved before state change
 
             $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS);
 

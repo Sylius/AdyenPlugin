@@ -17,12 +17,14 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePaymentByLink;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
+use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class AuthorizePaymentByLinkHandler
 {
     public function __construct(
+        private PaymentLinkRepositoryInterface $paymentLinkRepository,
         private NormalizerInterface $normalizer,
         private EntityManagerInterface $entityManager,
         private MessageBusInterface $commandBus,
@@ -39,6 +41,8 @@ final class AuthorizePaymentByLinkHandler
 
         $this->commandBus->dispatch(new CreateReferenceForPayment($payment));
         $this->commandBus->dispatch(new AuthorizePayment($payment));
+
+        $this->paymentLinkRepository->removeByLinkId($notificationItemData->additionalData['paymentLinkId']);
 
         $this->entityManager->flush();
     }

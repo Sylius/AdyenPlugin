@@ -17,17 +17,16 @@ use Doctrine\ORM\NoResultException;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 use Webmozart\Assert\Assert;
 
 final class PaymentNotificationResolver implements CommandResolver
 {
-    /** @param PaymentRepositoryInterface<PaymentInterface> $paymentRepository */
     public function __construct(
         private readonly AdyenReferenceRepositoryInterface $adyenReferenceRepository,
-        private readonly PaymentRepositoryInterface $paymentRepository,
+        private readonly PaymentLinkRepositoryInterface $paymentLinkRepository,
         private readonly PaymentCommandFactoryInterface $commandFactory,
     ) {
     }
@@ -86,15 +85,14 @@ final class PaymentNotificationResolver implements CommandResolver
             throw new NoCommandResolvedException('Payment link ID is not provided in the notification data.');
         }
 
-        $result = $this->paymentRepository->findOneBy([
-            'method' => $paymentMethodCode,
-            'details.paymentLinkId' => $paymentLinkId,
-        ]);
-
+        $result = $this->paymentLinkRepository->findOneByPaymentMethodCodeAndLinkId(
+            $paymentMethodCode,
+            $paymentLinkId,
+        );
         if (null === $result) {
             throw new NoCommandResolvedException();
         }
 
-        return $result;
+        return $result->getPayment();
     }
 }
