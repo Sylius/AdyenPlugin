@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Client;
 use Adyen\Model\Checkout\PaymentDetails;
 use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
+use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -273,6 +274,14 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
         return new PaymentLinkRequest($payload);
+    }
+
+    public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest
+    {
+        $request = new UpdatePaymentLinkRequest();
+        $request->setStatus('expired');
+
+        return $request;
     }
 
     private function filterArray(array $payload, array $keysWhitelist): array

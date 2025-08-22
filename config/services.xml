@@ -62,6 +62,7 @@
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client" />
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_adyen.repository.payment_link" />
             <argument type="service" id="sylius_adyen.factory.payment_link" />
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="doctrine.orm.entity_manager" />

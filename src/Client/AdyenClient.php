@@ -152,6 +152,16 @@ final class AdyenClient implements AdyenClientInterface
         return $response->toArray();
     }
 
+    public function expirePaymentLink(string $paymentLinkId): array
+    {
+        $response = $this->getPaymentLinksApi()->updatePaymentLink(
+            $paymentLinkId,
+            $this->clientPayloadFactory->createForPaymentLinkExpiration($this->options, $paymentLinkId),
+        );
+
+        return $response->toArray();
+    }
+
     public function getEnvironment(): string
     {
         return (string) $this->options['environment'];

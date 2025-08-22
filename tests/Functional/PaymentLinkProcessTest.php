@@ -93,6 +93,71 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
         self::assertEquals('active', $paymentDetails['status']);
     }
 
+    public function testPaymentLinkRegeneration(): void
+    {
+        $this->testOrder->setState(OrderInterface::STATE_NEW);
+        $this->testOrder->setPaymentState(OrderPaymentStates::STATE_AWAITING_PAYMENT);
+
+        $payment = $this->testOrder->getLastPayment();
+        $payment->setState(PaymentInterface::STATE_PROCESSING);
+
+        $oldPaymentLinkId = 'PL_OLD_LINK_123456';
+        $oldPaymentLinkUrl = 'https://test.adyen.link/PL_OLD_LINK_123456';
+        $oldPaymentLink = new PaymentLink($payment, $oldPaymentLinkId, $oldPaymentLinkUrl);
+
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($oldPaymentLink);
+        $entityManager->flush();
+
+        $existingPaymentLinks = $this->paymentLinkRepository->findBy(['payment' => $payment]);
+        self::assertCount(1, $existingPaymentLinks);
+        self::assertEquals($oldPaymentLinkId, $existingPaymentLinks[0]->getPaymentLinkId());
+
+        $this->adyenClientStub->clearExpiredPaymentLinkIds();
+        $this->adyenClientStub->setPaymentLinkResponse([
+            'id' => 'PL_NEW_LINK_789012',
+            'url' => 'https://test.adyen.link/PL_NEW_LINK_789012',
+            'expiresAt' => '2024-12-31T23:59:59Z',
+            'reference' => $this->testOrder->getNumber(),
+            'amount' => [
+                'value' => $payment->getAmount(),
+                'currency' => $payment->getCurrencyCode(),
+            ],
+            'merchantAccount' => 'test_merchant',
+            'status' => 'active',
+        ]);
+
+        $request = $this->createRequest();
+        $response = ($this->generatePayLinkAction)((string) $payment->getId(), $request);
+
+        self::assertInstanceOf(RedirectResponse::class, $response);
+
+        self::assertEquals(PaymentInterface::STATE_PROCESSING, $payment->getState());
+
+        $remainingPaymentLinks = $this->paymentLinkRepository->findBy(['payment' => $payment]);
+        self::assertCount(1, $remainingPaymentLinks, 'Only one payment link should exist after regeneration');
+
+        /** @var PaymentLinkInterface $newPaymentLink */
+        $newPaymentLink = $remainingPaymentLinks[0];
+        self::assertEquals('PL_NEW_LINK_789012', $newPaymentLink->getPaymentLinkId());
+        self::assertEquals('https://test.adyen.link/PL_NEW_LINK_789012', $newPaymentLink->getPaymentLinkUrl());
+        self::assertEquals($payment, $newPaymentLink->getPayment());
+
+        $oldPaymentLinkCheck = $this->paymentLinkRepository->findOneBy(['paymentLinkId' => $oldPaymentLinkId]);
+        self::assertNull($oldPaymentLinkCheck, 'Old payment link should be removed from database');
+
+        $expiredPaymentLinkIds = $this->adyenClientStub->getExpiredPaymentLinkIds();
+        self::assertContains($oldPaymentLinkId, $expiredPaymentLinkIds, 'Old payment link should have been expired through Adyen API');
+
+        $paymentDetails = $payment->getDetails();
+        self::assertArrayHasKey('id', $paymentDetails);
+        self::assertEquals('PL_NEW_LINK_789012', $paymentDetails['id']);
+        self::assertArrayHasKey('url', $paymentDetails);
+        self::assertEquals('https://test.adyen.link/PL_NEW_LINK_789012', $paymentDetails['url']);
+        self::assertArrayHasKey('status', $paymentDetails);
+        self::assertEquals('active', $paymentDetails['status']);
+    }
+
     public function testSuccessfulAuthorizationThroughPaymentLink(): void
     {
         $this->testOrder->setState(OrderInterface::STATE_NEW);

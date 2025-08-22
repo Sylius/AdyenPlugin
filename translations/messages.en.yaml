@@ -38,6 +38,7 @@ sylius_adyen:
             date_time: Date time
             search: Search
         send_payment_link: Send payment link
+        resend_payment_link: Resend payment link
     form:
         product_variant:
             commodity_code: Commodity Code

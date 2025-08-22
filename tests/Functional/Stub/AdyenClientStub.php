@@ -32,6 +32,8 @@ final class AdyenClientStub implements AdyenClientInterface
 
     private array $paymentLinkResponse = [];
 
+    private array $expiredPaymentLinkIds = [];
+
     private ?\Exception $exception = null;
 
     public function setSubmitPaymentResponse(array $response): void
@@ -66,6 +68,16 @@ final class AdyenClientStub implements AdyenClientInterface
     public function getLastReversalRequest(): ?array
     {
         return $this->lastReversalRequest;
+    }
+
+    public function getExpiredPaymentLinkIds(): array
+    {
+        return $this->expiredPaymentLinkIds;
+    }
+
+    public function clearExpiredPaymentLinkIds(): void
+    {
+        $this->expiredPaymentLinkIds = [];
     }
 
     public function submitPayment(
@@ -205,6 +217,20 @@ final class AdyenClientStub implements AdyenClientInterface
             ],
             'merchantAccount' => 'TestMerchant',
             'status' => 'active',
+        ];
+    }
+
+    public function expirePaymentLink(string $paymentLinkId): array
+    {
+        if ($this->exception !== null) {
+            throw $this->exception;
+        }
+
+        $this->expiredPaymentLinkIds[] = $paymentLinkId;
+
+        return [
+            'id' => $paymentLinkId,
+            'status' => 'expired',
         ];
     }
 }

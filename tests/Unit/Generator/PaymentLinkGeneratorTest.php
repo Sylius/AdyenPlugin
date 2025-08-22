@@ -27,6 +27,7 @@ use Sylius\AdyenPlugin\Factory\PaymentLinkFactoryInterface;
 use Sylius\AdyenPlugin\Generator\PaymentLinkGenerator;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 
@@ -35,6 +36,8 @@ final class PaymentLinkGeneratorTest extends TestCase
     private AdyenClientProviderInterface|MockObject $adyenClientProvider;
 
     private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
+    private MockObject|PaymentLinkRepositoryInterface $paymentLinkRepository;
 
     private MockObject|PaymentLinkFactoryInterface $paymentLinkFactory;
 
@@ -50,6 +53,7 @@ final class PaymentLinkGeneratorTest extends TestCase
     {
         $this->adyenClientProvider = $this->createMock(AdyenClientProviderInterface::class);
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
+        $this->paymentLinkRepository = $this->createMock(PaymentLinkRepositoryInterface::class);
         $this->paymentLinkFactory = $this->createMock(PaymentLinkFactoryInterface::class);
         $this->stateMachine = $this->createMock(StateMachineInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
@@ -58,21 +62,32 @@ final class PaymentLinkGeneratorTest extends TestCase
         $this->generator = new PaymentLinkGenerator(
             $this->adyenClientProvider,
             $this->adyenPaymentMethodChecker,
+            $this->paymentLinkRepository,
             $this->paymentLinkFactory,
             $this->stateMachine,
             $this->entityManager,
             $this->logger,
+            [PaymentInterface::STATE_NEW, PaymentInterface::STATE_PROCESSING],
         );
     }
 
-    public function testGenerateSuccessfullyCreatesPaymentLink(): void
+    public static function provideValidPaymentStates(): \Generator
+    {
+        yield 'new state with transition' => [PaymentInterface::STATE_NEW, true, 3];
+        yield 'processing state with transition' => [PaymentInterface::STATE_PROCESSING, true, 3];
+        yield 'new state without transition' => [PaymentInterface::STATE_NEW, false, 2];
+        yield 'processing state without transition' => [PaymentInterface::STATE_PROCESSING, false, 2];
+    }
+
+    #[DataProvider('provideValidPaymentStates')]
+    public function testGenerateSuccessfullyCreatesPaymentLink(string $paymentState, bool $canTransition, int $expectedFlushCount): void
     {
         $payment = $this->createMock(PaymentInterface::class);
         $paymentMethod = $this->createMock(PaymentMethodInterface::class);
 
         $payment->expects($this->once())
             ->method('getState')
-            ->willReturn(PaymentInterface::STATE_NEW);
+            ->willReturn($paymentState);
 
         $payment->expects($this->any())
             ->method('getId')
@@ -104,6 +119,12 @@ final class PaymentLinkGeneratorTest extends TestCase
             ->with($paymentMethod)
             ->willReturn($adyenClient);
 
+        $this->paymentLinkRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['payment' => $payment])
+            ->willReturn([]);
+
         $adyenClient
             ->expects($this->once())
             ->method('generatePaymentLink')
@@ -117,13 +138,138 @@ final class PaymentLinkGeneratorTest extends TestCase
             ->willReturn($paymentLink);
 
         $this->entityManager
-            ->expects($this->exactly(2))
+            ->expects($this->exactly($expectedFlushCount))
             ->method('flush');
 
         $this->entityManager
             ->expects($this->once())
             ->method('persist')
             ->with($paymentLink);
+
+        $this->stateMachine
+            ->expects($this->once())
+            ->method('can')
+            ->with($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS)
+            ->willReturn($canTransition);
+
+        if ($canTransition) {
+            $this->stateMachine
+                ->expects($this->once())
+                ->method('apply')
+                ->with($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS);
+        } else {
+            $this->stateMachine
+                ->expects($this->never())
+                ->method('apply');
+        }
+
+        $payment->expects($this->once())
+            ->method('setDetails')
+            ->with($apiResponse);
+
+        $result = $this->generator->generate($payment);
+
+        self::assertSame($paymentLink, $result);
+    }
+
+    public function testGenerateExpiresAndRemovesOldLinksWhenPresent(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+
+        $payment->expects($this->once())
+            ->method('getState')
+            ->willReturn(PaymentInterface::STATE_NEW);
+
+        $payment->expects($this->any())
+            ->method('getId')
+            ->willReturn(123);
+
+        $payment->expects($this->once())
+            ->method('getMethod')
+            ->willReturn($paymentMethod);
+
+        $adyenClient = $this->createMock(AdyenClientInterface::class);
+        $paymentLink = $this->createMock(PaymentLinkInterface::class);
+        $oldPaymentLink1 = $this->createMock(PaymentLinkInterface::class);
+        $oldPaymentLink2 = $this->createMock(PaymentLinkInterface::class);
+
+        $oldPaymentLinks = [$oldPaymentLink1, $oldPaymentLink2];
+
+        $apiResponse = [
+            'status' => 'active',
+            'url' => 'https://test.adyen.link/PL123456789',
+            'id' => 'PL123456789',
+        ];
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn(true);
+
+        $this->adyenClientProvider
+            ->expects($this->once())
+            ->method('getForPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn($adyenClient);
+
+        $this->paymentLinkRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['payment' => $payment])
+            ->willReturn($oldPaymentLinks);
+
+        $oldPaymentLink1
+            ->expects($this->once())
+            ->method('getPaymentLinkId')
+            ->willReturn('OLD_LINK_1');
+
+        $oldPaymentLink2
+            ->expects($this->once())
+            ->method('getPaymentLinkId')
+            ->willReturn('OLD_LINK_2');
+
+        $adyenClient
+            ->expects($this->exactly(2))
+            ->method('expirePaymentLink')
+            ->with(self::callback(function ($linkId) {
+                return in_array($linkId, ['OLD_LINK_1', 'OLD_LINK_2'], true);
+            }));
+
+        $this->entityManager
+            ->expects($this->exactly(2))
+            ->method('remove')
+            ->with(self::callback(function ($paymentLink) use ($oldPaymentLink1, $oldPaymentLink2) {
+                return $paymentLink === $oldPaymentLink1 || $paymentLink === $oldPaymentLink2;
+            }));
+
+        $adyenClient
+            ->expects($this->once())
+            ->method('generatePaymentLink')
+            ->with($payment)
+            ->willReturn($apiResponse);
+
+        $this->paymentLinkFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($payment, 'PL123456789', 'https://test.adyen.link/PL123456789')
+            ->willReturn($paymentLink);
+
+        $this->entityManager
+            ->expects($this->exactly(3))
+            ->method('flush');
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->with($paymentLink);
+
+        $this->stateMachine
+            ->expects($this->once())
+            ->method('can')
+            ->with($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS)
+            ->willReturn(true);
 
         $this->stateMachine
             ->expects($this->once())
@@ -137,6 +283,166 @@ final class PaymentLinkGeneratorTest extends TestCase
         $result = $this->generator->generate($payment);
 
         self::assertSame($paymentLink, $result);
+    }
+
+    public function testGenerateHandlesExpirePaymentLinkExceptionGracefully(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+
+        $payment->expects($this->once())
+            ->method('getState')
+            ->willReturn(PaymentInterface::STATE_NEW);
+
+        $payment->expects($this->any())
+            ->method('getId')
+            ->willReturn(123);
+
+        $payment->expects($this->once())
+            ->method('getMethod')
+            ->willReturn($paymentMethod);
+
+        $adyenClient = $this->createMock(AdyenClientInterface::class);
+        $paymentLink = $this->createMock(PaymentLinkInterface::class);
+        $oldPaymentLink = $this->createMock(PaymentLinkInterface::class);
+
+        $apiResponse = [
+            'status' => 'active',
+            'url' => 'https://test.adyen.link/PL123456789',
+            'id' => 'PL123456789',
+        ];
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn(true);
+
+        $this->adyenClientProvider
+            ->expects($this->once())
+            ->method('getForPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn($adyenClient);
+
+        $this->paymentLinkRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['payment' => $payment])
+            ->willReturn([$oldPaymentLink]);
+
+        $oldPaymentLink
+            ->expects($this->once())
+            ->method('getPaymentLinkId')
+            ->willReturn('OLD_LINK_ID');
+
+        $adyenClient
+            ->expects($this->once())
+            ->method('expirePaymentLink')
+            ->with('OLD_LINK_ID')
+            ->willThrowException(new \Exception('Adyen API error'));
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('remove')
+            ->with($oldPaymentLink);
+
+        $adyenClient
+            ->expects($this->once())
+            ->method('generatePaymentLink')
+            ->with($payment)
+            ->willReturn($apiResponse);
+
+        $this->paymentLinkFactory
+            ->expects($this->once())
+            ->method('create')
+            ->with($payment, 'PL123456789', 'https://test.adyen.link/PL123456789')
+            ->willReturn($paymentLink);
+
+        $this->entityManager
+            ->expects($this->exactly(3))
+            ->method('flush');
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('persist')
+            ->with($paymentLink);
+
+        $this->stateMachine
+            ->expects($this->once())
+            ->method('can')
+            ->with($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS)
+            ->willReturn(true);
+
+        $this->stateMachine
+            ->expects($this->once())
+            ->method('apply')
+            ->with($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS);
+
+        $payment->expects($this->once())
+            ->method('setDetails')
+            ->with($apiResponse);
+
+        $result = $this->generator->generate($payment);
+
+        self::assertSame($paymentLink, $result);
+    }
+
+    public function testGenerateThrowsExceptionWhenGeneratePaymentLinkFails(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+
+        $payment->expects($this->once())
+            ->method('getState')
+            ->willReturn(PaymentInterface::STATE_NEW);
+
+        $payment->expects($this->any())
+            ->method('getId')
+            ->willReturn(123);
+
+        $payment->expects($this->once())
+            ->method('getMethod')
+            ->willReturn($paymentMethod);
+
+        $adyenClient = $this->createMock(AdyenClientInterface::class);
+        $originalException = new \Exception('API connection failed');
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn(true);
+
+        $this->adyenClientProvider
+            ->expects($this->once())
+            ->method('getForPaymentMethod')
+            ->with($paymentMethod)
+            ->willReturn($adyenClient);
+
+        $this->paymentLinkRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['payment' => $payment])
+            ->willReturn([]);
+
+        $adyenClient
+            ->expects($this->once())
+            ->method('generatePaymentLink')
+            ->with($payment)
+            ->willThrowException($originalException);
+
+        $this->logger
+            ->expects($this->once())
+            ->method('error')
+            ->with('An error occurred during payment link generation.', [
+                'paymentId' => 123,
+                'exception' => $originalException,
+            ]);
+
+        $this->expectException(PaymentLinkGenerationException::class);
+        $this->expectExceptionMessage('Payment link generation failed for payment with id 123. Error: API connection failed');
+
+        $this->generator->generate($payment);
     }
 
     public function testGenerateThrowsExceptionWhenPaymentMethodIsNull(): void
@@ -215,6 +521,12 @@ final class PaymentLinkGeneratorTest extends TestCase
             ->with($paymentMethod)
             ->willReturn($adyenClient);
 
+        $this->paymentLinkRepository
+            ->expects($this->once())
+            ->method('findBy')
+            ->with(['payment' => $payment])
+            ->willReturn([]);
+
         $adyenClient
             ->expects($this->once())
             ->method('generatePaymentLink')
@@ -267,7 +579,7 @@ final class PaymentLinkGeneratorTest extends TestCase
     public function testGenerateThrowsExceptionForInvalidPaymentStates(string $paymentState): void
     {
         $payment = $this->createMock(PaymentInterface::class);
-        $payment->expects($this->once())
+        $payment->expects($this->any())
             ->method('getState')
             ->willReturn($paymentState);
         $payment->expects($this->any())
@@ -275,14 +587,13 @@ final class PaymentLinkGeneratorTest extends TestCase
             ->willReturn(123);
 
         $this->expectException(PaymentLinkGenerationException::class);
-        $this->expectExceptionMessage('Payment link generation failed for payment with id 123. Payment is not in a new state.');
+        $this->expectExceptionMessage('Payment link generation failed for payment with id 123. Cannot generate a payment link for payment with state:');
 
         $this->generator->generate($payment);
     }
 
     public static function provideInvalidPaymentStates(): \Generator
     {
-        yield 'processing state' => [PaymentInterface::STATE_PROCESSING];
         yield 'completed state' => [PaymentInterface::STATE_COMPLETED];
         yield 'failed state' => [PaymentInterface::STATE_FAILED];
         yield 'cancelled state' => [PaymentInterface::STATE_CANCELLED];

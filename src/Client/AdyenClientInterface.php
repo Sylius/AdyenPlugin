@@ -64,6 +64,8 @@ interface AdyenClientInterface
 
     public function generatePaymentLink(PaymentInterface $payment): array;
 
+    public function expirePaymentLink(string $paymentLinkId): array;
+
     public function removeStoredToken(
         string $paymentReference,
         AdyenTokenInterface $adyenToken,
