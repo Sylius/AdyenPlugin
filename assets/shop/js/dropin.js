@@ -69,12 +69,12 @@
             e.stopPropagation();
         };
 
-        const submitHandler = (state, dropin, url, actions) => {
+        const submitHandler = (body, dropin, url, actions) => {
             _clearErrorMessage();
 
             const options = {
                 method: 'POST',
-                body: JSON.stringify(state.data),
+                body: JSON.stringify(body),
                 headers: {
                     'Content-Type': 'application/json'
                 }
@@ -106,8 +106,10 @@
 
                     if (error && error.error === true) {
                         _showErrorMessage(error.message);
+                        actions.reject(error.message);
                     } else {
                         _showErrorMessage('Payment processing failed. Please try again.');
+                        actions.reject();
                     }
 
                     if (dropin && typeof dropin.setStatus === 'function') {
@@ -159,10 +161,15 @@
                 countryCode: configuration.billingAddress.countryCode,
 
                 onSubmit: (state, dropin, actions) => {
-                    submitHandler(state, dropin, configuration.path.payments, actions)
+                    submitHandler(state.data, dropin, configuration.path.payments, actions);
                 },
                 onAdditionalDetails: (state, dropin, actions) => {
-                    submitHandler(state, dropin, configuration.path.paymentDetails, actions)
+                    const body = {
+                        data: state.data,
+                        amountValue: configuration.amount.value
+                    };
+
+                    submitHandler(body, dropin, configuration.path.paymentDetails, actions);
                 },
                 onPaymentCompleted: (result, component) => {
                     _toggleLoader(false);

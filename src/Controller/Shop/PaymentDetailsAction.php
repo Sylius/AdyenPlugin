@@ -37,11 +37,19 @@ class PaymentDetailsAction
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
         $payment = $this->getPayablePayment($order);
+        if ($payment->getAmount() !== (int) $request->request->get('amountValue')) {
+            return new JsonResponse([
+                'error' => true,
+                'code' => 'AMOUNT_MISMATCH',
+                'message' => 'Your cart has been modified. Refresh the page and try again.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $payment->getMethod();
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
-        $result = $client->paymentDetails($request->request->all());
+        $result = $client->paymentDetails($request->request->all()['data'] ?? []);
 
         $payment->setDetails($result);
 
