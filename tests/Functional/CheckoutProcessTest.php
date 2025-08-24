@@ -345,10 +345,13 @@ final class CheckoutProcessTest extends WebTestCase
         ]);
 
         $detailsRequest = $this->createRequest([
-            'details' => [
-                'MD' => 'test_md',
-                'PaRes' => 'test_pares',
+            'data' => [
+                'details' => [
+                    'MD' => 'test_md',
+                    'PaRes' => 'test_pares',
+                ],
             ],
+            'amountValue' => 10000,
         ]);
 
         $response = ($this->paymentsDetailsAction)($detailsRequest);
@@ -393,10 +396,13 @@ final class CheckoutProcessTest extends WebTestCase
         ]);
 
         $detailsRequest = $this->createRequest([
-            'details' => [
-                'MD' => 'test_md',
-                'PaRes' => 'test_pares',
+            'data' => [
+                'details' => [
+                    'MD' => 'test_md',
+                    'PaRes' => 'test_pares',
+                ],
             ],
+            'amountValue' => 10000,
         ]);
 
         $response = ($this->paymentsDetailsAction)($detailsRequest);
@@ -439,6 +445,7 @@ final class CheckoutProcessTest extends WebTestCase
             'details' => [
                 'threeDSResult' => '{"transStatus":"Y"}',
             ],
+            'amountValue' => 10000,
         ]);
 
         $response = ($this->paymentsDetailsAction)($detailsRequest);
@@ -478,9 +485,12 @@ final class CheckoutProcessTest extends WebTestCase
         ]);
 
         $detailsRequest = $this->createRequest([
-            'details' => [
-                'threeDSResult' => '{"transStatus":"N"}',
+            'data' => [
+                'details' => [
+                    'threeDSResult' => '{"transStatus":"N"}',
+                ],
             ],
+            'amountValue' => 10000,
         ]);
 
         $response = ($this->paymentsDetailsAction)($detailsRequest);
@@ -523,9 +533,12 @@ final class CheckoutProcessTest extends WebTestCase
         ]);
 
         $detailsRequest = $this->createRequest([
-            'details' => [
-                'threeDSResult' => '{"fingerprint":"ok"}',
+            'data' => [
+                'details' => [
+                    'threeDSResult' => '{"fingerprint":"ok"}',
+                ],
             ],
+            'amountValue' => 10000,
         ]);
 
         $response = ($this->paymentsDetailsAction)($detailsRequest);
@@ -565,9 +578,12 @@ final class CheckoutProcessTest extends WebTestCase
         ]);
 
         $detailsRequest = $this->createRequest([
-            'details' => [
-                'threeDSResult' => '{"fingerprint":"bad"}',
+            'data' => [
+                'details' => [
+                    'threeDSResult' => '{"fingerprint":"bad"}',
+                ],
             ],
+            'amountValue' => 10000,
         ]);
 
         $response = ($this->paymentsDetailsAction)($detailsRequest);
