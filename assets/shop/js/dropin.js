@@ -106,8 +106,10 @@
 
                     if (error && error.error === true) {
                         _showErrorMessage(error.message);
+                        actions.reject(error.message);
                     } else {
                         _showErrorMessage('Payment processing failed. Please try again.');
+                        actions.reject();
                     }
 
                     if (dropin && typeof dropin.setStatus === 'function') {
@@ -159,10 +161,10 @@
                 countryCode: configuration.billingAddress.countryCode,
 
                 onSubmit: (state, dropin, actions) => {
-                    submitHandler(state, dropin, configuration.path.payments, actions)
+                    submitHandler(state, dropin, configuration.path.payments, actions);
                 },
                 onAdditionalDetails: (state, dropin, actions) => {
-                    submitHandler(state, dropin, configuration.path.paymentDetails, actions)
+                    submitHandler(state, dropin, configuration.path.paymentDetails, actions);
                 },
                 onPaymentCompleted: (result, component) => {
                     _toggleLoader(false);

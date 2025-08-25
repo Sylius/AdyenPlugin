@@ -28,5 +28,13 @@
         >
             <argument type="service" id=".inner"/>
         </service>
+
+        <service
+            id="sylius_adyen.custom_factory.adyen_payment_detail"
+            class="Sylius\AdyenPlugin\Factory\AdyenPaymentDetailFactory"
+            decorates="sylius_adyen.factory.adyen_payment_detail"
+        >
+            <argument type="service" id=".inner"/>
+        </service>
     </services>
 </container>

@@ -1,16 +1,20 @@
 sylius_resource:
-  resources:
-    sylius_adyen.adyen_token:
-      classes:
-        repository: Sylius\AdyenPlugin\Repository\AdyenTokenRepository
-        model: Sylius\AdyenPlugin\Entity\AdyenToken
+    resources:
+        sylius_adyen.adyen_token:
+            classes:
+                repository: Sylius\AdyenPlugin\Repository\AdyenTokenRepository
+                model: Sylius\AdyenPlugin\Entity\AdyenToken
 
-    sylius_adyen.adyen_reference:
-      classes:
-        repository: Sylius\AdyenPlugin\Repository\AdyenReferenceRepository
-        model: Sylius\AdyenPlugin\Entity\AdyenReference
+        sylius_adyen.adyen_reference:
+            classes:
+                repository: Sylius\AdyenPlugin\Repository\AdyenReferenceRepository
+                model: Sylius\AdyenPlugin\Entity\AdyenReference
 
-    sylius_adyen.log:
-      driver: doctrine/orm
-      classes:
-        model: Sylius\AdyenPlugin\Entity\Log
+        sylius_adyen.log:
+            driver: doctrine/orm
+            classes:
+                model: Sylius\AdyenPlugin\Entity\Log
+
+        sylius_adyen.adyen_payment_detail:
+            classes:
+                model: Sylius\AdyenPlugin\Entity\AdyenPaymentDetail
