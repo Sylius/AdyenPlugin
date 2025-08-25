@@ -124,7 +124,9 @@ export class PayPalHandler {
 
     handleError = (error) => {
         this.paypalPspReference = null;
-        showErrorMessage(error.message);
+        if (error.message) {
+            showErrorMessage(error.message);
+        }
     };
 
     getConfig() {
