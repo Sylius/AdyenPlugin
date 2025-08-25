@@ -24,7 +24,7 @@ use Sylius\Component\Core\OrderPaymentStates;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mime\Email;
 
-final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
+final class PaymentLinkProcessTest extends AdyenTestCase
 {
     private ProcessNotificationsAction $processNotificationsAction;
 

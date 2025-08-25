@@ -25,12 +25,13 @@ use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Order\OrderTransitions;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
 
-final class PaymentReversalTest extends AbstractAdyenFunctionalTestCase
+final class PaymentReversalTest extends AdyenTestCase
 {
     private PaymentsAction $paymentsAction;
 
@@ -48,6 +49,15 @@ final class PaymentReversalTest extends AbstractAdyenFunctionalTestCase
         $this->messageBus = $container->get('sylius.command_bus');
         $this->paymentCommandFactory = $container->get('sylius_adyen.bus.payment_command_factory');
         $this->stateMachine = $container->get('sylius_abstraction.state_machine');
+    }
+
+    protected function createTestOrder(): OrderInterface
+    {
+        $order = parent::createTestOrder();
+        $order->setState(OrderInterface::STATE_NEW);
+        $order->setCheckoutState(OrderCheckoutStates::STATE_COMPLETED);
+
+        return $order;
     }
 
     public function testReversalNotInitiatedForNonAdyenPayment(): void

@@ -29,11 +29,12 @@ use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Core\OrderCheckoutStates;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
-abstract class AbstractAdyenFunctionalTestCase extends WebTestCase
+abstract class AdyenTestCase extends WebTestCase
 {
     protected OrderInterface $testOrder;
 
@@ -143,7 +144,7 @@ abstract class AbstractAdyenFunctionalTestCase extends WebTestCase
         $order->setTokenValue('test_token_' . $uniqueId);
         $order->setLocaleCode('en_US');
         $order->setCurrencyCode('USD');
-        $order->setState(OrderInterface::STATE_NEW);
+        $order->setCheckoutState(OrderCheckoutStates::STATE_PAYMENT_SELECTED);
 
         $customer = new Customer();
         $customer->setEmail('test' . $uniqueId . '@example.com');

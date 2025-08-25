@@ -17,8 +17,9 @@ use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Mailer\Sender\SenderInterface;
 
-final class CheckoutProcessTest extends AbstractAdyenFunctionalTestCase
+final class CheckoutProcessTest extends AdyenTestCase
 {
     private PaymentsAction $paymentsAction;
 
@@ -33,6 +34,8 @@ final class CheckoutProcessTest extends AbstractAdyenFunctionalTestCase
         $this->paymentsAction = $this->getPaymentsAction();
         $this->paymentsDetailsAction = $this->getPaymentDetailsAction();
         $this->processNotificationsAction = $this->getProcessNotificationsAction();
+
+        $container->set('sylius.email_sender', $this->createMock(SenderInterface::class));
     }
 
     public function testSuccessfulCheckoutWithCardPayment(): void
