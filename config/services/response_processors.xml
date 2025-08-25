@@ -30,6 +30,9 @@
             class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\FailedResponseProcessor"
             parent="sylius_adyen.processor.payment_response_processor.abstract"
         >
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
+
             <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 
@@ -38,6 +41,9 @@
             class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor"
             parent="sylius_adyen.processor.payment_response_processor.abstract"
         >
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
+
             <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 
@@ -46,6 +52,9 @@
             class="Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\PaymentProcessingResponseProcessor"
             parent="sylius_adyen.processor.payment_response_processor.abstract"
         >
+            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
+
             <tag name="sylius_adyen.processor.payment_response"/>
         </service>
 

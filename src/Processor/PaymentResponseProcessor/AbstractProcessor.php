@@ -21,6 +21,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 abstract class AbstractProcessor implements ProcessorInterface
 {
+    public const PAYMENT_STATUS_RECEIVED_CODE = 'payment_status_received';
+
     public const FLASH_INFO = 'info';
 
     public const FLASH_ERROR = 'error';

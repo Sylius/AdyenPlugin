@@ -13,12 +13,19 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Command\AutoRescue;
 
-final class AutoRescueSuccess
+use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
+use Sylius\Component\Core\Model\PaymentInterface;
+
+final class AutoRescueSuccess implements PaymentLifecycleCommand
 {
     public function __construct(
-        public readonly mixed $paymentId,
         public readonly string $merchantReference,
         public readonly string $pspReference,
     ) {
+    }
+
+    public function getPayment(): PaymentInterface
+    {
+        throw new \LogicException('TODO: Remove getPayment() method in Interface PaymentLifecycleCommand. to make commands stateless');
     }
 }

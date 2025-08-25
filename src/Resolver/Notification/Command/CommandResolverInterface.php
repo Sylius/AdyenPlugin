@@ -18,7 +18,7 @@ use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 
 interface CommandResolverInterface
 {
-    public function resolve(string $paymentMethodCode, NotificationItemData $notificationItemData): ?PaymentLifecycleCommand;
+    public function resolve(string $paymentMethodCode, NotificationItemData $notificationItemData): PaymentLifecycleCommand;
 
     public function supports(NotificationItemData $notificationItemData): bool;
 }

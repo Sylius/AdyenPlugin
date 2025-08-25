@@ -13,9 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Command;
 
-use Sylius\Component\Core\Model\PaymentInterface;
-
 interface PaymentLifecycleCommand
 {
-    public function getPayment(): PaymentInterface;
 }

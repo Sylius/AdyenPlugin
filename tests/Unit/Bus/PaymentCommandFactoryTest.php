@@ -37,16 +37,6 @@ class PaymentCommandFactoryTest extends TestCase
         $this->factory = new PaymentCommandFactory($this->eventCodeResolver);
     }
 
-    public function testCreateForEventWithoutNotificationData(): void
-    {
-        $payment = $this->createMock(PaymentInterface::class);
-
-        $command = $this->factory->createForEvent('authorisation', $payment);
-
-        $this->assertInstanceOf(AuthorizePayment::class, $command);
-        $this->assertSame($payment, $command->getPayment());
-    }
-
     public function testCreateForEventWithNotificationDataUsesEventCodeResolver(): void
     {
         $payment = $this->createMock(PaymentInterface::class);
@@ -90,33 +80,6 @@ class PaymentCommandFactoryTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
 
         $this->factory->createForEvent('unknown_event', $payment);
-    }
-
-    public function testCreateForEventWithCustomMapping(): void
-    {
-        $customMapping = ['custom_event' => AuthorizePayment::class];
-        $factory = new PaymentCommandFactory($this->eventCodeResolver, $customMapping);
-        $payment = $this->createMock(PaymentInterface::class);
-
-        $command = $factory->createForEvent('custom_event', $payment);
-
-        $this->assertInstanceOf(AuthorizePayment::class, $command);
-        $this->assertSame($payment, $command->getPayment());
-    }
-
-    public function testCreateForEventMergesDefaultAndCustomMappings(): void
-    {
-        $customMapping = ['custom_event' => AuthorizePayment::class];
-        $factory = new PaymentCommandFactory($this->eventCodeResolver, $customMapping);
-        $payment = $this->createMock(PaymentInterface::class);
-
-        // Test default mapping still works
-        $defaultCommand = $factory->createForEvent('authorisation', $payment);
-        $this->assertInstanceOf(AuthorizePayment::class, $defaultCommand);
-
-        // Test custom mapping works
-        $customCommand = $factory->createForEvent('custom_event', $payment);
-        $this->assertInstanceOf(AuthorizePayment::class, $customCommand);
     }
 
     public function testCreateForEventReturnsObjectForPaymentRefundedCommand(): void

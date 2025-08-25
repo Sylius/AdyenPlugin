@@ -13,8 +13,13 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
+use Sylius\AdyenPlugin\Bus\Command\FailPayment;
+use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Webmozart\Assert\Assert;
 
 final class FailedResponseProcessor extends AbstractProcessor

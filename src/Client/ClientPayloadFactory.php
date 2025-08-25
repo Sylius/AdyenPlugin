@@ -158,11 +158,11 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $payload + $this->getOrderDataForPayment($order);
         $payload = $this->addEsdIfApplicable($payload, $options, $order);
 
-        $payload = $this->enableAutoRescue(
-            $payload,
-            $order->getNumber(),
-            $receivedPayload['paymentMethod']['storedPaymentMethodId'],
-        );
+//        $payload = $this->enableAutoRescue(
+//            $payload,
+//            $order->getNumber(),
+//            $receivedPayload['paymentMethod']['storedPaymentMethodId'],
+//        );
 
         return $payload;
     }

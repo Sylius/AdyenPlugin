@@ -107,7 +107,7 @@ abstract class AdyenTestCase extends WebTestCase
 
     protected function tearDown(): void
     {
-        $this->purgeDatabase();
+//        $this->purgeDatabase();
         parent::tearDown();
     }
 

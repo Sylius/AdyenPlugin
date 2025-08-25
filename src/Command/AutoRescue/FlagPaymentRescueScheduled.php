@@ -20,7 +20,6 @@ use Sylius\Component\Core\Model\PaymentInterface;
 final class FlagPaymentRescueScheduled implements PaymentLifecycleCommand
 {
     public function __construct(
-        public readonly mixed $paymentId,
         public readonly string $merchantReference,
         public readonly string $pspReference,
         public readonly string $rescueReference,

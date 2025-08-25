@@ -78,5 +78,25 @@ class ExceptionSubscriber implements EventSubscriberInterface
                 'details' => $exception->getMessage(),
             ], Response::HTTP_UNPROCESSABLE_ENTITY));
         }
+
+        if ($exception instanceof AdyenException) {
+            $event->setResponse(new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+                'code' => $exception->getCode(),
+            ], $exception->getCode()));
+
+            $this->logger->error(
+                'Adyen exception occurred: {message}, code: {code}, errorCode: {errorCode}, status: {status}, errorType: {errorType}, pspReference: {pspReference}',
+                [
+                    'message' => $exception->getMessage(),
+                    'code' => $exception->getCode(),
+                    'errorCode' => $exception->getAdyenErrorCode(),
+                    'status' => $exception->getStatus(),
+                    'errorType' => $exception->getErrorType(),
+                    'pspReference' => $exception->getPspReference(),
+                ]
+            );
+        }
     }
 }

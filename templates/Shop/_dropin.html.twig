@@ -4,6 +4,8 @@
     {% set path_parameters = path_parameters|merge({orderToken: order.tokenValue}) %}
 {% endif %}
 
+<h1>TERAZ</h1>
+
 <div
     class="dropin-container"
     data-config-url="{{ path('sylius_adyen_shop_config', path_parameters) }}"

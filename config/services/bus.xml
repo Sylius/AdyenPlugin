@@ -6,10 +6,30 @@
         <defaults public="true"/>
 
         <service
+            id="sylius_adyen.bus.handler.finalize_payment"
             class="Sylius\AdyenPlugin\Bus\Handler\PaymentFinalizationHandler"
-            id="sylius_adyen.bus.handler.authorize_payment"
         >
             <argument type="service" id="sylius_abstraction.state_machine"/>
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+
+        <service
+                class="Sylius\AdyenPlugin\Bus\Handler\AuthorizePaymentHandler"
+                id="sylius_adyen.bus.handler.authorize_payment"
+        >
+            <argument type="service" id="sylius_abstraction.state_machine"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
+
+        <service
+                id="sylius_adyen.bus.handler.fail_payment"
+                class="Sylius\AdyenPlugin\Bus\Handler\FailPaymentHandler"
+        >
+            <argument type="service" id="sylius_abstraction.state_machine"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
@@ -23,6 +43,7 @@
             <argument type="service" id="sylius.repository.order"/>
             <argument type="service" id="sylius.command_bus"/>
             <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>

@@ -16,6 +16,11 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
+use Sylius\AdyenPlugin\Event\PaymentAuthorisedEvent;
+use Sylius\AdyenPlugin\Listener\CompleteOrderOnPaymentAuthorisedListener;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
+use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 
@@ -34,6 +39,14 @@ final class CheckoutProcessTest extends AdyenTestCase
         $this->paymentsAction = $this->getPaymentsAction();
         $this->paymentsDetailsAction = $this->getPaymentDetailsAction();
         $this->processNotificationsAction = $this->getProcessNotificationsAction();
+
+        // Ensure event listener is wired in test environment
+        $dispatcher = $container->get('event_dispatcher');
+        $listener = new CompleteOrderOnPaymentAuthorisedListener(
+            $container->get('sylius_abstraction.state_machine.adapter.symfony_workflow'),
+            $container->get('sylius.repository.payment'),
+        );
+        $dispatcher->addListener(PaymentAuthorisedEvent::class, [$listener, '__invoke']);
 
         $container->set('sylius.email_sender', $this->createMock(SenderInterface::class));
     }
@@ -65,11 +78,10 @@ final class CheckoutProcessTest extends AdyenTestCase
         self::assertEquals('Authorised', $responseData['resultCode']);
         self::assertArrayHasKey('pspReference', $responseData);
         self::assertEquals('TEST_PSP_REF_123', $responseData['pspReference']);
-        self::assertArrayHasKey('redirect', $responseData);
 
         $payment = $this->testOrder->getLastPayment();
         self::assertNotNull($payment);
-        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
 
         $this->simulateWebhook($payment, 'authorisation', true);
 

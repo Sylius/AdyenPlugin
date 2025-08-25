@@ -15,23 +15,25 @@ final class RefundCommandResolver implements CommandResolverInterface
 {
     public function __construct(
         private readonly AdyenReferenceRepositoryInterface $adyenReferenceRepository,
-    ) {
+    )
+    {
     }
 
-    public function resolve(string $paymentCode, NotificationItemData $notificationData): ?PaymentLifecycleCommand
+    public function resolve(string $paymentMethodCode, NotificationItemData $notificationItemData): PaymentLifecycleCommand
     {
-        try {
-            $reference = $this->adyenReferenceRepository->getOneForRefundByCodeAndReference(
-                $paymentCode,
-                (string)$notificationData->pspReference,
-            );
-        } catch (NoResultException|\InvalidArgumentException) {
-            return null;
-        }
+        $reference = $this->adyenReferenceRepository->getOneForRefundByCodeAndReference(
+            $paymentMethodCode,
+            $notificationItemData->pspReference,
+        );
 
         $refundPayment = $reference->getRefundPayment();
         Assert::notNull($refundPayment);
 
         return new RefundPayment($refundPayment);
+    }
+
+    public function supports(NotificationItemData $notificationItemData): bool
+    {
+        return false;
     }
 }

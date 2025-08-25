@@ -70,23 +70,6 @@ class PaymentFinalizationHandlerTest extends TestCase
         ($this->handler)($command);
     }
 
-    public function testUnacceptable(): void
-    {
-        $order = new Order();
-        $order->setPaymentState(OrderPaymentStates::STATE_PAID);
-
-        $payment = new Payment();
-        $payment->setOrder($order);
-
-        $this->stateMachine
-            ->expects($this->never())
-            ->method('can')
-        ;
-
-        $command = new AuthorizePayment($payment);
-        ($this->handler)($command);
-    }
-
     public static function provideForTestForApplicable(): array
     {
         return [
@@ -94,16 +77,8 @@ class PaymentFinalizationHandlerTest extends TestCase
                 'command' => CapturePayment::class,
                 'canTransition' => true,
             ],
-            'authorize action with transition' => [
-                'command' => AuthorizePayment::class,
-                'canTransition' => true,
-            ],
             'capture action without transition' => [
                 'command' => CapturePayment::class,
-                'canTransition' => false,
-            ],
-            'authorize action without transition' => [
-                'command' => AuthorizePayment::class,
                 'canTransition' => false,
             ],
         ];

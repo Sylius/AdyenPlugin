@@ -19,7 +19,7 @@ use Sylius\Component\Resource\Repository\RepositoryInterface;
 
 interface AdyenReferenceRepositoryInterface extends RepositoryInterface
 {
-    public function getOneByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface;
+    public function getOneByPaymentMethodCodeAndReference(string $paymentMethodCode, string $pspReference): ?AdyenReferenceInterface;
 
     public function getOneForRefundByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface;
 

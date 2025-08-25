@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
+use Sylius\AdyenPlugin\Classifier\PaymentResultClassifierInterface;
+use Sylius\AdyenPlugin\Dispatcher\PaymentResultDispatcherInterface;
 use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
@@ -32,8 +34,9 @@ class PaymentDetailsAction
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
         private readonly RepositoryInterface $adyenPaymentDetailRepository,
+        private readonly PaymentResultClassifierInterface $paymentResultClassifier,
+        private readonly PaymentResultDispatcherInterface $paymentResultDispatcher,
     ) {
     }
 
@@ -59,16 +62,9 @@ class PaymentDetailsAction
         $result = $client->paymentDetails($request->request->all());
 
         $payment->setDetails($result);
+        $paymentResult = $this->paymentResultClassifier->classify($payment->getId(), $result);
+        $this->paymentResultDispatcher->dispatch($paymentResult);
 
-        return new JsonResponse(
-            $payment->getDetails()
-            + [
-                'redirect' => $this->paymentResponseProcessor->process(
-                    (string) $paymentMethod->getCode(),
-                    $request,
-                    $payment,
-                ),
-            ],
-        );
+        return new JsonResponse($result);
     }
 }

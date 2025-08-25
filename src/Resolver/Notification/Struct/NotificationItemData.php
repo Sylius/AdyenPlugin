@@ -15,14 +15,11 @@ namespace Sylius\AdyenPlugin\Resolver\Notification\Struct;
 
 class NotificationItemData
 {
-    /** @var ?array */
-    public $additionalData;
+    public string $eventCode;
 
-    /** @var ?Amount */
-    public $amount;
+    public array $additionalData;
 
-    /** @var ?string */
-    public $eventCode;
+    public Amount $amount;
 
     /** @var ?string */
     public $eventDate;

@@ -65,7 +65,7 @@ class EventCodeResolverTest extends TestCase
     {
         $notificationData = new NotificationItemData();
         $notificationData->eventCode = EventCodeResolverInterface::EVENT_CANCEL_OR_REFUND;
-        $notificationData->additionalData = null;
+        $notificationData->additionalData = [];
 
         $result = $this->resolver->resolve($notificationData);
 

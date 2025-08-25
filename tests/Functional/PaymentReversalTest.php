@@ -244,9 +244,8 @@ final class PaymentReversalTest extends AdyenTestCase
             $notificationData->pspReference = 'REFUND_PSP_REF_456';
             $notificationData->originalReference = $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF';
 
-            $amountData = new Amount();
-            $amountData->value = $payment->getAmount();
-            $amountData->currency = $payment->getCurrencyCode();
+            // Set amount data for refund
+            $amountData = new Amount($payment->getCurrencyCode(), $payment->getAmount());
             $notificationData->amount = $amountData;
         } else {
             $notificationData->pspReference = $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF';
