@@ -14,7 +14,9 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\PaymentDetails;
+use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
+use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -245,6 +247,41 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
         return new PaymentReversalRequest($payload);
+    }
+
+    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): PaymentLinkRequest
+    {
+        $order = $payment->getOrder();
+        Assert::notNull($order);
+
+        $payload = $this->getOrderDataForPayment($order);
+        $payload = $payload + [
+            'amount' => [
+                'value' => $order->getTotal(),
+                'currency' => $order->getCurrencyCode(),
+            ],
+            'reference' => (string) $order->getNumber(),
+            'countryCode' => $order->getBillingAddress()?->getCountryCode() ?? self::NO_COUNTRY_AVAILABLE_PLACEHOLDER,
+            'merchantAccount' => $options['merchantAccount'],
+        ];
+
+        if ($order->getLocaleCode() !== null) {
+            $payload['shopperLocale'] = str_replace('_', '-', $order->getLocaleCode());
+        }
+
+        unset($payload['shopperIp']);
+
+        $payload = $this->versionResolver->appendVersionConstraints($payload);
+
+        return new PaymentLinkRequest($payload);
+    }
+
+    public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest
+    {
+        $request = new UpdatePaymentLinkRequest();
+        $request->setStatus('expired');
+
+        return $request;
     }
 
     private function filterArray(array $payload, array $keysWhitelist): array

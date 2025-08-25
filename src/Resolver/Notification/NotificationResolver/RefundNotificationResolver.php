@@ -21,20 +21,16 @@ use Webmozart\Assert\Assert;
 
 final class RefundNotificationResolver implements CommandResolver
 {
-    /** @var AdyenReferenceRepositoryInterface */
-    private $adyenReferenceRepository;
-
     public function __construct(
-        AdyenReferenceRepositoryInterface $adyenReferenceRepository,
+        private AdyenReferenceRepositoryInterface $adyenReferenceRepository,
     ) {
-        $this->adyenReferenceRepository = $adyenReferenceRepository;
     }
 
-    public function resolve(string $paymentCode, NotificationItemData $notificationData): object
+    public function resolve(string $paymentMethodCode, NotificationItemData $notificationData): object
     {
         try {
             $reference = $this->adyenReferenceRepository->getOneForRefundByCodeAndReference(
-                $paymentCode,
+                $paymentMethodCode,
                 (string) $notificationData->pspReference,
             );
 
@@ -42,7 +38,7 @@ final class RefundNotificationResolver implements CommandResolver
             Assert::notNull($refundPayment);
 
             return new RefundPayment($refundPayment);
-        } catch (\InvalidArgumentException | NoResultException $ex) {
+        } catch (\InvalidArgumentException|NoResultException) {
             throw new NoCommandResolvedException();
         }
     }

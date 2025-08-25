@@ -92,7 +92,7 @@ when@dev:
             main:
                 type: stream
                 path: "%kernel.logs_dir%/dev_app.log"
-                level: debug
+                level: error
                 channels: ["!event", "!doctrine", "!php", "!adyen"]
                 formatter: monolog.formatter.line
 
@@ -105,7 +105,7 @@ when@dev:
             php:
                 type: stream
                 path: "%kernel.logs_dir%/dev_php.log"
-                level: info
+                level: debug
                 channels: ["php"]
 
             adyen_file:

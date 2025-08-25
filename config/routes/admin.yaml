@@ -11,3 +11,8 @@ sylius_adyen_admin_log:
             all:
                 hook_prefix: 'sylius_adyen.admin.log'
     type: sylius.resource
+
+sylius_adyen_admin_order_payment_generate_pay_link:
+    path: /adyen/payment/{id}/generate-pay-link
+    methods: [GET]
+    controller: sylius_adyen.controller.admin.payment.generate_pay_link

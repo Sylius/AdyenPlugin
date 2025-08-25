@@ -1,4 +1,8 @@
 sylius_adyen:
+    email:
+        payment_link:
+            subject: Payment link
+            content: 'You can complete your payment via: <a href="%payment_link_url%">%payment_link_url%</a>'
     ui:
         api_key: API key
         test_platform: Test platform
@@ -37,6 +41,8 @@ sylius_adyen:
             message: Message
             date_time: Date time
             search: Search
+        send_payment_link: Send payment link
+        resend_payment_link: Resend payment link
     form:
         product_variant:
             commodity_code: Commodity Code

@@ -14,9 +14,9 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Psr\Log\LoggerInterface;
-use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver;
 use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
-use Sylius\AdyenPlugin\Resolver\Notification\NotificationToCommandResolver;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolverInterface;
+use Sylius\AdyenPlugin\Resolver\Notification\NotificationToCommandResolverInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -26,16 +26,16 @@ class ProcessNotificationsAction
     public const EXPECTED_ADYEN_RESPONSE = '[accepted]';
 
     public function __construct(
-        private readonly NotificationToCommandResolver $notificationCommandResolver,
-        private readonly NotificationResolver $notificationResolver,
+        private readonly NotificationToCommandResolverInterface $notificationCommandResolver,
+        private readonly NotificationResolverInterface $notificationResolver,
         private readonly LoggerInterface $logger,
         private readonly MessageBusInterface $messageBus,
     ) {
     }
 
-    public function __invoke(string $code, Request $request): Response
+    public function __invoke(string $paymentMethodCode, Request $request): Response
     {
-        foreach ($this->notificationResolver->resolve($code, $request) as $notificationItem) {
+        foreach ($this->notificationResolver->resolve($paymentMethodCode, $request) as $notificationItem) {
             if (null === $notificationItem || false === $notificationItem->success) {
                 $this->logger->error(\sprintf(
                     'Payment with pspReference [%s] did not return success',
@@ -50,7 +50,7 @@ class ProcessNotificationsAction
             }
 
             try {
-                $command = $this->notificationCommandResolver->resolve($code, $notificationItem);
+                $command = $this->notificationCommandResolver->resolve($paymentMethodCode, $notificationItem);
                 $this->messageBus->dispatch($command);
             } catch (NoCommandResolvedException $ex) {
                 $this->logger->error(sprintf(

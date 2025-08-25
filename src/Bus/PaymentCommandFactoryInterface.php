@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus;
 
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
+use Sylius\AdyenPlugin\Bus\Command\AuthorizePaymentByLink;
 use Sylius\AdyenPlugin\Bus\Command\CapturePayment;
 use Sylius\AdyenPlugin\Bus\Command\MarkPaymentAsProcessedCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
@@ -34,6 +35,7 @@ interface PaymentCommandFactoryInterface
         'rejected' => PaymentFailedCommand::class,
         'cancellation' => PaymentCancelledCommand::class,
         'refund' => PaymentRefunded::class,
+        'pay_by_link_authorisation' => AuthorizePaymentByLink::class,
     ];
 
     public function createForEvent(

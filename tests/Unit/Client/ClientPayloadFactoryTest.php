@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Client;
 
+use Adyen\Model\Checkout\PaymentLinkRequest;
 use Doctrine\Common\Collections\ArrayCollection;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use PHPUnit\Framework\TestCase;
@@ -118,9 +119,9 @@ final class ClientPayloadFactoryTest extends TestCase
             $order,
         );
 
-        $this->assertArrayHasKey('additionalData', $result);
-        $this->assertEquals('123', $result['additionalData']['enhancedSchemeData.customerReference']);
-        $this->assertEquals(100, $result['additionalData']['enhancedSchemeData.totalTaxAmount']);
+        self::assertArrayHasKey('additionalData', $result);
+        self::assertEquals('123', $result['additionalData']['enhancedSchemeData.customerReference']);
+        self::assertEquals(100, $result['additionalData']['enhancedSchemeData.totalTaxAmount']);
     }
 
     public function testItDoesNotAddEsdForNonCardPayments(): void
@@ -175,7 +176,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $order,
         );
 
-        $this->assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
+        self::assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
     }
 
     public function testItDoesNotAddEsdWhenDisabled(): void
@@ -208,7 +209,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $order,
         );
 
-        $this->assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
+        self::assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
     }
 
     public function testItAddsEsdForCaptureRequests(): void
@@ -250,9 +251,9 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $result = $this->factory->createForCapture($options, $payment);
 
-        $this->assertArrayHasKey('additionalData', $result);
-        $this->assertEquals('456', $result['additionalData']['enhancedSchemeData.customerReference']);
-        $this->assertEquals(200, $result['additionalData']['enhancedSchemeData.totalTaxAmount']);
+        self::assertArrayHasKey('additionalData', $result);
+        self::assertEquals('456', $result['additionalData']['enhancedSchemeData.customerReference']);
+        self::assertEquals(200, $result['additionalData']['enhancedSchemeData.totalTaxAmount']);
     }
 
     public function testItDoesNotAddEsdForNonVisaMastercardBrands(): void
@@ -310,6 +311,119 @@ final class ClientPayloadFactoryTest extends TestCase
             $order,
         );
 
-        $this->assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
+        self::assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
+    }
+
+    public function testItCreatesPaymentLinkWithBasicOrderData(): void
+    {
+        $options = new ArrayObject([
+            'merchantAccount' => 'TestMerchant',
+        ]);
+
+        $billingAddress = $this->createMock(AddressInterface::class);
+        $billingAddress->expects($this->once())->method('getCountryCode')->willReturn('US');
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->expects($this->once())->method('getNumber')->willReturn('000005');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($billingAddress);
+        $order->expects($this->once())->method('getLocaleCode')->willReturn(null);
+
+        $this->normalizer->expects($this->once())
+            ->method('normalize')
+            ->with($order)
+            ->willReturn([
+                'amount' => ['value' => 10000, 'currency' => 'USD'],
+                'shopperEmail' => 'test@example.com',
+                'shopperIp' => '127.0.0.1',
+            ]);
+
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->expects($this->once())->method('getOrder')->willReturn($order);
+
+        $result = $this->factory->createForPaymentLink($options, $payment);
+
+        self::assertInstanceOf(PaymentLinkRequest::class, $result);
+        $resultArray = $result->toArray();
+
+        self::assertEquals('000005', $resultArray['reference']);
+        self::assertEquals('TestMerchant', $resultArray['merchantAccount']);
+        self::assertEquals('US', $resultArray['countryCode']);
+        self::assertEquals(['value' => 10000, 'currency' => 'USD'], $resultArray['amount']);
+        self::assertEquals('test@example.com', $resultArray['shopperEmail']);
+        self::assertArrayNotHasKey('shopperIp', $resultArray);
+        self::assertArrayNotHasKey('shopperLocale', $resultArray);
+    }
+
+    public function testItCreatesPaymentLinkWithLocaleCode(): void
+    {
+        $options = new ArrayObject([
+            'merchantAccount' => 'TestMerchant',
+        ]);
+
+        $billingAddress = $this->createMock(AddressInterface::class);
+        $billingAddress->expects($this->once())->method('getCountryCode')->willReturn('FR');
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->expects($this->once())->method('getNumber')->willReturn('000006');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn($billingAddress);
+        $order->expects($this->exactly(2))->method('getLocaleCode')->willReturn('fr_FR');
+
+        $this->normalizer->expects($this->once())
+            ->method('normalize')
+            ->with($order)
+            ->willReturn([
+                'amount' => ['value' => 20000, 'currency' => 'EUR'],
+                'shopperEmail' => 'test@example.fr',
+            ]);
+
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->expects($this->once())->method('getOrder')->willReturn($order);
+
+        $result = $this->factory->createForPaymentLink($options, $payment);
+
+        self::assertInstanceOf(PaymentLinkRequest::class, $result);
+        $resultArray = $result->toArray();
+
+        self::assertEquals('000006', $resultArray['reference']);
+        self::assertEquals('TestMerchant', $resultArray['merchantAccount']);
+        self::assertEquals('FR', $resultArray['countryCode']);
+        self::assertEquals(['value' => 20000, 'currency' => 'EUR'], $resultArray['amount']);
+        self::assertEquals('test@example.fr', $resultArray['shopperEmail']);
+        self::assertEquals('fr-FR', $resultArray['shopperLocale']);
+    }
+
+    public function testItCreatesPaymentLinkWithoutBillingAddress(): void
+    {
+        $options = new ArrayObject([
+            'merchantAccount' => 'TestMerchant',
+        ]);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->expects($this->once())->method('getNumber')->willReturn('000007');
+        $order->expects($this->once())->method('getBillingAddress')->willReturn(null);
+        $order->expects($this->once())->method('getLocaleCode')->willReturn(null);
+
+        $this->normalizer->expects($this->once())
+            ->method('normalize')
+            ->with($order)
+            ->willReturn([
+                'amount' => ['value' => 15000, 'currency' => 'GBP'],
+                'shopperEmail' => 'test@example.uk',
+            ]);
+
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->expects($this->once())->method('getOrder')->willReturn($order);
+
+        $result = $this->factory->createForPaymentLink($options, $payment);
+
+        self::assertInstanceOf(PaymentLinkRequest::class, $result);
+        $resultArray = $result->toArray();
+
+        self::assertEquals('000007', $resultArray['reference']);
+        self::assertEquals('TestMerchant', $resultArray['merchantAccount']);
+        self::assertEquals('ZZ', $resultArray['countryCode']); // NO_COUNTRY_AVAILABLE_PLACEHOLDER
+        self::assertEquals(['value' => 15000, 'currency' => 'GBP'], $resultArray['amount']);
+        self::assertEquals('test@example.uk', $resultArray['shopperEmail']);
+        self::assertArrayNotHasKey('shopperLocale', $resultArray);
     }
 }

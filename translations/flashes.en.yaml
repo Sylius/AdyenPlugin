@@ -1,0 +1,4 @@
+sylius_adyen:
+    payment_link:
+        generation_fail: 'Failed to generate payment link.'
+        generation_success: 'Payment link has been successfully generated and sent to the customer.'
