@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Bus\Command;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class AuthorizePaymentByLink
+final class AuthorizePaymentByLink implements NotificationDataAwarePaymentCommand
 {
     public function __construct(
         public readonly PaymentInterface $payment,
