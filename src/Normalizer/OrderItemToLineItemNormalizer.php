@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Normalizer;
 
 use Sylius\AdyenPlugin\Resolver\Product\ThumbnailUrlResolverInterface;
+use Sylius\Component\Core\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -22,6 +23,8 @@ use Webmozart\Assert\Assert;
 
 final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
 {
+    private const TAX_PERCENTAGE_MULTIPLIER = 10000;
+
     public function __construct(
         private RequestStack $requestStack,
         private UrlGeneratorInterface $urlGenerator,
@@ -42,7 +45,7 @@ final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
     }
 
     /**
-     * @param mixed $object
+     * @param OrderItemInterface|mixed $object
      */
     public function normalize(
         $object,
@@ -57,27 +60,40 @@ final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
         $locale = $this->getLocale($order);
 
         $amountWithoutTax = $object->getTotal() - $object->getTaxTotal();
+
         $productVariant = $object->getVariant();
-
         Assert::notNull($productVariant);
-        $product = $productVariant->getProduct();
 
+        $product = $productVariant->getProduct();
         Assert::notNull($product);
+
+        $data = [
+            'id' => $object->getId(),
+            'quantity' => $object->getQuantity(),
+            'amountIncludingTax' => $object->getTotal(),
+            'amountExcludingTax' => $amountWithoutTax,
+            'taxAmount' => $object->getTaxTotal(),
+        ];
+
+        /** @var AdjustmentInterface|false $taxAdjustment */
+        $taxAdjustment = $object->getAdjustmentsRecursively(AdjustmentInterface::TAX_ADJUSTMENT)->first();
+        if (false !== $taxAdjustment) {
+            $taxDetails = $taxAdjustment->getDetails();
+            if (isset($taxDetails['taxRateAmount'])) {
+                $data['taxPercentage'] = (int) ($taxDetails['taxRateAmount'] * self::TAX_PERCENTAGE_MULTIPLIER);
+            }
+        }
 
         $name = $productVariant->getTranslation($locale)->getName() ?? $product->getTranslation($locale)->getName();
 
-        return [
+        return array_merge($data, [
             'description' => $name,
-            'amountIncludingTax' => $object->getTotal(),
-            'amountExcludingTax' => $amountWithoutTax,
-            'quantity' => $object->getQuantity(),
-            'id' => $object->getId(),
             'productUrl' => $this->urlGenerator->generate('sylius_shop_product_show', [
                 'slug' => (string) $product->getTranslation($locale)->getSlug(),
                 '_locale' => $locale,
             ], UrlGeneratorInterface::ABSOLUTE_URL),
             'imageUrl' => $this->thumbnailUrlResolver->resolve($productVariant),
-        ];
+        ]);
     }
 
     private function getLocale(?OrderInterface $order): string

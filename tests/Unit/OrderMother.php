@@ -42,7 +42,7 @@ final class OrderMother
 
     public const ITEM_TAX_VALUE = 10;
 
-    public const ITEM_TAX_PERCENT = 24;
+    public const ITEM_TAX_PERCENT = 0.24;
 
     public const ITEM_ID = 31337;
 
@@ -71,6 +71,40 @@ final class OrderMother
         $item->addAdjustment($adjustment);
 
         new OrderItemUnit($item);
+
+        return $item;
+    }
+
+    public static function createOrderItemWithTaxDetails(): OrderItemInterface
+    {
+        $product = new Product();
+        $product->getTranslation(self::LOCALE)->setSlug(self::ITEM_PRODUCT_SLUG);
+
+        $variant = new ProductVariant();
+        $variant->getTranslation(self::LOCALE)->setName(self::ITEM_VARIANT_NAME);
+        $variant->setProduct($product);
+
+        $item = new class() extends OrderItem {
+            public function __construct()
+            {
+                parent::__construct();
+                $this->id = OrderMother::ITEM_ID;
+            }
+        };
+        $item->setVariant($variant);
+        $item->setUnitPrice(self::ITEM_UNIT_PRICE);
+
+        $adjustment = new Adjustment();
+        $adjustment->setType(AdjustmentInterface::TAX_ADJUSTMENT);
+        $adjustment->setAmount(self::ITEM_TAX_VALUE);
+        $adjustment->setDetails([
+            'taxRateAmount' => self::ITEM_TAX_PERCENT,
+        ]);
+
+        $unit = new OrderItemUnit($item);
+        $unit->addAdjustment($adjustment);
+
+        $item->addUnit($unit);
 
         return $item;
     }

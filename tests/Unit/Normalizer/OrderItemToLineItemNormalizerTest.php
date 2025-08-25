@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Normalizer;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Normalizer\AbstractPaymentNormalizer;
 use Sylius\AdyenPlugin\Normalizer\OrderItemToLineItemNormalizer;
@@ -31,17 +32,13 @@ class OrderItemToLineItemNormalizerTest extends TestCase
 
     private const EXPECTED_IMAGE_LINK = 'https://example.com/42.jpg';
 
-    /** @var RequestStack */
-    private $requestStack;
+    private MockObject|UrlGeneratorInterface $urlGenerator;
 
-    /** @var \PHPUnit\Framework\MockObject\MockObject|UrlGeneratorInterface */
-    private $urlGenerator;
+    private MockObject|ThumbnailUrlResolverInterface $thumbnailUrlResolver;
 
-    /** @var ThumbnailUrlResolverInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $thumbnailUrlResolver;
+    private RequestStack $requestStack;
 
-    /** @var OrderItemToLineItemNormalizer */
-    private $normalizer;
+    private OrderItemToLineItemNormalizer $normalizer;
 
     protected function setUp(): void
     {
@@ -71,7 +68,7 @@ class OrderItemToLineItemNormalizerTest extends TestCase
         ?OrderItemInterface $order,
         bool $pass,
     ): void {
-        $this->assertEquals($pass, $this->normalizer->supportsNormalization($order, null, $context));
+        self::assertEquals($pass, $this->normalizer->supportsNormalization($order, null, $context));
     }
 
     public function testNormalize(): void
@@ -92,12 +89,44 @@ class OrderItemToLineItemNormalizerTest extends TestCase
 
         $result = $this->normalizer->normalize($orderItem);
 
-        $this->assertEquals([
-            'description' => OrderMother::ITEM_VARIANT_NAME,
+        self::assertEquals([
             'amountIncludingTax' => OrderMother::ITEM_UNIT_PRICE + OrderMother::ITEM_TAX_VALUE,
             'amountExcludingTax' => OrderMother::ITEM_UNIT_PRICE,
+            'taxAmount' => OrderMother::ITEM_TAX_VALUE,
             'quantity' => 1,
             'id' => OrderMother::ITEM_ID,
+            'description' => OrderMother::ITEM_VARIANT_NAME,
+            'productUrl' => self::EXPECTED_PERMALINK,
+            'imageUrl' => self::EXPECTED_IMAGE_LINK,
+        ], $result);
+    }
+
+    public function testNormalizeWithTaxPercentage(): void
+    {
+        $this->setupRequest();
+
+        $this->urlGenerator
+            ->method('generate')
+            ->willReturn(self::EXPECTED_PERMALINK)
+        ;
+
+        $this->thumbnailUrlResolver
+            ->method('resolve')
+            ->willReturn(self::EXPECTED_IMAGE_LINK)
+        ;
+
+        $orderItem = OrderMother::createOrderItemWithTaxDetails();
+
+        $result = $this->normalizer->normalize($orderItem);
+
+        self::assertEquals([
+            'amountIncludingTax' => OrderMother::ITEM_UNIT_PRICE + OrderMother::ITEM_TAX_VALUE,
+            'amountExcludingTax' => OrderMother::ITEM_UNIT_PRICE,
+            'taxAmount' => OrderMother::ITEM_TAX_VALUE,
+            'quantity' => 1,
+            'id' => OrderMother::ITEM_ID,
+            'taxPercentage' => OrderMother::ITEM_TAX_PERCENT * 10000,
+            'description' => OrderMother::ITEM_VARIANT_NAME,
             'productUrl' => self::EXPECTED_PERMALINK,
             'imageUrl' => self::EXPECTED_IMAGE_LINK,
         ], $result);
