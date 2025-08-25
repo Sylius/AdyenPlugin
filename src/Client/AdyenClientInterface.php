@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -74,4 +75,8 @@ interface AdyenClientInterface
     public function requestCancellation(PaymentInterface $payment): array;
 
     public function requestCapture(PaymentInterface $payment): array;
+
+    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array;
+
+    public function updatesOrderForPaypalExpressCheckout(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderResponse;
 }

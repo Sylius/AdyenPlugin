@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
+use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -63,4 +64,8 @@ interface ClientPayloadFactoryInterface
     public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): PaymentLinkRequest;
 
     public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest;
+
+    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array;
+
+    public function createPaypalUpdateOrderRequest(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderRequest;
 }

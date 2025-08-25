@@ -1,4 +1,4 @@
-import { createFetchOptions, handleResponse } from './utils.js';
+import { createFetchOptions } from './utils.js';
 
 export class GooglePayHandler {
     constructor(configuration) {
@@ -14,7 +14,7 @@ export class GooglePayHandler {
                 shippingAddress,
                 shippingOptionId: shippingOptionData.id
             }));
-            const data = await handleResponse(response);
+            const data = await response.json();
 
             paymentDataRequestUpdate.newShippingOptionParameters = data.shippingOptionParameters;
             paymentDataRequestUpdate.newTransactionInfo = data.transactionInfo;
@@ -35,7 +35,7 @@ export class GooglePayHandler {
                 shippingOptionId: shippingOptionData.id
             }));
 
-            const data = await handleResponse(response);
+            const data = await response.json();
             actions.resolve(data);
         } catch (error) {
             actions.reject(error.message);
@@ -45,7 +45,7 @@ export class GooglePayHandler {
     handleSubmit = async (state) => {
         try {
             const response = await fetch(this.configuration.googlePay.path.payments, createFetchOptions(state.data));
-            const data = await handleResponse(response);
+            const data = await response.json();
             window.location.replace(data.redirect);
         } catch (error) {
             console.error('Payment submission failed:', error);

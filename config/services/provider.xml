@@ -22,14 +22,14 @@
                  alias="sylius_adyen.provider.express_checkout.google_pay.address" />
 
         <service
-            id="sylius_adyen.provider.express_checkout.google_pay.customer"
-            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CustomerProvider"
+            id="sylius_adyen.provider.express_checkout.customer"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProvider"
         >
             <argument type="service" id="sylius.repository.customer"/>
             <argument type="service" id="sylius.factory.customer"/>
         </service>
-        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CustomerProviderInterface"
-                 alias="sylius_adyen.provider.express_checkout.google_pay.customer" />
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.customer" />
 
         <service
             id="sylius_adyen.provider.express_checkout.google_pay.country"

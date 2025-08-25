@@ -1,3 +1,15 @@
-<script src="https://checkoutshopper-live.cdn.adyen.com/checkoutshopper/sdk/6.18.0/adyen.js"
-        integrity="sha384-ZEPvk8M++Rrf/1zMUvnfdO73cZlnj/u9oAGHSeUIIgOXoW0ZrwfyB6pBcIrhDbdd"
-        crossorigin="anonymous"></script>
+{% if app.environment == 'prod' %}
+    <script src="https://checkoutshopper-live.cdn.adyen.com/checkoutshopper/sdk/6.20.0/adyen.js"
+            integrity="sha384-wwv9sSo6gqlAMGJSdvvAh2o68nLbrY/S/tdiiyCIv2h2WIHVZbaOSidsSslZXKY0"
+            crossorigin="anonymous"></script>
+{% else %}
+    <script src="https://checkoutshopper-test.cdn.adyen.com/checkoutshopper/sdk/6.20.0/adyen.js"
+            integrity="sha384-wwv9sSo6gqlAMGJSdvvAh2o68nLbrY/S/tdiiyCIv2h2WIHVZbaOSidsSslZXKY0"
+            crossorigin="anonymous"></script>
+{% endif %}
+
+
+
+
+
+

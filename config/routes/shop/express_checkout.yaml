@@ -15,3 +15,27 @@ sylius_adyen_shop_express_checkout_google_pay_checkout:
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.google_pay.checkout
+
+sylius_adyen_shop_express_checkout_paypal_initialize:
+    path: /adyen/express-checkout/paypal/initialize
+    methods: [POST]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.paypal.initialize
+
+sylius_adyen_shop_express_checkout_paypal_shipping_address_change:
+    path: /adyen/express-checkout/paypal/shipping-address-change
+    methods: [POST]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.paypal.shipping_address_change
+
+sylius_adyen_shop_express_checkout_paypal_shipping_options_change:
+    path: /adyen/express-checkout/paypal/shipping-options-change
+    methods: [POST]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.paypal.shipping_options_change
+
+sylius_adyen_shop_express_checkout_paypal_checkout:
+    path: /adyen/express-checkout/paypal/checkout
+    methods: [POST]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.paypal.checkout

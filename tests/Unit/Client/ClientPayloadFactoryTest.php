@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Client;
 
+use Adyen\Model\Checkout\Amount;
 use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Doctrine\Common\Collections\ArrayCollection;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Checker\EsdCardPaymentSupportCheckerInterface;
 use Sylius\AdyenPlugin\Client\ClientPayloadFactory;
+use Sylius\AdyenPlugin\Client\PaypalUpdateOrderRequestFactoryInterface;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollector;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Collector\ItemDetailLineCollector;
@@ -44,11 +47,14 @@ final class ClientPayloadFactoryTest extends TestCase
 
     private CompositeEsdCollectorInterface $esdCollector;
 
+    private PaypalUpdateOrderRequestFactoryInterface $paypalUpdateOrderRequestFactory;
+
     protected function setUp(): void
     {
         $this->versionResolver = $this->createMock(VersionResolverInterface::class);
         $this->normalizer = $this->createMock(NormalizerInterface::class);
         $this->requestStack = $this->createMock(RequestStack::class);
+        $this->paypalUpdateOrderRequestFactory = $this->createMock(PaypalUpdateOrderRequestFactoryInterface::class);
 
         $level2Collector = new Level2EsdCollector();
         $itemDetailLineCollector = new ItemDetailLineCollector();
@@ -70,6 +76,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $this->normalizer,
             $this->requestStack,
             $this->esdCollector,
+            $this->paypalUpdateOrderRequestFactory,
         );
 
         $this->versionResolver->expects($this->any())
@@ -147,6 +154,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $this->normalizer,
             $this->requestStack,
             $esdCollector,
+            $this->paypalUpdateOrderRequestFactory,
         );
 
         $options = new ArrayObject([
@@ -279,6 +287,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $this->normalizer,
             $this->requestStack,
             $esdCollector,
+            $this->paypalUpdateOrderRequestFactory,
         );
 
         $options = new ArrayObject([
@@ -425,5 +434,62 @@ final class ClientPayloadFactoryTest extends TestCase
         self::assertEquals(['value' => 15000, 'currency' => 'GBP'], $resultArray['amount']);
         self::assertEquals('test@example.uk', $resultArray['shopperEmail']);
         self::assertArrayNotHasKey('shopperLocale', $resultArray);
+    }
+
+    public function testItCreatesPayloadForPaypalPayments(): void
+    {
+        $options = new ArrayObject([
+            'merchantAccount' => 'TestMerchant',
+        ]);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
+        $order->expects($this->once())->method('getItemsSubtotal')->willReturn(5000);
+        $order->expects($this->once())->method('getNumber')->willReturn('000001');
+
+        $receivedPayload = [
+            'paymentMethod' => [
+                'type' => 'paypal',
+            ],
+            'storePaymentMethod' => true,
+        ];
+
+        $result = $this->factory->createForPaypalPayments(
+            $options,
+            $receivedPayload,
+            $order,
+        );
+
+        $this->assertEquals('TestMerchant', $result['merchantAccount']);
+        $this->assertInstanceOf(Amount::class, $result['amount']);
+        $this->assertEquals('USD', $result['amount']->getCurrency());
+        $this->assertEquals(5000, $result['amount']->getValue());
+        $this->assertEquals('000001', $result['reference']);
+        $this->assertEquals('', $result['returnUrl']);
+        $this->assertEquals('paypal', $result['paymentMethod']['type']);
+        $this->assertTrue($result['storePaymentMethod']);
+    }
+
+    public function testItCreatesPaypalUpdateOrderRequest(): void
+    {
+        $pspReference = 'PSP123456';
+        $paymentData = 'test_payment_data';
+
+        $order = $this->createMock(OrderInterface::class);
+
+        $expectedRequest = $this->createMock(PaypalUpdateOrderRequest::class);
+
+        $this->paypalUpdateOrderRequestFactory->expects($this->once())
+            ->method('create')
+            ->with($pspReference, $paymentData, $order)
+            ->willReturn($expectedRequest);
+
+        $result = $this->factory->createPaypalUpdateOrderRequest(
+            $pspReference,
+            $paymentData,
+            $order,
+        );
+
+        $this->assertSame($expectedRequest, $result);
     }
 }

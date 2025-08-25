@@ -1,0 +1,86 @@
+<?php
+
+/*
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
+
+use Adyen\AdyenException;
+use Doctrine\Persistence\ObjectManager;
+use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
+use Sylius\Component\Order\Context\CartContextInterface;
+use Sylius\Component\Order\Processor\OrderProcessorInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
+use Webmozart\Assert\Assert;
+
+final class ShippingOptionsChangeAction
+{
+    public function __construct(
+        private readonly CartContextInterface $cartContext,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly ShippingMethodRepositoryInterface $shippingMethodsRepository,
+        private readonly OrderProcessorInterface $orderProcessor,
+        private readonly ObjectManager $orderManager,
+        private readonly MessageBusInterface $messageBus,
+    ) {
+    }
+
+    public function __invoke(Request $request): JsonResponse
+    {
+        /** @var OrderInterface $order */
+        $order = $this->cartContext->getCart();
+
+        $data = json_decode($request->getContent(), true);
+        Assert::isArray($data);
+
+        $paymentData = $data['paymentData'] ?? null;
+        $pspReference = $data['pspReference'] ?? null;
+        $selectedDeliveryMethod = $data['selectedDeliveryMethod'] ?? null;
+
+        if (!$paymentData || !$pspReference || !$selectedDeliveryMethod) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Missing required parameters: paymentData, pspReference, or selectedDeliveryMethod.',
+            ], 400);
+        }
+
+        try {
+            $shipment = $order->getShipments()->first();
+            $shippingMethod = $this->shippingMethodsRepository->findOneBy(['code' => $selectedDeliveryMethod['id']]);
+
+            $shipment->setMethod($shippingMethod);
+            $this->orderProcessor->process($order);
+            $this->orderManager->flush();
+
+            $this->messageBus->dispatch(new CreatePaymentDetailForPayment($order->getLastPayment()));
+
+            $client = $this->adyenClientProvider->getDefaultClient();
+            $paypalUpdateOrderResponse = $client->updatesOrderForPaypalExpressCheckout(
+                $pspReference,
+                $paymentData,
+                $order,
+            );
+
+            return new JsonResponse($paypalUpdateOrderResponse->toArray());
+        } catch (AdyenException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+                'code' => $exception->getCode(),
+            ], $exception->getCode());
+        }
+    }
+}
