@@ -1,18 +1,47 @@
+import {SELECTORS} from "./constants";
+
 export const createFetchOptions = (data) => ({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
 });
 
-export const handleResponse = async (response) => {
-    if (response.status >= 400 && response.status < 600) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return response.json();
-};
-
 export const loadConfiguration = async (url) => {
     const response = await fetch(url);
-    return await handleResponse(response);
+    return await response.json();
 };
+
+export const showErrorMessage = (message) => {
+    clearErrorMessage();
+
+    const errorElement = document.createElement('div');
+    errorElement.className = 'adyen-payment-error';
+    errorElement.innerHTML = `
+                <span class="error-message">${message}</span>
+                <button class="error-close" onclick="this.parentElement.remove()">×</button>
+            `;
+
+    errorElement.style.cssText = `
+                background-color: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+                border-radius: 4px;
+                padding: 12px 15px;
+                margin-bottom: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+                animation: fadeIn 0.3s ease-in;
+            `;
+
+    const $container = document.getElementById(SELECTORS.CONTAINER);
+    $container.insertBefore(errorElement, $container.firstChild);
+}
+
+export const clearErrorMessage = () => {
+    const existingError = document.querySelector('.adyen-payment-error');
+    if (existingError) {
+        existingError.remove();
+    }
+}

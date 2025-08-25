@@ -13,9 +13,11 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\Model\Checkout\Amount;
 use Adyen\Model\Checkout\PaymentDetails;
 use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
+use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
@@ -67,6 +69,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         private readonly NormalizerInterface $normalizer,
         private readonly RequestStack $requestStack,
         private readonly CompositeEsdCollectorInterface $esdCollector,
+        private readonly PaypalUpdateOrderRequestFactoryInterface $paypalUpdateOrderRequestFactory,
     ) {
         $this->allowedMethodsList = array_values(array_unique(array_merge(
             $this->allowedMethodsList,
@@ -282,6 +285,35 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $request->setStatus('expired');
 
         return $request;
+    }
+
+    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
+    {
+        $payload = [
+            'merchantAccount' => $options['merchantAccount'],
+            'amount' => new Amount([
+                'currency' => $order->getCurrencyCode(),
+                'value' => $order->getItemsSubtotal(),
+            ]),
+            'reference' => $order->getNumber(),
+            'returnUrl' => $returnUrl,
+        ];
+
+        $payload = $this->versionResolver->appendVersionConstraints($payload);
+
+        return array_merge($payload, $receivedPayload);
+    }
+
+    public function createPaypalUpdateOrderRequest(
+        string $pspReference,
+        string $paymentData,
+        OrderInterface $order,
+    ): PaypalUpdateOrderRequest {
+        return $this->paypalUpdateOrderRequestFactory->create(
+            $pspReference,
+            $paymentData,
+            $order,
+        );
     }
 
     private function filterArray(array $payload, array $keysWhitelist): array

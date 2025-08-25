@@ -21,7 +21,7 @@
         </field>
 
         <one-to-one field="payment" target-entity="Sylius\Component\Payment\Model\PaymentInterface">
-            <join-column name="payment_id" />
+            <join-column name="payment_id" on-delete="CASCADE"/>
         </one-to-one>
     </mapped-superclass>
 </doctrine-mapping>

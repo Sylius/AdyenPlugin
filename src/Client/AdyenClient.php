@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Client;
+use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Adyen\Service\Checkout;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
+use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\Modification;
 use Adyen\Service\Recurring;
 use Payum\Core\Bridge\Spl\ArrayObject;
@@ -162,6 +164,34 @@ final class AdyenClient implements AdyenClientInterface
         return $response->toArray();
     }
 
+    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
+    {
+        $payload = $this->clientPayloadFactory->createForPaypalPayments(
+            $this->options,
+            $receivedPayload,
+            $order,
+            $returnUrl,
+        );
+
+        return (array) $this->getCheckout()->payments($payload);
+    }
+
+    public function updatesOrderForPaypalExpressCheckout(
+        string $pspReference,
+        string $paymentData,
+        OrderInterface $order,
+    ): PaypalUpdateOrderResponse {
+        $payload = $this->clientPayloadFactory->createPaypalUpdateOrderRequest(
+            $pspReference,
+            $paymentData,
+            $order,
+        );
+
+        return $this->getCheckoutUtilityApi()->updatesOrderForPaypalExpressCheckout(
+            $payload,
+        );
+    }
+
     public function getEnvironment(): string
     {
         return (string) $this->options['environment'];
@@ -194,6 +224,13 @@ final class AdyenClient implements AdyenClientInterface
     private function getRecurring(): Recurring
     {
         return new Recurring(
+            $this->transport,
+        );
+    }
+
+    private function getCheckoutUtilityApi(): UtilityApi
+    {
+        return new UtilityApi(
             $this->transport,
         );
     }

@@ -11,17 +11,14 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay;
+namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 
 use Doctrine\Persistence\ObjectManager;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifierInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProviderInterface;
-use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
-use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,11 +29,9 @@ final class CheckoutAction
     public function __construct(
         private readonly CartContextInterface $cartContext,
         private readonly ObjectManager $orderManager,
-        private readonly AddressProviderInterface $addressProvider,
         private readonly CustomerProviderInterface $customerProvider,
         private readonly StateMachineInterface $stateMachine,
-        private readonly ShippingMethodRepositoryInterface $shippingMethodRepository,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly OrderAddressModifierInterface $orderAddressModifier,
     ) {
     }
 
@@ -48,32 +43,28 @@ final class CheckoutAction
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
 
-        $email = $data['email'] ?? null;
-        Assert::notNull($email);
-        $shippingAddressData = $data['shippingAddress'] ?? null;
-        Assert::isArray($shippingAddressData);
-        $shippingOptionId = $data['shippingOptionId'] ?? null;
-        Assert::notNull($shippingOptionId);
+        $newBillingAddress = $data['billingAddress'] ?? null;
+        $newShippingAddress = $data['deliveryAddress'] ?? null;
+        $payer = $data['payer'] ?? null;
 
-        $address = $this->addressProvider->createFullAddress($shippingAddressData);
+        if (!isset($newBillingAddress, $newShippingAddress, $payer)) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Missing required parameters: billingAddress, deliveryAddress, or payer.',
+            ], 400);
+        }
 
-        $order->setBillingAddress($address);
-        $order->setShippingAddress($address);
+        $this->orderAddressModifier->modify($order, $newBillingAddress, $newShippingAddress, $payer);
 
+        $email = $payer['email_address'] ?? null;
         $customer = $order->getCustomer();
         if ($customer === null) {
-            $customer = $this->customerProvider->getOrCreateCustomer($email, $address);
+            $customer = $this->customerProvider->getOrCreateCustomer($email, $order->getBillingAddress());
             $order->setCustomer($customer);
         }
 
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_ADDRESS);
-
-        $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $shippingOptionId]);
-        $order->getShipments()->first()->setMethod($shippingMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
-
-        $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
-        $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
 
         $this->orderManager->flush();

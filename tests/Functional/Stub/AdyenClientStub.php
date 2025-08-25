@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Functional\Stub;
 
+use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
@@ -232,5 +233,15 @@ final class AdyenClientStub implements AdyenClientInterface
             'id' => $paymentLinkId,
             'status' => 'expired',
         ];
+    }
+
+    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
+    {
+        return [];
+    }
+
+    public function updatesOrderForPaypalExpressCheckout(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderResponse
+    {
+        return new PaypalUpdateOrderResponse([]);
     }
 }

@@ -24,6 +24,7 @@
             <argument type="service" id="serializer"/>
             <argument type="service" id="request_stack"/>
             <argument type="service" id="sylius_adyen.collector.esd.composite"/>
+            <argument type="service" id="sylius_adyen.client.paypal_update_order_request_factory"/>
         </service>
 
         <service
@@ -59,5 +60,14 @@
         >
             <argument>%sylius_adyen.supported_payment_methods%</argument>
         </service>
+
+        <service
+            id="sylius_adyen.client.paypal_update_order_request_factory"
+            class="Sylius\AdyenPlugin\Client\PaypalUpdateOrderRequestFactory"
+        >
+            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius.registry.shipping_calculator"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Client\PaypalUpdateOrderRequestFactoryInterface" alias="sylius_adyen.client.paypal_update_order_request_factory"/>
     </services>
 </container>

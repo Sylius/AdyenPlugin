@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Webmozart\Assert\Assert;
 
-class ShippingOptionsAction
+final class ShippingOptionsAction
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,
