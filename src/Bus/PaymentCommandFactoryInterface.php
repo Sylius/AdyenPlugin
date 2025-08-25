@@ -28,6 +28,7 @@ interface PaymentCommandFactoryInterface
 {
     public const MAPPING = [
         'authorisation' => AuthorizePayment::class,
+        'authorised' => AuthorizePayment::class, // Special case for external page completion, sync
         'payment_status_received' => PaymentStatusReceived::class,
         'capture' => CapturePayment::class,
         'received' => MarkPaymentAsProcessedCommand::class,
