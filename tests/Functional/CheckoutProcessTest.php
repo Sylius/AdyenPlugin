@@ -19,7 +19,6 @@ use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\Bundle\CoreBundle\Mailer\OrderEmailManagerInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
@@ -28,6 +27,7 @@ use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\OrderCheckoutStates;
+use Sylius\Component\Mailer\Sender\SenderInterface;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -122,10 +122,7 @@ final class CheckoutProcessTest extends WebTestCase
         $this->processNotificationsAction = $container->get('sylius_adyen.controller.shop.process_notifications');
         $this->adyenPaymentDetailRepository = $container->get('sylius_adyen.repository.adyen_payment_detail');
 
-        $container->set(
-            OrderEmailManagerInterface::class,
-            $this->createMock(OrderEmailManagerInterface::class)
-        );
+        $container->set('sylius.email_sender', $this->createMock(SenderInterface::class));
     }
 
     protected function tearDown(): void
