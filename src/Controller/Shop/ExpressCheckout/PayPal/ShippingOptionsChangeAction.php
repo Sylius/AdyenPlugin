@@ -50,7 +50,7 @@ final class ShippingOptionsChangeAction
         $pspReference = $data['pspReference'] ?? null;
         $selectedDeliveryMethod = $data['selectedDeliveryMethod'] ?? null;
 
-        if (!$paymentData || !$pspReference || !$selectedDeliveryMethod) {
+        if (!isset($paymentData, $pspReference, $selectedDeliveryMethod)) {
             return new JsonResponse([
                 'error' => true,
                 'message' => 'Missing required parameters: paymentData, pspReference, or selectedDeliveryMethod.',

@@ -27,7 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
-class ShippingAddressChangeAction
+final class ShippingAddressChangeAction
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,
@@ -51,7 +51,7 @@ class ShippingAddressChangeAction
         $pspReference = $data['pspReference'] ?? null;
         $newAddress = $data['shippingAddress'] ?? null;
 
-        if (!$paymentData || !$pspReference || !$newAddress) {
+        if (!isset($paymentData, $pspReference, $newAddress)) {
             return new JsonResponse([
                 'error' => true,
                 'message' => 'Missing required parameters: paymentData, pspReference, or shippingAddress.',

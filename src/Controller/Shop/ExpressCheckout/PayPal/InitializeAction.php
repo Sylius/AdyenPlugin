@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
-class InitializeAction
+final class InitializeAction
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,

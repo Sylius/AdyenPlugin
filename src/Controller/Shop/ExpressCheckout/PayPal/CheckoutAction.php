@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Webmozart\Assert\Assert;
 
-class CheckoutAction
+final class CheckoutAction
 {
     public function __construct(
         private readonly CartContextInterface $cartContext,
@@ -47,7 +47,7 @@ class CheckoutAction
         $newShippingAddress = $data['deliveryAddress'] ?? null;
         $payer = $data['payer'] ?? null;
 
-        if (!$newBillingAddress || !$newShippingAddress || !$payer) {
+        if (!isset($newBillingAddress, $newShippingAddress, $payer)) {
             return new JsonResponse([
                 'error' => true,
                 'message' => 'Missing required parameters: billingAddress, deliveryAddress, or payer.',

@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Webmozart\Assert\Assert;
 
-class CartConfigurationAction
+final class CartConfigurationAction
 {
     /** @var array<ConfigurationProviderInterface> */
     private array $configurationProviders;
