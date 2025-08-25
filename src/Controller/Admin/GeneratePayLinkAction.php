@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Admin;
 
+use Sylius\AdyenPlugin\Email\Sender\PaymentLinkEmailSenderInterface;
 use Sylius\AdyenPlugin\Exception\PaymentLinkGenerationException;
 use Sylius\AdyenPlugin\Generator\PaymentLinkGeneratorInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -24,12 +25,14 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Webmozart\Assert\Assert;
 
 final class GeneratePayLinkAction
 {
     public function __construct(
         private PaymentRepositoryInterface $paymentRepository,
         private PaymentLinkGeneratorInterface $paymentLinkGenerator,
+        private PaymentLinkEmailSenderInterface $paymentLinkEmailSender,
         private UrlGeneratorInterface $urlGenerator,
         private RequestStack $requestStack,
     ) {
@@ -44,11 +47,14 @@ final class GeneratePayLinkAction
         }
 
         try {
+            $recipient = $payment->getOrder()?->getCustomer()?->getEmail();
+            Assert::stringNotEmpty($recipient, 'Cannot generate payment link for payment without customer email.');
+
             $paymentLink = $this->paymentLinkGenerator->generate($payment);
 
-            $this->addFlash('success', 'sylius_adyen.payment_link.generation_success', [
-                '%url%' => $paymentLink->getPaymentLinkUrl(),
-            ]);
+            $this->paymentLinkEmailSender->send($paymentLink, $recipient);
+
+            $this->addFlash('success', 'sylius_adyen.payment_link.generation_success');
         } catch (PaymentLinkGenerationException) {
             $this->addFlash('error', 'sylius_adyen.payment_link.generation_fail');
         }

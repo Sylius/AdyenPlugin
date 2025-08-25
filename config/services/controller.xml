@@ -49,6 +49,7 @@
         >
             <argument type="service" id="sylius.repository.payment" />
             <argument type="service" id="sylius_adyen.generator.payment_link" />
+            <argument type="service" id="sylius_adyen.email_sender.payment_link" />
             <argument type="service" id="router" />
             <argument type="service" id="request_stack" />
         </service>

@@ -1,4 +1,8 @@
 sylius_adyen:
+    email:
+        payment_link:
+            subject: Payment link
+            content: 'You can complete your payment via: <a href="%payment_link_url%">%payment_link_url%</a>'
     ui:
         api_key: API key
         test_platform: Test platform

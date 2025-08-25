@@ -11,3 +11,9 @@ api_platform:
     mapping:
         paths:
             - '%sylius_adyen_api_platform_mapping_path%'
+
+sylius_mailer:
+    emails:
+        adyen_payment_link:
+            subject: Payment link
+            template: "@SyliusAdyenPlugin/Shop/Email/paymentLink.html.twig"

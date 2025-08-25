@@ -1,0 +1,9 @@
+{% extends '@SyliusCore/Email/layout.html.twig' %}
+
+{% block subject %}
+    {{ 'sylius_adyen.email.payment_link.subject'|trans }}
+{% endblock %}
+
+{% block body %}
+    {{ 'sylius_adyen.email.payment_link.content'|trans({'%payment_link_url%': paymentLinkUrl })|raw }}
+{% endblock %}

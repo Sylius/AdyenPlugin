@@ -22,6 +22,7 @@ use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\Mime\Email;
 
 final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
 {
@@ -37,6 +38,9 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
 
     public function testPaymentLinkGeneration(): void
     {
+        $paymentLinkId = 'PL_TEST_GENERATED_123456';
+        $paymentLinkUrl = 'https://test.adyen.link/PL_TEST_GENERATED_123456';
+
         $this->testOrder->setState(OrderInterface::STATE_NEW);
         $this->testOrder->setPaymentState(OrderPaymentStates::STATE_AWAITING_PAYMENT);
 
@@ -54,8 +58,8 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
         self::assertCount(0, $paymentLinks);
 
         $this->adyenClientStub->setPaymentLinkResponse([
-            'id' => 'PL_TEST_GENERATED_123456',
-            'url' => 'https://test.adyen.link/PL_TEST_GENERATED_123456',
+            'id' => $paymentLinkId,
+            'url' => $paymentLinkUrl,
             'expiresAt' => '2024-12-31T23:59:59Z',
             'reference' => $this->testOrder->getNumber(),
             'amount' => [
@@ -80,17 +84,29 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
 
         /** @var PaymentLinkInterface $paymentLink */
         $paymentLink = $createdPaymentLinks[0];
-        self::assertEquals('PL_TEST_GENERATED_123456', $paymentLink->getPaymentLinkId());
-        self::assertEquals('https://test.adyen.link/PL_TEST_GENERATED_123456', $paymentLink->getPaymentLinkUrl());
+        self::assertEquals($paymentLinkId, $paymentLink->getPaymentLinkId());
+        self::assertEquals($paymentLinkUrl, $paymentLink->getPaymentLinkUrl());
         self::assertEquals($payment, $paymentLink->getPayment());
 
         $paymentDetails = $payment->getDetails();
         self::assertArrayHasKey('id', $paymentDetails);
-        self::assertEquals('PL_TEST_GENERATED_123456', $paymentDetails['id']);
+        self::assertEquals($paymentLinkId, $paymentDetails['id']);
         self::assertArrayHasKey('url', $paymentDetails);
-        self::assertEquals('https://test.adyen.link/PL_TEST_GENERATED_123456', $paymentDetails['url']);
+        self::assertEquals($paymentLinkUrl, $paymentDetails['url']);
         self::assertArrayHasKey('status', $paymentDetails);
         self::assertEquals('active', $paymentDetails['status']);
+
+        /** @var Email $message */
+        $message = self::getMailerMessage();
+        self::assertNotNull($message, 'An email should be sent');
+
+        $expectedEmail = $this->testOrder->getCustomer()->getEmail();
+        $recipients = $message->getTo();
+        self::assertCount(1, $recipients);
+        self::assertEquals($expectedEmail, $recipients[0]->getAddress());
+
+        $emailContent = $message->toString();
+        self::assertStringContainsString($paymentLinkUrl, $emailContent);
     }
 
     public function testPaymentLinkRegeneration(): void
@@ -156,6 +172,19 @@ final class PaymentLinkProcessTest extends AbstractAdyenFunctionalTestCase
         self::assertEquals('https://test.adyen.link/PL_NEW_LINK_789012', $paymentDetails['url']);
         self::assertArrayHasKey('status', $paymentDetails);
         self::assertEquals('active', $paymentDetails['status']);
+
+        /** @var Email $message */
+        $message = self::getMailerMessage();
+        self::assertNotNull($message, 'An email should be sent for regeneration');
+
+        $expectedEmail = $this->testOrder->getCustomer()->getEmail();
+        $recipients = $message->getTo();
+        self::assertCount(1, $recipients);
+        self::assertEquals($expectedEmail, $recipients[0]->getAddress());
+
+        $emailContent = $message->toString();
+        self::assertStringContainsString('https://test.adyen.link/PL_NEW_LINK_789012', $emailContent);
+        self::assertStringNotContainsString('https://test.adyen.link/PL_OLD_LINK_123456', $emailContent);
     }
 
     public function testSuccessfulAuthorizationThroughPaymentLink(): void
