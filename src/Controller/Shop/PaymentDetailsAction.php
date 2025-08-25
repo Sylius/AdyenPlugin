@@ -19,6 +19,7 @@ use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,7 +44,7 @@ class PaymentDetailsAction
 
         /** @var AdyenPaymentDetailInterface $paymentDetail */
         $paymentDetail = $this->adyenPaymentDetailRepository->findOneBy(['payment' => $payment]);
-        if ($payment->getAmount() !== $paymentDetail->getAmount()) {
+        if (OrderCheckoutStates::STATE_COMPLETED !== $order->getCheckoutState() && $payment->getAmount() !== $paymentDetail->getAmount()) {
             return new JsonResponse([
                 'error' => true,
                 'code' => 'AMOUNT_MISMATCH',
