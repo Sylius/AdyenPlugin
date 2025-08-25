@@ -26,6 +26,7 @@ use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -48,6 +49,8 @@ final class CheckoutProcessTest extends WebTestCase
     private MessageBusInterface $messageBus;
 
     private PaymentCommandFactoryInterface $paymentCommandFactory;
+
+    private RepositoryInterface $adyenPaymentDetailRepository;
 
     public static function setUpBeforeClass(): void
     {
@@ -115,6 +118,7 @@ final class CheckoutProcessTest extends WebTestCase
         $this->messageBus = $container->get('sylius.command_bus');
         $this->paymentCommandFactory = $container->get('sylius_adyen.bus.payment_command_factory');
         $this->processNotificationsAction = $container->get('sylius_adyen.controller.shop.process_notifications');
+        $this->adyenPaymentDetailRepository = $container->get('sylius_adyen.repository.adyen_payment_detail');
     }
 
     protected function tearDown(): void

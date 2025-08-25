@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
@@ -50,6 +51,8 @@ final class PaymentStatusReceivedHandler
 
         if ($this->isAccepted($resultCode)) {
             $this->updateOrderState($order);
+        } else {
+            $this->commandBus->dispatch(new CreatePaymentDetailForPayment($payment));
         }
 
         try {

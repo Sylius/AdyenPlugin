@@ -159,5 +159,15 @@
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>
+
+        <service
+                class="Sylius\AdyenPlugin\Bus\Handler\CreatePaymentDetailForPaymentHandler"
+                id="sylius_adyen.bus.handler.create_payment_detail_for_payment"
+        >
+            <argument type="service" id="sylius_adyen.repository.adyen_payment_detail"/>
+            <argument type="service" id="sylius_adyen.custom_factory.adyen_payment_detail"/>
+
+            <tag name="messenger.message_handler" bus="sylius.command_bus" />
+        </service>
     </services>
 </container>

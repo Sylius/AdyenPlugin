@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
+use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,6 +32,7 @@ class PaymentDetailsAction
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
+        private readonly RepositoryInterface $adyenPaymentDetailRepository,
     ) {
     }
 
@@ -37,6 +40,17 @@ class PaymentDetailsAction
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
         $payment = $this->getPayablePayment($order);
+
+        /** @var AdyenPaymentDetailInterface $paymentDetail */
+        $paymentDetail = $this->adyenPaymentDetailRepository->findOneBy(['payment' => $payment]);
+        if ($payment->getAmount() !== $paymentDetail->getAmount()) {
+            return new JsonResponse([
+                'error' => true,
+                'code' => 'AMOUNT_MISMATCH',
+                'message' => 'Your cart has been modified. Refresh the page and try again.',
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $payment->getMethod();
 

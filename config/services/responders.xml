@@ -11,6 +11,7 @@
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
             <argument type="service" id="sylius_adyen.processor.payment_response"/>
+            <argument type="service" id="sylius_adyen.repository.adyen_payment_detail" />
 
             <tag name="controller.service_arguments"/>
         </service>
