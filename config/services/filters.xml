@@ -29,5 +29,14 @@
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
             <tag name="kernel.event_subscriber"/>
         </service>
+
+        <service
+            id="sylius_adyen.event_subscriber.exception"
+            class="Sylius\AdyenPlugin\EventSubscriber\ExceptionSubscriber"
+        >
+            <argument type="service" id="monolog.logger.adyen"/>
+
+            <tag name="kernel.event_subscriber"/>
+        </service>
     </services>
 </container>

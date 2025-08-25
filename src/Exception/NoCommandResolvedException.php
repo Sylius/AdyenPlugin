@@ -11,8 +11,8 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver;
+namespace Sylius\AdyenPlugin\Exception;
 
-class NoCommandResolvedException extends \InvalidArgumentException
+class NoCommandResolvedException extends \RuntimeException
 {
 }

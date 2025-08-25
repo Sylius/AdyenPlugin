@@ -70,16 +70,14 @@ class PaymentStatusReceivedHandlerTest extends TestCase
         $invocation = $shouldPass ? $this->once() : $this->never();
         $this->stateMachine
             ->expects($invocation)
-            ->method('can')
-        ;
+            ->method('can');
 
         $this->commandBus
             ->expects($this->exactly($shouldPass ? 2 : 3))
             ->method('dispatch')
-            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
-        ;
+            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]));
 
-        $command = new PaymentStatusReceived($payment);
+        $command = new PaymentStatusReceived($payment, 'paymentMethodCode');
         ($this->handler)($command);
     }
 
@@ -97,19 +95,17 @@ class PaymentStatusReceivedHandlerTest extends TestCase
                 }
 
                 return Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]);
-            })
-        ;
+            });
 
         $this->paymentRepository
             ->expects($this->once())
             ->method('add')
-            ->with($payment)
-        ;
+            ->with($payment);
 
-        $command = new PaymentStatusReceived($payment);
+        $command = new PaymentStatusReceived($payment, 'paymentMethodCode');
         ($this->handler)($command);
 
-        $this->assertTrue($createReferenceDispatched, 'CreateReferenceForPayment command should be dispatched');
+        self::assertTrue($createReferenceDispatched, 'CreateReferenceForPayment command should be dispatched');
     }
 
     #[DataProvider('provideOrderStateTransitionScenarios')]
@@ -121,7 +117,8 @@ class PaymentStatusReceivedHandlerTest extends TestCase
         bool $shouldAddOrder,
         bool $shouldDispatchConfirmation,
         ?string $expectedToken = null,
-    ): void {
+    ): void
+    {
         $payment = $this->createPaymentWithOrder($resultCode, $token);
         $order = $payment->getOrder();
 
@@ -129,26 +126,22 @@ class PaymentStatusReceivedHandlerTest extends TestCase
             ->expects($this->once())
             ->method('can')
             ->with($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE)
-            ->willReturn($canTransition)
-        ;
+            ->willReturn($canTransition);
 
         $this->stateMachine
             ->expects($shouldApplyTransition ? $this->once() : $this->never())
             ->method('apply')
-            ->with($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE)
-        ;
+            ->with($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_COMPLETE);
 
         $this->orderRepository
             ->expects($shouldAddOrder ? $this->once() : $this->never())
             ->method('add')
-            ->with($order)
-        ;
+            ->with($order);
 
         $this->paymentRepository
             ->expects($this->once())
             ->method('add')
-            ->with($payment)
-        ;
+            ->with($payment);
 
         $sendOrderConfirmationDispatched = false;
         $this->commandBus
@@ -158,18 +151,17 @@ class PaymentStatusReceivedHandlerTest extends TestCase
                 if ($command instanceof SendOrderConfirmation) {
                     $sendOrderConfirmationDispatched = true;
                     if ($expectedToken !== null) {
-                        $this->assertSame($expectedToken, $command->orderToken);
+                        self::assertSame($expectedToken, $command->orderToken);
                     }
                 }
 
                 return Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]);
-            })
-        ;
+            });
 
-        $command = new PaymentStatusReceived($payment);
+        $command = new PaymentStatusReceived($payment, 'paymentMethodCode');
         ($this->handler)($command);
 
-        $this->assertSame($shouldDispatchConfirmation, $sendOrderConfirmationDispatched);
+        self::assertSame($shouldDispatchConfirmation, $sendOrderConfirmationDispatched);
     }
 
     public function testUnmappedAdyenActionExceptionHandled(): void
@@ -178,22 +170,20 @@ class PaymentStatusReceivedHandlerTest extends TestCase
 
         $this->commandFactory
             ->method('createForEvent')
-            ->willThrowException(new UnmappedAdyenActionException('Unknown action'))
-        ;
+            ->willThrowException(new UnmappedAdyenActionException('Unknown action'));
 
         $this->commandBus
             ->expects($this->atLeastOnce())
             ->method('dispatch')
-            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
-        ;
+            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]));
 
         $this->paymentRepository
             ->expects($this->once())
             ->method('add')
-            ->with($payment)
-        ;
+            ->with($payment);
 
-        $command = new PaymentStatusReceived($payment);
+        $command = new PaymentStatusReceived($payment, 'paymentMethodCode');
+
         ($this->handler)($command);
     }
 
@@ -209,15 +199,14 @@ class PaymentStatusReceivedHandlerTest extends TestCase
                 }
 
                 return Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]);
-            })
-        ;
+            });
 
         $this->paymentRepository
             ->expects($this->never())
-            ->method('add')
-        ;
+            ->method('add');
 
-        $command = new PaymentStatusReceived($payment);
+        $command = new PaymentStatusReceived($payment, 'paymentMethodCode');
+
         ($this->handler)($command);
     }
 

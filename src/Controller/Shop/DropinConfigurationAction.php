@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -28,38 +29,17 @@ use Webmozart\Assert\Assert;
 
 class DropinConfigurationAction
 {
-    public const TRANSLATIONS = [
+    private const TRANSLATIONS = [
         'sylius_adyen.runtime.payment_failed_try_again',
     ];
 
-    /** @var CartContextInterface */
-    private $cartContext;
-
-    /** @var PaymentMethodsForOrderProvider */
-    private $paymentMethodsForOrderProvider;
-
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-
-    /** @var TranslatorInterface */
-    private $translator;
-
     public function __construct(
-        CartContextInterface $cartContext,
-        PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
-        UrlGeneratorInterface $urlGenerator,
-        OrderRepositoryInterface $orderRepository,
-        TranslatorInterface $translator,
-    ) {
-        $this->cartContext = $cartContext;
-        $this->paymentMethodsForOrderProvider = $paymentMethodsForOrderProvider;
-        $this->urlGenerator = $urlGenerator;
-        $this->orderRepository = $orderRepository;
-        $this->translator = $translator;
-    }
+        private readonly CartContextInterface $cartContext,
+        private readonly PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly TranslatorInterface $translator,
+    ) {}
 
     public function __invoke(
         Request $request,
@@ -72,7 +52,7 @@ class DropinConfigurationAction
             return $this->getResponseForDroppedOrder($request);
         }
 
-        $config = $this->paymentMethodsForOrderProvider->provideConfiguration($order, $code);
+        $config = $this->paymentMethodsForOrderProvider->provideConfiguration($order, AdyenClientProviderInterface::FACTORY_NAME);
         Assert::isArray($config);
 
         $billingAddress = $order->getBillingAddress();
@@ -84,14 +64,7 @@ class DropinConfigurationAction
         ];
 
         return new JsonResponse([
-            'billingAddress' => [
-                'firstName' => $billingAddress->getFirstName(),
-                'lastName' => $billingAddress->getLastName(),
-                'countryCode' => $billingAddress->getCountryCode(),
-                'province' => $billingAddress->getProvinceName() ?? $billingAddress->getProvinceCode(),
-                'city' => $billingAddress->getCity(),
-                'postcode' => $billingAddress->getPostcode(),
-            ],
+            'billingAddress' => $this->normalizeBillingAddress($billingAddress),
             'paymentMethods' => $config['paymentMethods'],
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
@@ -113,53 +86,56 @@ class DropinConfigurationAction
         ]);
     }
 
+    private function normalizeBillingAddress(AddressInterface $billingAddress): array
+    {
+        return [
+            'firstName' => $billingAddress->getFirstName(),
+            'lastName' => $billingAddress->getLastName(),
+            'countryCode' => $billingAddress->getCountryCode(),
+            'province' => $billingAddress->getProvinceName() ?? $billingAddress->getProvinceCode(),
+            'city' => $billingAddress->getCity(),
+            'postcode' => $billingAddress->getPostcode(),
+        ];
+    }
+
     private function getTranslations(): array
     {
-        $result = [];
-        foreach (self::TRANSLATIONS as $key) {
-            $result[$key] = $this->translator->trans($key);
-        }
+        $translated = array_map([$this->translator, 'trans'], self::TRANSLATIONS);
 
-        return $result;
+        return array_combine(self::TRANSLATIONS, $translated) ?: [];
     }
 
     private function getOrder(?string $orderToken = null): ?OrderInterface
     {
         if (null === $orderToken) {
-            $order = $this->cartContext->getCart();
-        } else {
-            $order = $this->orderRepository->findOneByTokenValue($orderToken);
-
-            if (null === $order) {
-                $order = $this->orderRepository->findCartByTokenValue($orderToken);
-            }
+            /** @var ?OrderInterface $cart */
+            $cart = $this->cartContext->getCart();
+            return $cart;
         }
 
-        /**
-         * @var ?OrderInterface $result
-         */
-        $result = $order;
+        /** @var ?OrderInterface $order */
+        $order = $this->orderRepository->findOneByTokenValue($orderToken)
+            ?? $this->orderRepository->findCartByTokenValue($orderToken);
 
-        return $result;
+        return $order;
     }
 
     private function getResponseForDroppedOrder(Request $request): JsonResponse
     {
-        /**
-         * @var ?string $tokenValue
-         */
-        $tokenValue = $request->getSession()->get(
+        $session = $request->getSession();
+
+        /** @var ?string $tokenValue */
+        $tokenValue = $session->get(
             PreserveOrderTokenUponRedirectionCallback::NON_FINALIZED_CART_SESSION_KEY,
         );
 
-        try {
-            if (null === $tokenValue) {
-                throw new NotFoundHttpException();
-            }
-        } finally {
-            $request->getSession()->remove(
-                PreserveOrderTokenUponRedirectionCallback::NON_FINALIZED_CART_SESSION_KEY,
-            );
+        // Always clear the session key regardless of outcome
+        $session->remove(
+            PreserveOrderTokenUponRedirectionCallback::NON_FINALIZED_CART_SESSION_KEY,
+        );
+
+        if (null === $tokenValue) {
+            throw new NotFoundHttpException();
         }
 
         return new JsonResponse([

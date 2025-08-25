@@ -53,13 +53,9 @@ final class CreateReferenceForPaymentHandler
 
         $code = (string) $method->getCode();
 
-        try {
-            return $this->adyenReferenceRepository->getOneByCodeAndReference(
-                $code,
-                (string) $adyenReference->getPspReference(),
-            );
-        } catch (NoResultException $ex) {
-            return null;
-        }
+        return $this->adyenReferenceRepository->getOneByPaymentMethodCodeAndReference(
+            $code,
+            (string) $adyenReference->getPspReference(),
+        );
     }
 }

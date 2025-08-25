@@ -11,13 +11,13 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Resolver\Notification\Struct;
+namespace Sylius\AdyenPlugin\Command\AutoRescue;
 
-class NotificationRequest
+final class AutoRescueFailed
 {
-    /** @var ?bool */
-    public $live;
-
-    /** @var ?NotificationItem[] */
-    public $notificationItems;
+    public function __construct(
+        public readonly string $merchantReference,
+        public readonly string $pspReference,
+    ) {
+    }
 }

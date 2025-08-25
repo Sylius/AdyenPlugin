@@ -21,9 +21,9 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class AdyenReferenceRepository extends EntityRepository implements AdyenReferenceRepositoryInterface
 {
-    public function getOneByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface
+    public function getOneByPaymentMethodCodeAndReference(string $paymentMethodCode, string $pspReference): ?AdyenReferenceInterface
     {
-        return $this->getQueryBuilderForCodeAndReference($code, $pspReference)->getQuery()->getSingleResult();
+        return $this->getQueryBuilderForCodeAndReference($paymentMethodCode, $pspReference)->getQuery()->getOneOrNullResult();
     }
 
     /**

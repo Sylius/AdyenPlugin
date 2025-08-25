@@ -23,6 +23,7 @@ use Adyen\Service\Modification;
 use Adyen\Service\Recurring;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Model\PaymentOutcome;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;

@@ -13,16 +13,23 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Command;
 
+use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 
-final class RefundPayment
+final class RefundPayment implements PaymentLifecycleCommand
 {
-    public function __construct(private RefundPaymentInterface $refundPayment)
+    public function __construct(private readonly RefundPaymentInterface $refundPayment)
     {
     }
 
     public function getRefundPayment(): RefundPaymentInterface
     {
         return $this->refundPayment;
+    }
+
+    public function getPayment(): PaymentInterface
+    {
+        throw new \LogicException('TODO: Remove getPayment() method in Interface PaymentLifecycleCommand. to make commands stateless');
+
     }
 }

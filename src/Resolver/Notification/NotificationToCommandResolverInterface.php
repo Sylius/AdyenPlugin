@@ -17,5 +17,5 @@ use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 
 interface NotificationToCommandResolverInterface
 {
-    public function resolve(string $paymentCode, NotificationItemData $notificationData): object;
+    public function resolve(string $paymentMethodCode, NotificationItemData $notificationItemData): object;
 }

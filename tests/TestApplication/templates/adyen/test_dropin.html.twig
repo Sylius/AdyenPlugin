@@ -1,0 +1,98 @@
+{# templates/adyen/test_dropin.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <title>Sylius Adyen Headless Demo</title>
+    <script
+            src="https://checkoutshopper-test.cdn.adyen.com/checkoutshopper/sdk/6.18.0/adyen.js"
+            integrity="sha384-ZEPvk8M++Rrf/1zMUvnfdO73cZlnj/u9oAGHSeUIIgOXoW0ZrwfyB6pBcIrhDbdd"
+            crossorigin="anonymous"
+    ></script>
+    <link
+            rel="stylesheet"
+            href="https://checkoutshopper-test.cdn.adyen.com/checkoutshopper/sdk/6.18.0/adyen.css"
+            integrity="sha384-lCDmpxn4G68y4vohxVVEuRcbz4iZTDh1u/FLlsCV1wSbibWKs+knhLQpgzPBqap4"
+            crossorigin="anonymous"
+    />
+</head>
+<body>
+<div id="dropin-container" style="max-width:400px;margin:2em auto;"></div>
+
+<script>
+    (async () => {
+        const gatewayCode = '{{ gatewayCode }}';
+        const orderToken = '{{ orderToken }}';
+
+        // 1) Pobranie konfiguracji dla Drop-in
+        const response = await fetch(`/api/v2/shop/payment/adyen/${gatewayCode}/${orderToken}`, {
+            headers: { 'Accept': 'application/json' }
+        });
+        const config = await response.json();
+
+        const { AdyenCheckout, Dropin } = window.AdyenWeb;
+        const errorKey = 'sylius_adyen.runtime.payment_failed_try_again';
+        const errorMsg = config.translations[errorKey];
+
+        // URL do /payments/details (fallback jeśli backend nie zwraca wprost)
+        const detailsUrl = (config.path && (config.path.details || (config.path.payments + '/details')));
+
+        const handleResult = (res, component) => {
+            if (res?.resultCode === 'Authorised') {
+                window.location.href = `/${config.locale}/payment/adyen/${gatewayCode}/thanks`;
+            } else if (res?.action) {
+                component.handleAction(res.action);
+            } else if (res?.resultCode === 'Pending' || res?.resultCode === 'Received') {
+                // opcjonalnie: redirect na stronę "pending"
+                component.setStatus('success', { message: 'Payment pending/received.' });
+            } else {
+                component.setStatus('error', { message: errorMsg });
+            }
+        };
+
+        const checkout = await AdyenCheckout({
+            clientKey: config.clientKey,
+            environment: config.environment,
+            paymentMethodsResponse: config.paymentMethods,
+            amount: config.amount,
+            countryCode: config.billingAddress.countryCode,
+            locale: config.locale,
+
+            onError: (err, component) => {
+                console.error('Adyen error:', err);
+                component.setStatus('error', { message: errorMsg });
+            },
+
+            // 2) Ważne: onSubmit MUSI zwracać Promise
+            onSubmit: (state, component) => {
+                if (!state.isValid) return;
+                return fetch(config.path.payments, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state.data)
+                })
+                    .then(r => r.json())
+                    .then(res => handleResult(res, component))
+                    .catch(() => component.setStatus('error', { message: errorMsg }));
+            },
+
+            // 3) KLUCZOWE DLA 3DS: onAdditionalDetails MUSI zwracać Promise
+            onAdditionalDetails: (state, component) => {
+                return fetch(detailsUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state.data)
+                })
+                    .then(r => r.json())
+                    .then(res => handleResult(res, component))
+                    .catch(() => component.setStatus('error', { message: errorMsg }));
+            }
+        });
+
+        // Montowanie Drop-in
+        const dropin = new Dropin(checkout);
+        dropin.mount('#dropin-container');
+    })();
+</script>
+</body>
+</html>

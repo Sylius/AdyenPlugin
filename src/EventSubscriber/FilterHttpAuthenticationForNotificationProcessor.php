@@ -30,18 +30,10 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
 
     public const ROUTE_NAME = 'sylius_adyen_shop_process_notifications';
 
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var LoggerInterface */
-    private $logger;
-
     public function __construct(
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        LoggerInterface $logger,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly LoggerInterface $logger,
     ) {
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->logger = $logger;
     }
 
     public static function getSubscribedEvents(): array
@@ -64,7 +56,10 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
             return;
         }
 
-        throw new HttpException(Response::HTTP_FORBIDDEN);
+        throw new HttpException(
+            Response::HTTP_FORBIDDEN,
+            'Forbidden: Invalid credentials provided for webhook authentication.',
+        );
     }
 
     private function getConfiguration(string $code): array

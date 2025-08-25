@@ -14,52 +14,69 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Psr\Log\LoggerInterface;
-use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\NoCommandResolvedException;
+use Sylius\AdyenPlugin\Classifier\PaymentResultClassifierInterface;
+use Sylius\AdyenPlugin\Dispatcher\PaymentResultDispatcherInterface;
+use Sylius\AdyenPlugin\Enum\PaymentResultType;
+use Sylius\AdyenPlugin\Event\PaymentOutcomeEvent;
 use Sylius\AdyenPlugin\Resolver\Notification\NotificationResolverInterface;
-use Sylius\AdyenPlugin\Resolver\Notification\NotificationToCommandResolverInterface;
+use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\AdyenPlugin\Resolver\PaymentIdResolverInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Messenger\MessageBusInterface;
 
 class ProcessNotificationsAction
 {
     public const EXPECTED_ADYEN_RESPONSE = '[accepted]';
 
     public function __construct(
-        private readonly NotificationToCommandResolverInterface $notificationCommandResolver,
         private readonly NotificationResolverInterface $notificationResolver,
         private readonly LoggerInterface $logger,
-        private readonly MessageBusInterface $messageBus,
-    ) {
+        private readonly PaymentIdResolverInterface $paymentIdResolver,
+        private readonly PaymentResultClassifierInterface $paymentResultClassifier,
+        private readonly PaymentResultDispatcherInterface $paymentResultDispatcher,
+    )
+    {
     }
 
     public function __invoke(string $paymentMethodCode, Request $request): Response
     {
         foreach ($this->notificationResolver->resolve($paymentMethodCode, $request) as $notificationItem) {
-            if (null === $notificationItem || false === $notificationItem->success) {
-                $this->logger->error(\sprintf(
-                    'Payment with pspReference [%s] did not return success',
-                    $notificationItem->pspReference ?? '',
+            $this->logProcessingNotification($notificationItem);
+
+            $paymentId = $this->paymentIdResolver->resolveFromNotification($notificationItem);
+            if (null === $paymentId) {
+                $this->logger->warning(sprintf(
+                    'Cannot resolve paymentId for eventCode [%s], pspReference [%s], merchantReference [%s]',
+                    $n->eventCode ?? '', $n->pspReference ?? '', $n->merchantReference ?? '',
                 ));
-            } else {
-                $this->logger->debug(\sprintf(
-                    'Payment with pspReference [%s] finished with event code [%s]',
-                    $notificationItem->pspReference ?? '',
-                    $notificationItem->eventCode ?? '',
-                ));
+                continue;
             }
 
-            try {
-                $command = $this->notificationCommandResolver->resolve($paymentMethodCode, $notificationItem);
-                $this->messageBus->dispatch($command);
-            } catch (NoCommandResolvedException $ex) {
-                $this->logger->error(sprintf(
-                    'Tried to dispatch an unknown command. Notification body: %s',
-                    json_encode($notificationItem, \JSON_PARTIAL_OUTPUT_ON_ERROR),
-                ));
-            }
+            $paymentResult = $this->paymentResultClassifier->classify($paymentId, [
+                'eventCode' => $notificationItem->eventCode,
+                'success' => (bool)$notificationItem->success,
+            ]);
+
+            $this->paymentResultDispatcher->dispatch($paymentResult);
         }
 
         return new Response(self::EXPECTED_ADYEN_RESPONSE);
+    }
+
+    private function logProcessingNotification(NotificationItemData $notificationItemData): void
+    {
+        if (false === $notificationItemData->success) {
+            $this->logger->error(\sprintf(
+                'Payment with pspReference [%s] did not return success',
+                $notificationItemData->pspReference ?? '',
+            ));
+        } else {
+            $this->logger->debug(\sprintf(
+                'Payment with pspReference [%s] finished with event code [%s]',
+                $notificationItemData->pspReference ?? '',
+                $notificationItemData->eventCode ?? '',
+            ));
+        }
     }
 }

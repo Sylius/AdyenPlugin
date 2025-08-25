@@ -31,8 +31,6 @@ final class PaymentProcessingResponseProcessor extends AbstractProcessor
     public function __construct(
         UrlGeneratorInterface $urlGenerator,
         TranslatorInterface $translator,
-        private readonly MessageBusInterface $messageBus,
-        private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
     ) {
         parent::__construct($urlGenerator, $translator);
     }
@@ -47,9 +45,6 @@ final class PaymentProcessingResponseProcessor extends AbstractProcessor
         Request $request,
         PaymentInterface $payment,
     ): string {
-        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
-        $this->messageBus->dispatch($paymentStatusReceivedCommand);
-
         $this->addFlash($request, self::FLASH_INFO, self::LABEL_PROCESSING);
 
         return $this->generateUrl(self::REDIRECT_TARGET_ROUTE, $request, $payment);

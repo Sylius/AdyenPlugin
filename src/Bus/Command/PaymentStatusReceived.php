@@ -13,20 +13,11 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Command;
 
-use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\AdyenPlugin\Model\PaymentOutcome;
 
 final class PaymentStatusReceived implements PaymentLifecycleCommand
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
+    public function __construct(public readonly PaymentOutcome $paymentOutcome)
     {
-        $this->payment = $payment;
-    }
-
-    public function getPayment(): PaymentInterface
-    {
-        return $this->payment;
     }
 }

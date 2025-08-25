@@ -1,8 +1,3 @@
-Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationRequest:
-  properties:
-    notificationItems:
-      - Valid: ~
-
 Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItem:
   properties:
     notificationRequestItem:

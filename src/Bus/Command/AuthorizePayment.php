@@ -13,26 +13,11 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Bus\Command;
 
-use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Payment\PaymentTransitions;
-
-final class AuthorizePayment implements PaymentFinalizationCommand
+final class AuthorizePayment implements PaymentLifecycleCommand
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
-    {
-        $this->payment = $payment;
-    }
-
-    public function getPayment(): PaymentInterface
-    {
-        return $this->payment;
-    }
-
-    public function getPaymentTransition(): string
-    {
-        return PaymentTransitions::TRANSITION_AUTHORIZE;
+    public function __construct(
+        public readonly string $paymentMethodCode,
+        public readonly string $pspReference,
+    ) {
     }
 }

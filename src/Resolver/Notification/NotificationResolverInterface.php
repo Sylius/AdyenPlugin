@@ -18,8 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 interface NotificationResolverInterface
 {
-    /**
-     * @return NotificationItemData[]
-     */
+    /** @return NotificationItemData[] */
     public function resolve(string $paymentCode, Request $request): array;
 }

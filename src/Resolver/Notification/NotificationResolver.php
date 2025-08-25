@@ -17,6 +17,7 @@ use Psr\Log\LoggerInterface;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final class NotificationResolver implements NotificationResolverInterface
@@ -33,25 +34,22 @@ final class NotificationResolver implements NotificationResolverInterface
     ) {
     }
 
-    /**
-     * @return NotificationItemData[]
-     */
+    /** @return NotificationItemData[] */
     public function resolve(string $paymentCode, Request $request): array
     {
         $result = [];
-        foreach ($this->denormalizeRequestData($request) as $item) {
-            $item->paymentCode = $paymentCode;
+        foreach ($this->denormalizeRequestData($request) as $notificationItemData) {
+            $notificationItemData->paymentCode = $paymentCode;
 
-            $validationResult = $this->validator->validate($item);
-            if (0 < $validationResult->count()) {
-                $this->logger->error(
-                    'Denormalization violations: ' . \var_export($validationResult, true),
+            $violations = $this->validator->validate($notificationItemData);
+            if ($violations->count() > 0) {
+                $this->logger->warning(
+                    'Invalid notification item received from Adyen: ' . $this->formatViolations($violations)
                 );
-
                 continue;
             }
 
-            $result[] = $item;
+            $result[] = $notificationItemData;
         }
 
         return $result;
@@ -81,5 +79,20 @@ final class NotificationResolver implements NotificationResolverInterface
         }
 
         return $result;
+    }
+
+    private function formatViolations(ConstraintViolationListInterface $violations): string
+    {
+        $messages = [];
+        foreach ($violations as $violation) {
+            $messages[] = sprintf(
+                '%s: %s (given: %s)',
+                $violation->getPropertyPath(),
+                $violation->getMessage(),
+                $violation->getInvalidValue(),
+            );
+        }
+
+        return implode('; ', $messages);
     }
 }

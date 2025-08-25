@@ -6,6 +6,14 @@
         <defaults public="true"/>
 
         <service
+                class="Sylius\AdyenPlugin\Resolver\PaymentIdResolver"
+                id="sylius_adyen.resolver.payment_id"
+        >
+            <argument type="service" id="sylius.repository.payment"/>
+            <argument type="service" id="sylius.repository.order"/>
+        </service>
+
+        <service
                 class="Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolver"
                 id="sylius_adyen.resolver.order.payment_checkout_order"
         >
@@ -15,19 +23,28 @@
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\PaymentNotificationResolver"
+            class="Sylius\AdyenPlugin\Resolver\Notification\Command\AuthorizationCommandResolver"
             id="sylius_adyen.resolver.notification.notification_resolver.payment_notification"
+        >
+            <tag name="sylius_adyen.resolver.notification.command_resolver"/>
+        </service>
+
+        <service
+            id="sylius_adyen.resolver.notification.refund_command"
+            class="Sylius\AdyenPlugin\Resolver\Notification\Command\RefundCommandResolver"
         >
             <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
             <argument type="service" id="sylius_adyen.repository.payment_link" />
             <argument type="service" id="sylius_adyen.bus.payment_command_factory"/>
 
             <tag name="sylius_adyen.resolver.notification.command_resolver"/>
+
+            <tag name="sylius_adyen.resolver.notification.command_resolver"/>
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver\RefundNotificationResolver"
-            id="sylius_adyen.resolver.notification.processor.refund_notification"
+            id="sylius_adyen.resolver.notification.auto_rescue_command"
+            class="Sylius\AdyenPlugin\Resolver\Notification\Command\AutoRescueCommandResolver"
         >
             <argument type="service" id="sylius_adyen.repository.adyen_reference"/>
 

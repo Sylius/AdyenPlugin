@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
-use Adyen\AdyenException;
-use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
+use Sylius\AdyenPlugin\Classifier\PaymentResultClassifierInterface;
 use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
+use Sylius\AdyenPlugin\Decider\PaymentRedirectDeciderInterface;
+use Sylius\AdyenPlugin\Dispatcher\PaymentResultDispatcherInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
-use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
@@ -45,9 +45,11 @@ class PaymentsAction
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
         private readonly PaymentReferencesClearerInterface $paymentReferencesClearer,
-        MessageBusInterface $messageBus,
+        private readonly PaymentRedirectDeciderInterface $paymentRedirectDecider,
+        private readonly PaymentResultClassifierInterface $paymentResultClassifier,
+        private readonly PaymentResultDispatcherInterface $paymentResultDispatcher,
+        MessageBusInterface $messageBus
     ) {
         $this->messageBus = $messageBus;
     }
@@ -72,37 +74,25 @@ class PaymentsAction
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
 
-        try {
-            $this->paymentReferencesClearer->clear($payment);
+        $this->paymentReferencesClearer->clear($payment);
 
-            $result = $client->submitPayment(
-                $url,
-                $request->request->all(),
-                $order,
-                $customerIdentifier,
-            );
+        $result = $client->submitPayment(
+            $url,
+            $request->request->all(),
+            $order,
+            $customerIdentifier,
+        );
 
-            $payment->setDetails($result);
-            $this->messageBus->dispatch(new PaymentStatusReceived($payment));
-
-            return new JsonResponse(
-                $payment->getDetails()
-                +
-                [
-                    'redirect' => $this->paymentResponseProcessor->process(
-                        (string) $paymentMethod->getCode(),
-                        $request,
-                        $payment,
-                    ),
-                ],
-            );
-        } catch (AdyenException $exception) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => $exception->getMessage(),
-                'code' => $exception->getCode(),
-            ], $exception->getCode());
+        // If Adyen returned an `action`, the frontend must continue the flow (3DS/redirect/etc.)
+        if ($this->paymentRedirectDecider->shouldRedirect($result) === true) {
+            return new JsonResponse($result);
         }
+
+        $payment->setDetails($result);
+        $paymentResult = $this->paymentResultClassifier->classify($payment->getId(), $result);
+        $this->paymentResultDispatcher->dispatch($paymentResult);
+
+        return new JsonResponse($result);
     }
 
     private function prepareTargetUrl(PaymentMethodInterface $paymentMethod, Request $request): string

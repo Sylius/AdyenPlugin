@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
+use Sylius\AdyenPlugin\Bus\Command\FailPayment;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,15 +32,6 @@ final class FailedResponseProcessor extends AbstractProcessor
 
     public const LABEL_PAYMENT_FAILED = 'sylius_adyen.ui.payment_failed';
 
-    public function __construct(
-        UrlGeneratorInterface $urlGenerator,
-        TranslatorInterface $translator,
-        private readonly MessageBusInterface $messageBus,
-        private readonly PaymentCommandFactoryInterface $paymentCommandFactory,
-    ) {
-        parent::__construct($urlGenerator, $translator);
-    }
-
     public function accepts(Request $request, ?PaymentInterface $payment): bool
     {
         return $this->isResultCodeSupportedForPayment($payment, self::PAYMENT_REFUSED_CODES);
@@ -51,9 +43,6 @@ final class FailedResponseProcessor extends AbstractProcessor
         PaymentInterface $payment,
     ): string {
         $this->addFlash($request, self::FLASH_ERROR, self::LABEL_PAYMENT_FAILED);
-
-        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
-        $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
         return $this->getRedirectUrl($payment, $request);
     }

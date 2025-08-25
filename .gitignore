@@ -16,3 +16,4 @@ composer.lock
 /tests/TestApplication/.env.*.local
 
 /.claude/
+/bin

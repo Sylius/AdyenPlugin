@@ -1,3 +1,10 @@
+sylius_adyen_shop_process_notifications:
+    path: /payment/adyen/{code}/notifications
+    controller: sylius_adyen.controller.shop.process_notifications
+sylius_adyen_shop_process_test:
+    path: /test/adyen/drop-in/{orderToken}
+    controller: sylius_adyen.controller.shop.adyen_test_controller
+
 sylius_adyen_localized:
     resource: "@SyliusAdyenPlugin/config/routes/shop/localized.yaml"
 

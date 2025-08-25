@@ -72,9 +72,7 @@ class PaymentRefundedHandlerTest extends TestCase
         $refundPayment = $this->createMock(RefundPaymentInterface::class);
         $adyenReference = $this->createMock(AdyenReferenceInterface::class);
 
-        $amount = new Amount();
-        $amount->value = 1000;
-        $amount->currency = 'EUR';
+        $amount = new Amount('EUR', 1000);
 
         $notificationData = new NotificationItemData();
         $notificationData->amount = $amount;
@@ -224,38 +222,12 @@ class PaymentRefundedHandlerTest extends TestCase
 
     public static function provideRefundCreationScenarios(): iterable
     {
-        $amount = new Amount();
-        $amount->value = 1000;
-        $amount->currency = 'EUR';
+        $amount = new Amount('EUR', 1000);
 
         yield 'creates refund with notification amount' => [
             'amount' => $amount,
             'expectedAmount' => 1000,
             'expectedCurrency' => 'EUR',
-        ];
-
-        $amountWithoutValue = new Amount();
-        $amountWithoutValue->currency = 'USD';
-
-        yield 'uses payment amount when notification amount value is null' => [
-            'amount' => $amountWithoutValue,
-            'expectedAmount' => 1500,
-            'expectedCurrency' => 'USD',
-        ];
-
-        $amountWithoutCurrency = new Amount();
-        $amountWithoutCurrency->value = 2000;
-
-        yield 'uses payment currency when notification amount currency is null' => [
-            'amount' => $amountWithoutCurrency,
-            'expectedAmount' => 2000,
-            'expectedCurrency' => 'GBP',
-        ];
-
-        yield 'uses payment amount and currency when notification amount is null' => [
-            'amount' => null,
-            'expectedAmount' => 3000,
-            'expectedCurrency' => 'PLN',
         ];
     }
 
@@ -268,9 +240,7 @@ class PaymentRefundedHandlerTest extends TestCase
         $order = $this->createMock(OrderInterface::class);
         $paymentMethod = $this->createMock(PaymentMethodInterface::class);
 
-        $amount = new Amount();
-        $amount->value = 1000;
-        $amount->currency = 'EUR';
+        $amount = new Amount('EUR', 1000);
 
         $notificationData = new NotificationItemData();
         $notificationData->amount = $amount;
@@ -340,9 +310,7 @@ class PaymentRefundedHandlerTest extends TestCase
         $refundPayment = $this->createMock(RefundPaymentInterface::class);
         $adyenReference = $this->createMock(AdyenReferenceInterface::class);
 
-        $amount = new Amount();
-        $amount->value = 1000;
-        $amount->currency = 'EUR';
+        $amount = new Amount('EUR', 1000);
 
         $notificationData = new NotificationItemData();
         $notificationData->amount = $amount;
