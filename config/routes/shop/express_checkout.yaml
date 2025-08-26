@@ -39,3 +39,15 @@ sylius_adyen_shop_express_checkout_paypal_checkout:
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.paypal.checkout
+
+sylius_adyen_shop_express_checkout_apple_pay_shipping_address_change:
+  path: /adyen/express-checkout/apple-pay/shipping-address-change
+  methods: [POST]
+  defaults:
+    _controller: sylius_adyen.controller.shop.express_checkout.apple_pay.shipping_address_change
+
+sylius_adyen_shop_express_checkout_apple_pay_shipping_options_change:
+  path: /adyen/express-checkout/apple-pay/shipping-options-change
+  methods: [POST]
+  defaults:
+    _controller: sylius_adyen.controller.shop.express_checkout.apple_pay.shipping_options_change

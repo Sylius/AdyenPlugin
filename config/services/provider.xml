@@ -57,5 +57,12 @@
             <tag name="sylius_adyen.express_checkout.cart.configuration" key="paypal" />
         </service>
 
+        <service
+            id="sylius_adyen.provider.express_checkout.cart.apple_pay_configuration"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ApplePayConfigurationProvider"
+        >
+            <argument type="service" id="router"/>
+            <tag name="sylius_adyen.express_checkout.cart.configuration" key="applePay" />
+        </service>
     </services>
 </container>

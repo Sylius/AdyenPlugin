@@ -1,5 +1,6 @@
 import { SELECTORS } from './constants.js';
 import { loadConfiguration } from './utils.js';
+import { ApplePayHandler } from './applepay.js';
 import { GooglePayHandler } from './googlepay.js';
 import { PayPalHandler } from './paypal.js';
 
@@ -7,7 +8,7 @@ const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
     if (!configUrl) return;
 
-    const { AdyenCheckout, GooglePay, PayPal } = window.AdyenWeb;
+    const { AdyenCheckout, ApplePay, GooglePay, PayPal } = window.AdyenWeb;
 
     const configuration = await loadConfiguration(configUrl);
 
@@ -19,29 +20,41 @@ const initExpressCheckout = async ($container) => {
         countryCode: configuration.allowedCountryCodes[0],
     });
 
-    const googlePayHandler = new GooglePayHandler(configuration);
-    const googlePay = new GooglePay(checkout, googlePayHandler.getConfig());
+    const applePayHandler = new ApplePayHandler(configuration);
+    const applePay = new ApplePay(checkout, applePayHandler.getConfig());
 
-    googlePay
+    applePay
         .isAvailable()
         .then(() => {
-            googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
+            applePay.mount(SELECTORS.APPLEPAY_MOUNT);
         })
         .catch(e => {
-            console.error('Google Pay is not available:', e);
+            console.error('Apple Pay is not available:', e);
         });
 
-    const paypalHandler = new PayPalHandler(configuration);
-    const payPal = new PayPal(checkout, paypalHandler.getConfig());
+    // const googlePayHandler = new GooglePayHandler(configuration);
+    // const googlePay = new GooglePay(checkout, googlePayHandler.getConfig());
+    //
+    // googlePay
+    //     .isAvailable()
+    //     .then(() => {
+    //         googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
+    //     })
+    //     .catch(e => {
+    //         console.error('Google Pay is not available:', e);
+    //     });
 
-    payPal
-        .isAvailable()
-        .then(() => {
-            payPal.mount(SELECTORS.PAYPAL_MOUNT);
-        })
-        .catch(e => {
-            console.error('PayPal is not available:', e);
-        });
+    // const paypalHandler = new PayPalHandler(configuration);
+    // const payPal = new PayPal(checkout, paypalHandler.getConfig());
+    //
+    // payPal
+    //     .isAvailable()
+    //     .then(() => {
+    //         payPal.mount(SELECTORS.PAYPAL_MOUNT);
+    //     })
+    //     .catch(e => {
+    //         console.error('PayPal is not available:', e);
+    //     });
 };
 
 document.addEventListener('DOMContentLoaded', () => {
