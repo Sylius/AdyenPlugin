@@ -35,7 +35,7 @@ export const showErrorMessage = (message) => {
                 animation: fadeIn 0.3s ease-in;
             `;
 
-    const $container = document.getElementById(SELECTORS.CONTAINER);
+    const $container = document.getElementById(SELECTORS.CART_CONTAINER);
     $container.insertBefore(errorElement, $container.firstChild);
 }
 

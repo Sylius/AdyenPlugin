@@ -1,4 +1,4 @@
-import { createFetchOptions, showErrorMessage } from './utils.js';
+import { createFetchOptions, showErrorMessage } from '../utils.js';
 
 export class PayPalHandler {
     constructor(configuration) {
