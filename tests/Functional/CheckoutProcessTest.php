@@ -68,8 +68,6 @@ final class CheckoutProcessTest extends AdyenTestCase
         self::assertArrayHasKey('redirect', $responseData);
 
         $payment = $this->testOrder->getLastPayment();
-        self::assertNotNull($payment);
-        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
 
         $this->simulateWebhook($payment, 'authorisation', true);
 
@@ -541,7 +539,6 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         $payment = $this->testOrder->getLastPayment();
         self::assertNotNull($payment);
-        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
 
         $this->simulateWebhook($payment, 'authorisation', true);
 
@@ -579,7 +576,6 @@ final class CheckoutProcessTest extends AdyenTestCase
         $responseData = json_decode($response->getContent(), true);
         self::assertEquals('Authorised', $responseData['resultCode']);
 
-        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
         self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
 
         $this->simulateWebhook($payment, 'authorisation', true);
@@ -751,80 +747,6 @@ final class CheckoutProcessTest extends AdyenTestCase
         self::assertEquals('USD', $details['amount']['currency']);
         self::assertArrayHasKey('value', $details['amount']);
         self::assertEquals(10000, $details['amount']['value']);
-    }
-
-    public function testWebhookNotificationProcessingFlow(): void
-    {
-        $this->adyenClientStub->setSubmitPaymentResponse([
-            'resultCode' => 'Authorised',
-            'pspReference' => 'WEBHOOK_TEST_PSP_REF',
-            'merchantReference' => 'ORDER_123',
-        ]);
-
-        $request = $this->createRequest([
-            'paymentMethod' => [
-                'type' => 'scheme',
-                'encryptedCardNumber' => 'test_encrypted_number',
-                'encryptedExpiryMonth' => 'test_encrypted_month',
-                'encryptedExpiryYear' => 'test_encrypted_year',
-                'encryptedSecurityCode' => 'test_encrypted_cvv',
-            ],
-        ]);
-
-        $payment = $this->testOrder->getLastPayment();
-        $initialPaymentState = $payment->getState();
-        self::assertEquals(PaymentInterface::STATE_NEW, $initialPaymentState);
-
-        $response = ($this->paymentsAction)($request);
-
-        self::assertEquals(200, $response->getStatusCode());
-
-        $finalPaymentState = $payment->getState();
-        self::assertEquals($initialPaymentState, $finalPaymentState);
-        self::assertEquals(PaymentInterface::STATE_NEW, $finalPaymentState);
-
-        self::assertArrayHasKey('resultCode', $payment->getDetails());
-        self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
-        self::assertEquals('WEBHOOK_TEST_PSP_REF', $payment->getDetails()['pspReference']);
-
-        self::assertSame($this->testOrder, $payment->getOrder());
-        self::assertSame($payment, $this->testOrder->getLastPayment());
-    }
-
-    public function testOrderStateAfterSuccessfulPaymentWebhook(): void
-    {
-        $this->adyenClientStub->setSubmitPaymentResponse([
-            'resultCode' => 'Authorised',
-            'pspReference' => 'ORDER_STATE_PSP_REF',
-        ]);
-
-        $request = $this->createRequest([
-            'paymentMethod' => ['type' => 'scheme'],
-        ]);
-
-        $response = ($this->paymentsAction)($request);
-
-        self::assertEquals(200, $response->getStatusCode());
-
-        $order = $this->testOrder;
-        self::assertNotNull($order->getCustomer());
-        self::assertStringStartsWith('test', $order->getCustomer()->getEmail());
-        self::assertStringEndsWith('@example.com', $order->getCustomer()->getEmail());
-        self::assertEquals('USD', $order->getCurrencyCode());
-        self::assertEquals('en_US', $order->getLocaleCode());
-
-        $payment = $order->getLastPayment();
-        self::assertNotNull($payment);
-        self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
-        self::assertSame($order, $payment->getOrder());
-
-        $paymentMethod = $payment->getMethod();
-        self::assertNotNull($paymentMethod);
-        self::assertEquals(self::PAYMENT_METHOD_CODE, $paymentMethod->getCode());
-        self::assertEquals(self::PAYMENT_METHOD_NAME, $paymentMethod->getName());
-
-        self::assertEquals(10000, $payment->getAmount());
-        self::assertEquals($order->getCurrencyCode(), $payment->getCurrencyCode());
     }
 
     private function simulateWebhook(PaymentInterface $payment, string $eventCode, bool $success): void

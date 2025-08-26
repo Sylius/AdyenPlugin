@@ -13,23 +13,30 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Bus;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
+use Sylius\AdyenPlugin\Bus\Command\AuthorizePaymentByLink;
+use Sylius\AdyenPlugin\Bus\Command\CapturePayment;
+use Sylius\AdyenPlugin\Bus\Command\MarkPaymentAsProcessedCommand;
+use Sylius\AdyenPlugin\Bus\Command\NotificationDataAwarePaymentCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentFailedCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
+use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactory;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-class PaymentCommandFactoryTest extends TestCase
+final class PaymentCommandFactoryTest extends TestCase
 {
-    /** @var EventCodeResolverInterface|\PHPUnit\Framework\MockObject\MockObject */
-    private $eventCodeResolver;
+    private EventCodeResolverInterface|MockObject $eventCodeResolver;
 
-    /** @var PaymentCommandFactory */
-    private $factory;
+    private PaymentCommandFactory $factory;
 
     protected function setUp(): void
     {
@@ -37,49 +44,108 @@ class PaymentCommandFactoryTest extends TestCase
         $this->factory = new PaymentCommandFactory($this->eventCodeResolver);
     }
 
-    public function testCreateForEventWithoutNotificationData(): void
+    #[DataProvider('paymentLifecycleCommandMappingProvider')]
+    public function testCreateForEventCreatesPaymentLifecycleCommands(string $event, string $expectedClass): void
     {
         $payment = $this->createMock(PaymentInterface::class);
 
-        $command = $this->factory->createForEvent('authorisation', $payment);
+        $command = $this->factory->createForEvent($event, $payment);
 
-        $this->assertInstanceOf(AuthorizePayment::class, $command);
-        $this->assertSame($payment, $command->getPayment());
+        self::assertInstanceOf($expectedClass, $command);
+        self::assertInstanceOf(PaymentLifecycleCommand::class, $command);
+        self::assertSame($payment, $command->getPayment());
     }
 
-    public function testCreateForEventWithNotificationDataUsesEventCodeResolver(): void
+    public static function paymentLifecycleCommandMappingProvider(): iterable
     {
+        yield 'authorisation event creates AuthorizePayment' => [
+            'event' => 'authorisation',
+            'expectedClass' => AuthorizePayment::class,
+        ];
+        yield 'authorised event creates AuthorizePayment' => [
+            'event' => 'authorised',
+            'expectedClass' => AuthorizePayment::class,
+        ];
+        yield 'payment_status_received event creates PaymentStatusReceived' => [
+            'event' => 'payment_status_received',
+            'expectedClass' => PaymentStatusReceived::class,
+        ];
+        yield 'capture event creates CapturePayment' => [
+            'event' => 'capture',
+            'expectedClass' => CapturePayment::class,
+        ];
+        yield 'received event creates MarkPaymentAsProcessedCommand' => [
+            'event' => 'received',
+            'expectedClass' => MarkPaymentAsProcessedCommand::class,
+        ];
+        yield 'refused event creates PaymentFailedCommand' => [
+            'event' => 'refused',
+            'expectedClass' => PaymentFailedCommand::class,
+        ];
+        yield 'rejected event creates PaymentFailedCommand' => [
+            'event' => 'rejected',
+            'expectedClass' => PaymentFailedCommand::class,
+        ];
+        yield 'cancellation event creates PaymentCancelledCommand' => [
+            'event' => 'cancellation',
+            'expectedClass' => PaymentCancelledCommand::class,
+        ];
+    }
+
+    #[DataProvider('notificationDataAwareCommandProvider')]
+    public function testCreateForEventCreatesNotificationDataAwareCommands(
+        string $event,
+        string $resolvedEvent,
+        string $expectedClass,
+    ): void {
         $payment = $this->createMock(PaymentInterface::class);
         $notificationData = new NotificationItemData();
-        $notificationData->eventCode = 'CANCEL_OR_REFUND';
+        $notificationData->eventCode = $event;
+        $notificationData->pspReference = 'TEST-PSP-REF-123';
+        $notificationData->merchantReference = 'MERCHANT-REF-456';
 
         $this->eventCodeResolver->expects($this->once())
             ->method('resolve')
             ->with($notificationData)
-            ->willReturn('cancellation');
+            ->willReturn($resolvedEvent);
 
         $command = $this->factory->createForEvent('ignored_event', $payment, $notificationData);
 
-        $this->assertInstanceOf(PaymentCancelledCommand::class, $command);
-        $this->assertSame($payment, $command->getPayment());
+        self::assertInstanceOf($expectedClass, $command);
+        self::assertInstanceOf(NotificationDataAwarePaymentCommand::class, $command);
+        self::assertSame($payment, $command->payment);
+        self::assertSame($notificationData, $command->notificationData);
+
+        // Verify notification data is preserved with all properties
+        self::assertEquals('TEST-PSP-REF-123', $command->notificationData->pspReference);
+        self::assertEquals('MERCHANT-REF-456', $command->notificationData->merchantReference);
+        self::assertEquals($event, $command->notificationData->eventCode);
     }
 
-    public function testCreateForEventCreatesPaymentRefundedCommandWithNotificationData(): void
+    public static function notificationDataAwareCommandProvider(): iterable
     {
+        yield 'PaymentRefunded with notification data' => [
+            'event' => 'CANCEL_OR_REFUND',
+            'resolvedEvent' => 'refund',
+            'expectedClass' => PaymentRefunded::class,
+        ];
+        yield 'AuthorizePaymentByLink with notification data' => [
+            'event' => 'AUTHORISATION',
+            'resolvedEvent' => 'pay_by_link_authorisation',
+            'expectedClass' => AuthorizePaymentByLink::class,
+        ];
+    }
+
+    public function testCreateForEventWithCustomMapping(): void
+    {
+        $customMapping = ['custom_event' => AuthorizePayment::class];
+        $factory = new PaymentCommandFactory($this->eventCodeResolver, $customMapping);
         $payment = $this->createMock(PaymentInterface::class);
-        $notificationData = new NotificationItemData();
-        $notificationData->eventCode = 'CANCEL_OR_REFUND';
 
-        $this->eventCodeResolver->expects($this->once())
-            ->method('resolve')
-            ->with($notificationData)
-            ->willReturn('refund');
+        $command = $factory->createForEvent('custom_event', $payment);
 
-        $command = $this->factory->createForEvent('ignored_event', $payment, $notificationData);
-
-        $this->assertInstanceOf(PaymentRefunded::class, $command);
-        $this->assertSame($payment, $command->payment);
-        $this->assertSame($notificationData, $command->notificationData);
+        self::assertInstanceOf(AuthorizePayment::class, $command);
+        self::assertSame($payment, $command->getPayment());
     }
 
     public function testCreateForEventThrowsExceptionForUnmappedEvent(): void
@@ -92,18 +158,6 @@ class PaymentCommandFactoryTest extends TestCase
         $this->factory->createForEvent('unknown_event', $payment);
     }
 
-    public function testCreateForEventWithCustomMapping(): void
-    {
-        $customMapping = ['custom_event' => AuthorizePayment::class];
-        $factory = new PaymentCommandFactory($this->eventCodeResolver, $customMapping);
-        $payment = $this->createMock(PaymentInterface::class);
-
-        $command = $factory->createForEvent('custom_event', $payment);
-
-        $this->assertInstanceOf(AuthorizePayment::class, $command);
-        $this->assertSame($payment, $command->getPayment());
-    }
-
     public function testCreateForEventMergesDefaultAndCustomMappings(): void
     {
         $customMapping = ['custom_event' => AuthorizePayment::class];
@@ -112,26 +166,10 @@ class PaymentCommandFactoryTest extends TestCase
 
         // Test default mapping still works
         $defaultCommand = $factory->createForEvent('authorisation', $payment);
-        $this->assertInstanceOf(AuthorizePayment::class, $defaultCommand);
+        self::assertInstanceOf(AuthorizePayment::class, $defaultCommand);
 
         // Test custom mapping works
         $customCommand = $factory->createForEvent('custom_event', $payment);
-        $this->assertInstanceOf(AuthorizePayment::class, $customCommand);
-    }
-
-    public function testCreateForEventReturnsObjectForPaymentRefundedCommand(): void
-    {
-        $payment = $this->createMock(PaymentInterface::class);
-        $notificationData = new NotificationItemData();
-
-        $this->eventCodeResolver->expects($this->once())
-            ->method('resolve')
-            ->willReturn('refund');
-
-        $command = $this->factory->createForEvent('refund', $payment, $notificationData);
-
-        // PaymentRefundedCommand doesn't implement PaymentLifecycleCommand, but should still be returned as object
-        $this->assertInstanceOf(PaymentRefunded::class, $command);
-        $this->assertIsObject($command);
+        self::assertInstanceOf(AuthorizePayment::class, $customCommand);
     }
 }

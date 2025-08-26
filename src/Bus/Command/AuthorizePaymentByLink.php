@@ -20,7 +20,7 @@ final class AuthorizePaymentByLink implements NotificationDataAwarePaymentComman
 {
     public function __construct(
         public readonly PaymentInterface $payment,
-        public readonly NotificationItemData $notificationItemData,
+        public readonly NotificationItemData $notificationData,
     ) {
     }
 }

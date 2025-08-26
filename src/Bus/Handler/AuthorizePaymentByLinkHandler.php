@@ -34,7 +34,7 @@ final class AuthorizePaymentByLinkHandler
     public function __invoke(AuthorizePaymentByLink $authorizePaymentByLink): void
     {
         $payment = $authorizePaymentByLink->payment;
-        $notificationItemData = $authorizePaymentByLink->notificationItemData;
+        $notificationItemData = $authorizePaymentByLink->notificationData;
 
         $normalizedData = $this->normalizer->normalize($notificationItemData, 'array');
         $payment->setDetails($normalizedData);
