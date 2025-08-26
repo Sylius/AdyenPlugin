@@ -1,4 +1,4 @@
-import { createFetchOptions } from './utils.js';
+import { createFetchOptions } from '../utils.js';
 
 export class GooglePayHandler {
     constructor(configuration) {
