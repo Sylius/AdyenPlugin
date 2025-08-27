@@ -84,5 +84,15 @@
         >
             <argument type="service" id="sylius.email_sender" />
         </service>
+
+        <service
+            id="sylius_adyen.listener.order_show_menu"
+            class="Sylius\AdyenPlugin\Menu\AdminOrderShowMenuListener"
+        >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+
+            <tag name="kernel.event_listener" event="sylius.menu.admin.order.show" method="addRefundButton" />
+        </service>
     </services>
 </container>
