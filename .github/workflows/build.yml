@@ -154,9 +154,13 @@ jobs:
                     vendor/bin/console doctrine:database:create -vvv
                     vendor/bin/console doctrine:migrations:migrate --no-interaction -vvv
 
-#            -
-#                name: Validate database schema
-#                run: vendor/bin/console doctrine:schema:validate
+            -
+                name: Setup Messenger transports
+                run: vendor/bin/console  messenger:setup-transports
+
+            -
+                name: Validate database schema
+                run: vendor/bin/console doctrine:schema:validate
 
             -
                 name: Prepare test application cache
