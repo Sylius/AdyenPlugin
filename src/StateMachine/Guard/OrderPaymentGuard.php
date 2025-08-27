@@ -27,15 +27,14 @@ final class OrderPaymentGuard
     public function canBeCancelled(OrderInterface $order): bool
     {
         $payment = $order->getLastPayment();
-        // TODO: Possibly add a manual capture toggle in the payment method configuration and check it here to disallow cancelling paid orders in these cases //
         if (
             null !== $payment &&
             $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
-            $payment->getState() !== PaymentGraph::STATE_PROCESSING_REVERSAL
+            $payment->getState() === PaymentGraph::STATE_PROCESSING_REVERSAL
         ) {
-            return true;
+            return false;
         }
 
-        return false;
+        return true;
     }
 }

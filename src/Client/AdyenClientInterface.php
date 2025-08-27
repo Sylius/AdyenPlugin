@@ -48,6 +48,7 @@ interface AdyenClientInterface
         string $redirectUrl,
         array $receivedPayload,
         OrderInterface $order,
+        bool $manualCapture = false,
         ?AdyenTokenInterface $customerIdentifier = null,
     ): array;
 

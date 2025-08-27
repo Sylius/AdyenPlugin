@@ -40,6 +40,7 @@ interface ClientPayloadFactoryInterface
         string $url,
         array $receivedPayload,
         OrderInterface $order,
+        bool $manualCapture = false,
         ?AdyenTokenInterface $adyenToken = null,
     ): array;
 

@@ -18,8 +18,10 @@ use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
@@ -47,6 +49,7 @@ class PaymentsAction
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
         private readonly PaymentReferencesClearerInterface $paymentReferencesClearer,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         MessageBusInterface $messageBus,
     ) {
         $this->messageBus = $messageBus;
@@ -79,6 +82,7 @@ class PaymentsAction
                 $url,
                 $request->request->all(),
                 $order,
+                $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL),
                 $customerIdentifier,
             );
 
