@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Client\ResponseStatus;
+use Sylius\AdyenPlugin\Controller\Admin\ReverseOrderPaymentAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\AdyenPlugin\PaymentGraph;
@@ -29,6 +30,7 @@ use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Order\OrderTransitions;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class PaymentReversalTest extends AdyenTestCase
@@ -41,6 +43,8 @@ final class PaymentReversalTest extends AdyenTestCase
 
     private StateMachineInterface $stateMachine;
 
+    private ReverseOrderPaymentAction $reverseOrderPaymentAction;
+
     protected function initializeServices($container): void
     {
         $this->setupTestCartContext();
@@ -49,6 +53,7 @@ final class PaymentReversalTest extends AdyenTestCase
         $this->messageBus = $container->get('sylius.command_bus');
         $this->paymentCommandFactory = $container->get('sylius_adyen.bus.payment_command_factory');
         $this->stateMachine = $container->get('sylius_abstraction.state_machine');
+        $this->reverseOrderPaymentAction = $container->get('sylius_adyen.controller.admin.order_payment.reverse');
     }
 
     protected function createTestOrder(): OrderInterface
@@ -99,7 +104,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
     public function testPaymentStateChangesToProcessingReversalOnCancelTransition(): void
     {
-        $this->setupPaidOrderWithAdyenPayment();
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_NEW);
 
         $payment = $this->testOrder->getLastPayment();
         $initialDetails = $payment->getDetails();
@@ -123,7 +128,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
     public function testCancellationWebhookAfterReversalInitiated(): void
     {
-        $this->setupPaidOrderWithAdyenPayment();
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_NEW);
 
         $payment = $this->testOrder->getLastPayment();
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
@@ -152,7 +157,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
     public function testRefundWebhookAfterReversalInitiated(): void
     {
-        $this->setupPaidOrderWithAdyenPayment();
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_NEW);
 
         $payment = $this->testOrder->getLastPayment();
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
@@ -199,7 +204,109 @@ final class PaymentReversalTest extends AdyenTestCase
         self::assertNotNull($adyenReference->getPspReference());
     }
 
-    private function setupPaidOrderWithAdyenPayment(): void
+    public function testReversalOnFulfilledOrderKeepsOrderFulfilled(): void
+    {
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_FULFILLED);
+
+        $payment = $this->testOrder->getLastPayment();
+        self::assertEquals(OrderInterface::STATE_FULFILLED, $this->testOrder->getState());
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+
+        $this->adyenClientStub->setReversalResponse([
+            'paymentPspReference' => 'TEST_PSP_REF_123',
+            'pspReference' => 'REVERSAL_PSP_REF_999',
+            'status' => ResponseStatus::RECEIVED,
+        ]);
+
+        $request = new Request();
+        ($this->reverseOrderPaymentAction)((string) $this->testOrder->getId(), (string) $payment->getId(), $request);
+
+        $entityManager = $this->getEntityManager();
+        $entityManager->flush();
+
+        self::assertEquals(OrderInterface::STATE_FULFILLED, $this->testOrder->getState());
+        self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
+        self::assertEquals(OrderPaymentStates::STATE_PAID, $this->testOrder->getPaymentState());
+    }
+
+    public function testCancellationWebhookOnFulfilledOrderKeepsOrderFulfilled(): void
+    {
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_FULFILLED);
+
+        $payment = $this->testOrder->getLastPayment();
+        $entityManager = $this->getEntityManager();
+
+        $this->adyenClientStub->setReversalResponse([
+            'paymentPspReference' => 'TEST_PSP_REF_123',
+            'pspReference' => 'REVERSAL_PSP_REF_456',
+            'status' => ResponseStatus::RECEIVED,
+        ]);
+
+        $request = new Request();
+        ($this->reverseOrderPaymentAction)((string) $this->testOrder->getId(), (string) $payment->getId(), $request);
+
+        $entityManager = $this->getEntityManager();
+        $entityManager->flush();
+
+        self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
+
+        $this->simulateWebhook($payment, 'cancellation');
+        $entityManager->flush();
+
+        self::assertEquals(OrderInterface::STATE_FULFILLED, $this->testOrder->getState());
+        self::assertEquals(PaymentInterface::STATE_CANCELLED, $payment->getState());
+        self::assertEquals(OrderPaymentStates::STATE_CANCELLED, $this->testOrder->getPaymentState());
+    }
+
+    public function testRefundWebhookOnFulfilledOrderKeepsOrderFulfilled(): void
+    {
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_FULFILLED);
+
+        $this->adyenClientStub->setReversalResponse([
+            'paymentPspReference' => 'TEST_PSP_REF_123',
+            'pspReference' => 'REVERSAL_PSP_REF_456',
+            'status' => ResponseStatus::RECEIVED,
+        ]);
+
+        $payment = $this->testOrder->getLastPayment();
+
+        $request = new Request();
+        ($this->reverseOrderPaymentAction)((string) $this->testOrder->getId(), (string) $payment->getId(), $request);
+
+        $entityManager = $this->getEntityManager();
+        $entityManager->flush();
+
+        self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
+
+        $this->simulateWebhook($payment, 'refund');
+        $entityManager->flush();
+
+        self::assertEquals(OrderInterface::STATE_FULFILLED, $this->testOrder->getState());
+        self::assertEquals(PaymentInterface::STATE_REFUNDED, $payment->getState());
+        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $this->testOrder->getPaymentState());
+
+        $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
+        $refundPayments = $refundPaymentRepository->findBy(['order' => $this->testOrder]);
+        self::assertCount(1, $refundPayments);
+
+        /** @var RefundPaymentInterface $refundPayment */
+        $refundPayment = $refundPayments[0];
+        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrderNumber());
+        self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
+        self::assertEquals($payment->getCurrencyCode(), $refundPayment->getCurrencyCode());
+        self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
+
+        $adyenReferences = $this->adyenReferenceRepository->findBy(['refundPayment' => $refundPayment]);
+        self::assertCount(1, $adyenReferences);
+
+        /** @var AdyenReferenceInterface $adyenReference */
+        $adyenReference = $adyenReferences[0];
+        self::assertEquals($payment, $adyenReference->getPayment());
+        self::assertEquals($refundPayment, $adyenReference->getRefundPayment());
+        self::assertNotNull($adyenReference->getPspReference());
+    }
+
+    private function setupOrderWithAdyenPayment(string $orderState): void
     {
         $this->adyenClientStub->setSubmitPaymentResponse([
             'resultCode' => 'Authorised',
@@ -223,13 +330,12 @@ final class PaymentReversalTest extends AdyenTestCase
         $payment = $this->testOrder->getLastPayment();
         $this->simulateWebhook($payment, 'authorisation');
 
-        $entityManager = $this->getEntityManager();
-        $entityManager->flush();
-
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
 
+        $this->testOrder->setState($orderState);
         $this->testOrder->setPaymentState(OrderPaymentStates::STATE_PAID);
-        $entityManager->flush();
+
+        $this->getEntityManager()->flush();
     }
 
     private function simulateWebhook(PaymentInterface $payment, string $eventCode): void
