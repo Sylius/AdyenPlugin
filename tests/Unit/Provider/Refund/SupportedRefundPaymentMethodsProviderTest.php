@@ -122,9 +122,7 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
 
         $this->adyenPaymentMethodChecker->expects($this->exactly(2))
             ->method('isAdyenPaymentMethod')
-            ->willReturnCallback(function ($method) use ($adyenMethod) {
-                return $method === $adyenMethod;
-            });
+            ->willReturnCallback(fn ($method) => $method === $adyenMethod);
 
         $this->decoratedProvider
             ->expects($this->once())

@@ -19,7 +19,7 @@ use Sylius\Component\Order\Model\OrderInterface;
 final class TestCartContext implements CartContextInterface
 {
     public function __construct(
-        private CartContextInterface $fallbackContext,
+        private readonly CartContextInterface $fallbackContext,
     ) {
     }
 

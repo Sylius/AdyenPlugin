@@ -2,10 +2,14 @@
 
 declare(strict_types=1);
 
+use Sylius\AdyenPlugin\SyliusAdyenPlugin;
+use Sylius\RefundPlugin\SyliusRefundPlugin;
+use Knp\Bundle\SnappyBundle\KnpSnappyBundle;
+
 $bundles = [
-    Sylius\AdyenPlugin\SyliusAdyenPlugin::class => ['all' => true],
-    Sylius\RefundPlugin\SyliusRefundPlugin::class => ['all' => true],
-    Knp\Bundle\SnappyBundle\KnpSnappyBundle::class => ['all' => true],
+    SyliusAdyenPlugin::class => ['all' => true],
+    SyliusRefundPlugin::class => ['all' => true],
+    KnpSnappyBundle::class => ['all' => true],
 ];
 
 return $bundles;

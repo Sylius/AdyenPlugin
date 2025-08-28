@@ -22,13 +22,8 @@ use Webmozart\Assert\Assert;
 
 class AdyenPaymentMethodConfigurationContext implements Context
 {
-    /** @var UpdatePageInterface */
-    private $updatePage;
-
-    public function __construct(
-        UpdatePageInterface $updatePage,
-    ) {
-        $this->updatePage = $updatePage;
+    public function __construct(private readonly UpdatePageInterface $updatePage)
+    {
     }
 
     /**

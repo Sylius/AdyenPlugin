@@ -170,9 +170,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
         $order
             ->expects($this->exactly(2))
             ->method('getLastPayment')
-            ->willReturnCallback(function ($state = null) {
-                return null;
-            });
+            ->willReturnCallback(fn ($state = null) => null);
 
         $this->stateMachine
             ->expects($this->never())

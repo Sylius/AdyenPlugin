@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
+use Adyen\AdyenException;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
@@ -60,7 +61,7 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         self::assertEquals(200, $response->getStatusCode());
 
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertArrayHasKey('resultCode', $responseData);
         self::assertEquals('Authorised', $responseData['resultCode']);
         self::assertArrayHasKey('pspReference', $responseData);
@@ -113,7 +114,7 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         self::assertEquals(200, $response->getStatusCode());
 
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertArrayHasKey('resultCode', $responseData);
         self::assertEquals('RedirectShopper', $responseData['resultCode']);
         self::assertArrayHasKey('action', $responseData);
@@ -156,7 +157,7 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         self::assertEquals(200, $response->getStatusCode());
 
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertArrayHasKey('resultCode', $responseData);
         self::assertEquals('ChallengeShopper', $responseData['resultCode']);
         self::assertArrayHasKey('action', $responseData);
@@ -492,7 +493,7 @@ final class CheckoutProcessTest extends AdyenTestCase
 
     public function testCheckoutWithInvalidPaymentMethod(): void
     {
-        $this->adyenClientStub->setThrowException(new \Adyen\AdyenException('Invalid payment method', 422));
+        $this->adyenClientStub->setThrowException(new AdyenException('Invalid payment method', 422));
 
         $request = $this->createRequest([
             'paymentMethod' => ['type' => 'invalid'],
@@ -504,7 +505,7 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         self::assertEquals(422, $response->getStatusCode());
 
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertArrayHasKey('error', $responseData);
         self::assertTrue($responseData['error']);
         self::assertArrayHasKey('message', $responseData);
@@ -533,7 +534,7 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         self::assertEquals(200, $response->getStatusCode());
 
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertEquals('Authorised', $responseData['resultCode']);
         self::assertEquals('STORED_PSP_REF', $responseData['pspReference']);
 
@@ -573,7 +574,7 @@ final class CheckoutProcessTest extends AdyenTestCase
         $response = ($this->paymentsAction)($request);
 
         self::assertEquals(200, $response->getStatusCode());
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertEquals('Authorised', $responseData['resultCode']);
 
         self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
@@ -609,7 +610,7 @@ final class CheckoutProcessTest extends AdyenTestCase
         $response = ($this->paymentsAction)($request);
 
         self::assertEquals(200, $response->getStatusCode());
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertEquals('Pending', $responseData['resultCode']);
 
         $payment = $this->testOrder->getLastPayment();
@@ -639,7 +640,7 @@ final class CheckoutProcessTest extends AdyenTestCase
         $response = ($this->paymentsAction)($request);
 
         self::assertEquals(200, $response->getStatusCode());
-        $responseData = json_decode($response->getContent(), true);
+        $responseData = json_decode((string) $response->getContent(), true);
         self::assertEquals('Refused', $responseData['resultCode']);
 
         $payment = $this->testOrder->getLastPayment();

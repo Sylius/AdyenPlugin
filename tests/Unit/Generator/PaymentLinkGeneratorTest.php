@@ -233,16 +233,12 @@ final class PaymentLinkGeneratorTest extends TestCase
         $adyenClient
             ->expects($this->exactly(2))
             ->method('expirePaymentLink')
-            ->with(self::callback(function ($linkId) {
-                return in_array($linkId, ['OLD_LINK_1', 'OLD_LINK_2'], true);
-            }));
+            ->with(self::callback(fn ($linkId) => in_array($linkId, ['OLD_LINK_1', 'OLD_LINK_2'], true)));
 
         $this->entityManager
             ->expects($this->exactly(2))
             ->method('remove')
-            ->with(self::callback(function ($paymentLink) use ($oldPaymentLink1, $oldPaymentLink2) {
-                return $paymentLink === $oldPaymentLink1 || $paymentLink === $oldPaymentLink2;
-            }));
+            ->with(self::callback(fn ($paymentLink) => $paymentLink === $oldPaymentLink1 || $paymentLink === $oldPaymentLink2));
 
         $adyenClient
             ->expects($this->once())

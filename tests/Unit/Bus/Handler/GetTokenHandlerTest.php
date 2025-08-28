@@ -118,10 +118,8 @@ class GetTokenHandlerTest extends TestCase
         $this->messageBus
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->callback(function (CreateToken $command) use ($paymentMethod, $customer) {
-                return $command->getPaymentMethod() === $paymentMethod &&
-                    $command->getCustomer() === $customer;
-            }))
+            ->with($this->callback(fn (CreateToken $command) => $command->getPaymentMethod() === $paymentMethod &&
+                $command->getCustomer() === $customer))
             ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(new AdyenToken(), static::class)]))
         ;
     }

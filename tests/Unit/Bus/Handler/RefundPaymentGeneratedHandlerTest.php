@@ -200,9 +200,7 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
         $this->messageBus
             ->expects($this->once())
             ->method('dispatch')
-            ->with($this->callback(static function (CreateReferenceForRefund $command) {
-                return self::NEW_PSP_REFERENCE === $command->getRefundReference();
-            }))
+            ->with($this->callback(static fn (CreateReferenceForRefund $command) => self::NEW_PSP_REFERENCE === $command->getRefundReference()))
             ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
         ;
 
