@@ -84,6 +84,7 @@ final class AdyenClient implements AdyenClientInterface
         string $redirectUrl,
         array $receivedPayload,
         OrderInterface $order,
+        bool $manualCapture = false,
         ?ShopperReferenceInterface $customerIdentifier = null,
     ): array {
         if (!isset($receivedPayload['paymentMethod'])) {
@@ -95,6 +96,7 @@ final class AdyenClient implements AdyenClientInterface
             $redirectUrl,
             $receivedPayload,
             $order,
+            $manualCapture,
             $customerIdentifier,
         );
 

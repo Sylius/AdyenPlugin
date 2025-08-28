@@ -12,6 +12,7 @@
             id="sylius_adyen.processor.authorization_state"
             class="Sylius\AdyenPlugin\Processor\Payment\AuthorizationStateProcessor"
         >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="doctrine.orm.entity_manager" />
         </service>

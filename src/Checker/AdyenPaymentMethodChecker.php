@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Checker;
 
-use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
@@ -53,9 +52,6 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
         }
 
         $gatewayConfig = $payment->getGatewayConfig();
-
-        // TODO: temp for testing purposes, remove when manual capture mode is added to the gateway config //
-        return $mode === PaymentCaptureMode::MANUAL;
 
         return $mode === ($gatewayConfig?->getConfig()['captureMode'] ?? null);
     }

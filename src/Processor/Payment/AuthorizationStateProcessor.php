@@ -15,14 +15,15 @@ namespace Sylius\AdyenPlugin\Processor\Payment;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class AuthorizationStateProcessor implements AuthorizationStateProcessorInterface
 {
     public function __construct(
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly StateMachineInterface $stateMachine,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -30,17 +31,10 @@ final class AuthorizationStateProcessor implements AuthorizationStateProcessorIn
 
     public function process(PaymentInterface $payment): void
     {
-        $method = $payment->getMethod();
-        if (!$method instanceof PaymentMethodInterface) {
+        if (!$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             return;
         }
-
-        $gatewayConfig = $method->getGatewayConfig();
-        if (null === $gatewayConfig) {
-            return;
-        }
-
-        if (AdyenClientProviderInterface::FACTORY_NAME !== $gatewayConfig->getFactoryName()) {
+        if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL)) {
             return;
         }
 
