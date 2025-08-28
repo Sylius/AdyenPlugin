@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\StateMachine\Guard;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\Component\Core\Model\PaymentInterface;
 
 final class AdyenPaymentGuard
@@ -25,7 +26,10 @@ final class AdyenPaymentGuard
 
     public function canBeCompleted(PaymentInterface $payment): bool
     {
-        // TODO: Possibly add a manual capture toggle in the payment method configuration and check it here to allow captures in these cases //
-        return false === $this->adyenPaymentMethodChecker->isAdyenPayment($payment);
+        if ($this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
+            return $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL);
+        }
+
+        return true;
     }
 }

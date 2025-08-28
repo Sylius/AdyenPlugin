@@ -1,55 +1,60 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
     <services>
-        <defaults public="true"/>
+        <defaults public="true" />
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction"
-                id="sylius_adyen.controller.shop.payment_details"
+            class="Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction"
+            id="sylius_adyen.controller.shop.payment_details"
         >
-            <argument type="service" id="sylius_adyen.provider.adyen_client"/>
-            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
-            <argument type="service" id="sylius_adyen.processor.payment_response"/>
+            <argument type="service" id="sylius_adyen.provider.adyen_client" />
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order" />
+            <argument type="service" id="sylius_adyen.processor.payment_response" />
             <argument type="service" id="sylius_adyen.repository.adyen_payment_detail" />
 
-            <tag name="controller.service_arguments"/>
+            <tag name="controller.service_arguments" />
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\PaymentsAction"
-                id="sylius_adyen.controller.shop.payments"
+            class="Sylius\AdyenPlugin\Controller\Shop\PaymentsAction"
+            id="sylius_adyen.controller.shop.payments"
         >
-            <argument type="service" id="sylius_adyen.provider.adyen_client"/>
-            <argument type="service" id="router"/>
-            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
-            <argument type="service" id="sylius_adyen.processor.payment_response"/>
-            <argument type="service" id="sylius_adyen.clearer.payment_references"/>
-            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.provider.adyen_client" />
+            <argument type="service" id="router" />
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order" />
+            <argument type="service" id="sylius_adyen.processor.payment_response" />
+            <argument type="service" id="sylius_adyen.clearer.payment_references" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius.command_bus" />
 
-            <tag name="controller.service_arguments"/>
+            <tag name="controller.service_arguments" />
         </service>
 
         <service
             class="Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction"
             id="sylius_adyen.controller.shop.process_notifications"
         >
-            <argument type="service" id="sylius_adyen.resolver.notification.notification_command"/>
-            <argument type="service" id="sylius_adyen.resolver.notification.notification"/>
-            <argument type="service" id="monolog.logger.adyen"/>
-            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.resolver.notification.notification_command" />
+            <argument type="service" id="sylius_adyen.resolver.notification.notification" />
+            <argument type="service" id="monolog.logger.adyen" />
+            <argument type="service" id="sylius.command_bus" />
 
-            <tag name="controller.service_arguments"/>
+            <tag name="controller.service_arguments" />
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\RedirectTargetAction"
-                id="sylius_adyen.controller.shop.redirect_target"
+            class="Sylius\AdyenPlugin\Controller\Shop\RedirectTargetAction"
+            id="sylius_adyen.controller.shop.redirect_target"
         >
-            <argument type="service" id="sylius_adyen.processor.payment_response"/>
-            <argument type="service" id="sylius_adyen.resolver.payment.payment_details"/>
+            <argument type="service" id="sylius_adyen.processor.payment_response" />
+            <argument type="service" id="sylius_adyen.resolver.payment.payment_details" />
 
-            <tag name="controller.service_arguments"/>
+            <tag name="controller.service_arguments" />
         </service>
 
         <service
@@ -57,21 +62,21 @@
             id="sylius_adyen.controller.shop.remove_stored_token"
         >
 
-            <argument type="service" id="security.token_storage"/>
-            <argument type="service" id="sylius_adyen.repository.adyen_token"/>
-            <argument type="service" id="sylius.repository.payment_method"/>
-            <argument type="service" id="sylius_adyen.provider.adyen_client"/>
+            <argument type="service" id="security.token_storage" />
+            <argument type="service" id="sylius_adyen.repository.adyen_token" />
+            <argument type="service" id="sylius.repository.payment_method" />
+            <argument type="service" id="sylius_adyen.provider.adyen_client" />
 
-            <tag name="controller.service_arguments"/>
+            <tag name="controller.service_arguments" />
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Controller\Shop\AdyenDetailsAction"
-                id="sylius_adyen.controller.shop.adyen_details"
+            class="Sylius\AdyenPlugin\Controller\Shop\AdyenDetailsAction"
+            id="sylius_adyen.controller.shop.adyen_details"
         >
-            <argument type="service" id="sylius_adyen.resolver.payment.payment_details"/>
+            <argument type="service" id="sylius_adyen.resolver.payment.payment_details" />
 
-            <tag name="controller.service_arguments"/>
+            <tag name="controller.service_arguments" />
         </service>
     </services>
 </container>

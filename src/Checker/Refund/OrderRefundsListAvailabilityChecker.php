@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Checker\Refund;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
@@ -47,13 +48,15 @@ final class OrderRefundsListAvailabilityChecker implements OrderRefundingAvailab
 
     private function paymentCannotBeRefunded(PaymentInterface $payment): bool
     {
-        return $this->adyenPaymentMethodChecker->isAdyenPayment($payment) && (
+        return
+            $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) &&
             in_array($payment->getState(), [
                 PaymentGraph::STATE_PROCESSING_REVERSAL,
                 PaymentInterface::STATE_COMPLETED,
                 PaymentInterface::STATE_CANCELLED,
                 PaymentInterface::STATE_REFUNDED,
             ], true)
-        );
+        ;
     }
 }

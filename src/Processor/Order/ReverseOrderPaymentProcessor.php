@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Processor\Order;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\ReversePayment;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
@@ -37,13 +38,16 @@ final class ReverseOrderPaymentProcessor implements OrderPaymentProcessorInterfa
         }
 
         $payment = $order->getLastPayment(PaymentInterface::STATE_COMPLETED);
-        if (null !== $payment && $this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
+        if (
+            null !== $payment &&
+            $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)
+        ) {
             $this->commandBus->dispatch(new ReversePayment($payment));
 
             return;
         }
 
-        // TODO: Add an additional cancel dispatch for authorized adyen payments if manual capture if enabled //
         $payment = $order->getLastPayment();
         if (null !== $payment && $this->stateMachine->can($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_CANCEL)) {
             $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_CANCEL);
