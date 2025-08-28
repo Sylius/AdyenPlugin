@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Mock;
 
-use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
