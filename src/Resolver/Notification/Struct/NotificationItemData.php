@@ -15,42 +15,29 @@ namespace Sylius\AdyenPlugin\Resolver\Notification\Struct;
 
 class NotificationItemData
 {
-    /** @var ?array */
-    public $additionalData;
+    public ?array $additionalData = null;
 
-    /** @var ?Amount */
-    public $amount;
+    public ?Amount $amount = null;
 
-    /** @var ?string */
-    public $eventCode;
+    public ?string $eventCode = null;
 
-    /** @var ?string */
-    public $eventDate;
+    public ?string $eventDate = null;
 
-    /** @var ?string */
-    public $merchantAccountCode;
+    public ?string $merchantAccountCode = null;
 
-    /** @var ?string */
-    public $merchantReference;
+    public ?string $merchantReference = null;
 
-    /** @var ?string */
-    public $paymentMethod;
+    public ?string $paymentMethod = null;
 
-    /** @var ?bool */
-    public $success;
+    public ?bool $success = null;
 
-    /** @var ?string */
-    public $pspReference;
+    public ?string $pspReference = null;
 
-    /** @var ?string */
-    public $originalReference;
+    public ?string $originalReference = null;
 
-    /** @var ?array */
-    public $operations;
+    public ?array $operations = null;
 
-    /** @var ?string */
-    public $paymentCode;
+    public ?string $paymentCode = null;
 
-    /** @var ?string */
-    public $reason;
+    public ?string $reason = null;
 }

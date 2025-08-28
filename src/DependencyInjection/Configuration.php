@@ -34,9 +34,7 @@ final class Configuration implements ConfigurationInterface
                 ->arrayNode('supported_types')
                     ->ignoreExtraKeys(false)
                     ->beforeNormalization()
-                        ->always(static function ($arg) {
-                            return (array) $arg;
-                        })
+                        ->always(static fn ($arg) => (array) $arg)
                     ->end()
                 ->end()
                 ->scalarNode('logger')

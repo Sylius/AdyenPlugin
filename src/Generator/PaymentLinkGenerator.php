@@ -30,14 +30,14 @@ use Sylius\Component\Core\Model\PaymentMethodInterface;
 final class PaymentLinkGenerator implements PaymentLinkGeneratorInterface
 {
     public function __construct(
-        private AdyenClientProviderInterface $adyenClientProvider,
-        private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
-        private PaymentLinkRepositoryInterface $paymentLinkRepository,
-        private PaymentLinkFactoryInterface $paymentLinkFactory,
-        private StateMachineInterface $stateMachine,
-        private EntityManagerInterface $entityManager,
-        private LoggerInterface $logger,
-        private array $allowedPaymentStates = [PaymentInterface::STATE_NEW, PaymentInterface::STATE_PROCESSING],
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private readonly PaymentLinkRepositoryInterface $paymentLinkRepository,
+        private readonly PaymentLinkFactoryInterface $paymentLinkFactory,
+        private readonly StateMachineInterface $stateMachine,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly LoggerInterface $logger,
+        private readonly array $allowedPaymentStates = [PaymentInterface::STATE_NEW, PaymentInterface::STATE_PROCESSING],
     ) {
     }
 

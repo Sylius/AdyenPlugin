@@ -30,11 +30,11 @@ use Webmozart\Assert\Assert;
 final class GeneratePayLinkAction
 {
     public function __construct(
-        private PaymentRepositoryInterface $paymentRepository,
-        private PaymentLinkGeneratorInterface $paymentLinkGenerator,
-        private PaymentLinkEmailSenderInterface $paymentLinkEmailSender,
-        private UrlGeneratorInterface $urlGenerator,
-        private RequestStack $requestStack,
+        private readonly PaymentRepositoryInterface $paymentRepository,
+        private readonly PaymentLinkGeneratorInterface $paymentLinkGenerator,
+        private readonly PaymentLinkEmailSenderInterface $paymentLinkEmailSender,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly RequestStack $requestStack,
     ) {
     }
 

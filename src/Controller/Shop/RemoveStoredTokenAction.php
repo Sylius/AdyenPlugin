@@ -25,28 +25,12 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 
 class RemoveStoredTokenAction
 {
-    /** @var TokenStorageInterface */
-    private $tokenStorage;
-
-    /** @var AdyenTokenRepositoryInterface */
-    private $adyenTokenRepository;
-
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var AdyenClientProviderInterface */
-    private $adyenClientProvider;
-
     public function __construct(
-        TokenStorageInterface $storage,
-        AdyenTokenRepositoryInterface $adyenTokenRepository,
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        AdyenClientProviderInterface $adyenClientProvider,
+        private readonly TokenStorageInterface $tokenStorage,
+        private readonly AdyenTokenRepositoryInterface $adyenTokenRepository,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
     ) {
-        $this->tokenStorage = $storage;
-        $this->adyenTokenRepository = $adyenTokenRepository;
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->adyenClientProvider = $adyenClientProvider;
     }
 
     private function getUser(): ShopUserInterface

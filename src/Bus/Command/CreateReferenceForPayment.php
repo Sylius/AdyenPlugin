@@ -18,14 +18,10 @@ use Webmozart\Assert\Assert;
 
 final class CreateReferenceForPayment
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
+    public function __construct(private readonly PaymentInterface $payment)
     {
         $details = $payment->getDetails();
         Assert::keyExists($details, 'pspReference', 'Payment pspReference is not present');
-        $this->payment = $payment;
     }
 
     public function getPayment(): PaymentInterface

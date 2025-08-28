@@ -21,12 +21,8 @@ use Webmozart\Assert\Assert;
 
 final class AdyenReferenceFactory implements AdyenReferenceFactoryInterface
 {
-    /** @var FactoryInterface */
-    private $baseFactory;
-
-    public function __construct(FactoryInterface $baseFactory)
+    public function __construct(private readonly FactoryInterface $baseFactory)
     {
-        $this->baseFactory = $baseFactory;
     }
 
     public function createForPayment(PaymentInterface $payment): AdyenReferenceInterface

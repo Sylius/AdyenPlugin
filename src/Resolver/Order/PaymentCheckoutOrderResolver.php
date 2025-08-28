@@ -29,7 +29,7 @@ final class PaymentCheckoutOrderResolver implements PaymentCheckoutOrderResolver
     /** @var CartContextInterface */
     private $cartContext;
 
-    private OrderRepositoryInterface $orderRepository;
+    private readonly OrderRepositoryInterface $orderRepository;
 
     public function __construct(
         RequestStack $requestStack,

@@ -20,8 +20,8 @@ use Sylius\Component\Core\Model\PaymentInterface;
 final class PaymentReferencesClearer implements PaymentReferencesClearerInterface
 {
     public function __construct(
-        private AdyenReferenceRepositoryInterface $adyenReferenceRepository,
-        private EntityManagerInterface $entityManager,
+        private readonly AdyenReferenceRepositoryInterface $adyenReferenceRepository,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 

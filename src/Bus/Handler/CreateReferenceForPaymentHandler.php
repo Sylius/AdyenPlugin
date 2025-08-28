@@ -58,7 +58,7 @@ final class CreateReferenceForPaymentHandler
                 $code,
                 (string) $adyenReference->getPspReference(),
             );
-        } catch (NoResultException $ex) {
+        } catch (NoResultException) {
             return null;
         }
     }

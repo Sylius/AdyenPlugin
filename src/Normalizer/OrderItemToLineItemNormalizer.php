@@ -26,10 +26,10 @@ final class OrderItemToLineItemNormalizer extends AbstractPaymentNormalizer
     private const TAX_PERCENTAGE_MULTIPLIER = 10000;
 
     public function __construct(
-        private RequestStack $requestStack,
-        private UrlGeneratorInterface $urlGenerator,
-        private ThumbnailUrlResolverInterface $thumbnailUrlResolver,
-        private string $defaultLocale = 'en_US',
+        private readonly RequestStack $requestStack,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly ThumbnailUrlResolverInterface $thumbnailUrlResolver,
+        private readonly string $defaultLocale = 'en_US',
     ) {
     }
 

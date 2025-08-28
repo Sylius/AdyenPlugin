@@ -93,7 +93,7 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
 
         try {
             $client = $this->adyenClientProvider->getClientForCode((string) $method->getCode());
-        } catch (\InvalidArgumentException $ex) {
+        } catch (\InvalidArgumentException) {
             return [];
         }
 

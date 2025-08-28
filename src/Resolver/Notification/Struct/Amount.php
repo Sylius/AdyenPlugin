@@ -15,9 +15,7 @@ namespace Sylius\AdyenPlugin\Resolver\Notification\Struct;
 
 class Amount
 {
-    /** @var ?string */
-    public $currency;
+    public ?string $currency = null;
 
-    /** @var ?int */
-    public $value;
+    public ?int $value = null;
 }

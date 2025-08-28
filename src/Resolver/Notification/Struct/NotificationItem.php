@@ -17,13 +17,8 @@ use Symfony\Component\Serializer\Annotation\SerializedName;
 
 class NotificationItem
 {
-    /** @var string */
-    public $paymentCode;
+    public string $paymentCode;
 
-    /**
-     * @var NotificationItemData
-     *
-     * @SerializedName("NotificationRequestItem")
-     */
-    public $notificationRequestItem;
+    /** @SerializedName("NotificationRequestItem") */
+    public NotificationItemData $notificationRequestItem;
 }

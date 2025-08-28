@@ -30,7 +30,7 @@ final class AdyenPaymentCheckerExtension extends AbstractExtension
         return [
             new TwigFunction(
                 'sylius_adyen_is_adyen_payment',
-                [$this->adyenPaymentMethodChecker, 'isAdyenPayment'],
+                $this->adyenPaymentMethodChecker->isAdyenPayment(...),
                 ['is_safe' => ['html']],
             ),
         ];

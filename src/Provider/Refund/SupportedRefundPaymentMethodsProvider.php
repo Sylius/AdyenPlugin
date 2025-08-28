@@ -41,8 +41,6 @@ final class SupportedRefundPaymentMethodsProvider implements RefundPaymentMethod
             return $methods;
         }
 
-        return array_filter($methods, function (PaymentMethodInterface $method) {
-            return false === $this->adyenPaymentMethodChecker->isAdyenPaymentMethod($method);
-        });
+        return array_filter($methods, fn (PaymentMethodInterface $method) => false === $this->adyenPaymentMethodChecker->isAdyenPaymentMethod($method));
     }
 }

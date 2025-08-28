@@ -18,7 +18,7 @@ use Sylius\AdyenPlugin\Collector\EsdCollectorInterface;
 final class EsdTypeProvider implements EsdTypeProviderInterface
 {
     /** @var array<string, EsdCollectorInterface> */
-    private array $collectors;
+    private readonly array $collectors;
 
     /** @param \Traversable<string, EsdCollectorInterface> $collectors */
     public function __construct(\Traversable $collectors)

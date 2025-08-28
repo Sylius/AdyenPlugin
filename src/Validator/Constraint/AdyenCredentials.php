@@ -17,11 +17,9 @@ use Symfony\Component\Validator\Constraint;
 
 class AdyenCredentials extends Constraint
 {
-    /** @var string */
-    public $messageInvalidApiKey = 'sylius_adyen.credentials.invalid_api_key';
+    public string $messageInvalidApiKey = 'sylius_adyen.credentials.invalid_api_key';
 
-    /** @var string */
-    public $messageInvalidMerchantAccount = 'sylius_adyen.credentials.invalid_merchant_account';
+    public string $messageInvalidMerchantAccount = 'sylius_adyen.credentials.invalid_merchant_account';
 
     public function validatedBy(): string
     {

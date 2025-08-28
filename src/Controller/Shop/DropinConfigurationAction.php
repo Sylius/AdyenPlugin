@@ -32,33 +32,13 @@ class DropinConfigurationAction
         'sylius_adyen.runtime.payment_failed_try_again',
     ];
 
-    /** @var CartContextInterface */
-    private $cartContext;
-
-    /** @var PaymentMethodsForOrderProvider */
-    private $paymentMethodsForOrderProvider;
-
-    /** @var UrlGeneratorInterface */
-    private $urlGenerator;
-
-    /** @var OrderRepositoryInterface */
-    private $orderRepository;
-
-    /** @var TranslatorInterface */
-    private $translator;
-
     public function __construct(
-        CartContextInterface $cartContext,
-        PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
-        UrlGeneratorInterface $urlGenerator,
-        OrderRepositoryInterface $orderRepository,
-        TranslatorInterface $translator,
+        private readonly CartContextInterface $cartContext,
+        private readonly PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
+        private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly OrderRepositoryInterface $orderRepository,
+        private readonly TranslatorInterface $translator,
     ) {
-        $this->cartContext = $cartContext;
-        $this->paymentMethodsForOrderProvider = $paymentMethodsForOrderProvider;
-        $this->urlGenerator = $urlGenerator;
-        $this->orderRepository = $orderRepository;
-        $this->translator = $translator;
     }
 
     public function __invoke(

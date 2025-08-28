@@ -26,18 +26,11 @@ class ProvinceAddressConstraintValidatorDecorator extends ConstraintValidator
         'CA', 'US',
     ];
 
-    /** @var ProvinceAddressConstraintValidator */
-    private $decorated;
-
-    /** @var array|string[] */
-    private $provinceRequiredCountriesList;
-
     public function __construct(
-        ProvinceAddressConstraintValidator $decorated,
-        array $provinceRequiredCountriesList = self::PROVINCE_REQUIRED_COUNTRIES_DEFAULT_LIST,
+        private readonly ProvinceAddressConstraintValidator $decorated,
+        /** @var array|string[] */
+        private readonly array $provinceRequiredCountriesList = self::PROVINCE_REQUIRED_COUNTRIES_DEFAULT_LIST,
     ) {
-        $this->decorated = $decorated;
-        $this->provinceRequiredCountriesList = $provinceRequiredCountriesList;
     }
 
     /**

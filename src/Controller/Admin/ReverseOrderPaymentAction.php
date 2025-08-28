@@ -28,11 +28,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 final class ReverseOrderPaymentAction
 {
     public function __construct(
-        private PaymentRepositoryInterface $paymentRepository,
-        private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
-        private ReverseOrderPaymentProcessor $reverseOrderPaymentProcessor,
-        private RequestStack $requestStack,
-        private UrlGeneratorInterface $urlGenerator,
+        private readonly PaymentRepositoryInterface $paymentRepository,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private readonly ReverseOrderPaymentProcessor $reverseOrderPaymentProcessor,
+        private readonly RequestStack $requestStack,
+        private readonly UrlGeneratorInterface $urlGenerator,
     ) {
     }
 

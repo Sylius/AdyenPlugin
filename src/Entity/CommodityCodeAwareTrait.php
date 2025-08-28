@@ -18,7 +18,7 @@ use Doctrine\ORM\Mapping as ORM;
 trait CommodityCodeAwareTrait
 {
     #[ORM\Column(name: 'commodity_code', type: 'string', length: 12, nullable: true)]
-    private ?string $commodityCode = null;
+    protected ?string $commodityCode = null;
 
     public function getCommodityCode(): ?string
     {

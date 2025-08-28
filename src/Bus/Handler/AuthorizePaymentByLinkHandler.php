@@ -24,10 +24,10 @@ use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 final class AuthorizePaymentByLinkHandler
 {
     public function __construct(
-        private PaymentLinkRepositoryInterface $paymentLinkRepository,
-        private NormalizerInterface $normalizer,
-        private EntityManagerInterface $entityManager,
-        private MessageBusInterface $commandBus,
+        private readonly PaymentLinkRepositoryInterface $paymentLinkRepository,
+        private readonly NormalizerInterface $normalizer,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly MessageBusInterface $commandBus,
     ) {
     }
 

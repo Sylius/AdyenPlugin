@@ -26,35 +26,26 @@ use Webmozart\Assert\Assert;
 
 class AdyenCredentialsValidator extends ConstraintValidator
 {
-    /** @var AdyenTransportFactory */
-    private $adyenTransportFactory;
-
-    public function __construct(AdyenTransportFactory $adyenTransportFactory)
+    public function __construct(private readonly AdyenTransportFactory $adyenTransportFactory)
     {
-        $this->adyenTransportFactory = $adyenTransportFactory;
     }
 
-    private function dispatchException(AdyenException $exception): void
+    public function validate(mixed $value, Constraint $constraint): void
     {
-        if (Response::HTTP_UNAUTHORIZED === $exception->getCode()) {
-            throw new InvalidApiKeyException();
-        }
+        Assert::isInstanceOf($constraint, AdyenCredentials::class);
+        Assert::isArray($value);
 
-        if (Response::HTTP_FORBIDDEN === $exception->getCode()) {
-            throw new InvalidMerchantAccountException();
-        }
-
-        throw $exception;
-    }
-
-    private function validateArguments(?string $merchantAccount, ?string $apiKey): void
-    {
-        if (null === $merchantAccount || '' === $merchantAccount) {
-            throw new InvalidMerchantAccountException();
-        }
-
-        if (null === $apiKey || '' === $apiKey) {
-            throw new InvalidApiKeyException();
+        try {
+            $this->isApiKeyValid(
+                (string) $value['environment'],
+                (string) $value['merchantAccount'],
+                (string) $value['apiKey'],
+                (string) $value['liveEndpointUrlPrefix'],
+            );
+        } catch (InvalidApiKeyException) {
+            $this->context->buildViolation($constraint->messageInvalidApiKey)->addViolation();
+        } catch (InvalidMerchantAccountException) {
+            $this->context->buildViolation($constraint->messageInvalidMerchantAccount)->addViolation();
         }
     }
 
@@ -89,22 +80,27 @@ class AdyenCredentialsValidator extends ConstraintValidator
         return true;
     }
 
-    public function validate(mixed $value, Constraint $constraint): void
+    private function validateArguments(?string $merchantAccount, ?string $apiKey): void
     {
-        Assert::isInstanceOf($constraint, AdyenCredentials::class);
-        Assert::isArray($value);
-
-        try {
-            $this->isApiKeyValid(
-                (string) $value['environment'],
-                (string) $value['merchantAccount'],
-                (string) $value['apiKey'],
-                (string) $value['liveEndpointUrlPrefix'],
-            );
-        } catch (InvalidApiKeyException $ex) {
-            $this->context->buildViolation($constraint->messageInvalidApiKey)->addViolation();
-        } catch (InvalidMerchantAccountException $ex) {
-            $this->context->buildViolation($constraint->messageInvalidMerchantAccount)->addViolation();
+        if (null === $merchantAccount || '' === $merchantAccount) {
+            throw new InvalidMerchantAccountException();
         }
+
+        if (null === $apiKey || '' === $apiKey) {
+            throw new InvalidApiKeyException();
+        }
+    }
+
+    private function dispatchException(AdyenException $exception): void
+    {
+        if (Response::HTTP_UNAUTHORIZED === $exception->getCode()) {
+            throw new InvalidApiKeyException();
+        }
+
+        if (Response::HTTP_FORBIDDEN === $exception->getCode()) {
+            throw new InvalidMerchantAccountException();
+        }
+
+        throw $exception;
     }
 }

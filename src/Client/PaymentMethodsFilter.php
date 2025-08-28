@@ -17,23 +17,8 @@ use Webmozart\Assert\Assert;
 
 final class PaymentMethodsFilter implements PaymentMethodsFilterInterface
 {
-    /** @var array|null */
-    private $supportedMethodsList;
-
-    public function __construct(?array $supportedMethodsList)
+    public function __construct(private readonly ?array $supportedMethodsList)
     {
-        $this->supportedMethodsList = $supportedMethodsList;
-    }
-
-    private function doFilter(array $methodsList): array
-    {
-        $result = array_filter($methodsList, function (array $item): bool {
-            Assert::keyExists($item, 'type');
-
-            return in_array($item['type'], (array) $this->supportedMethodsList, true);
-        }, \ARRAY_FILTER_USE_BOTH);
-
-        return array_values($result);
     }
 
     public function filter(array $paymentMethodsResponse): array
@@ -47,5 +32,16 @@ final class PaymentMethodsFilter implements PaymentMethodsFilterInterface
         }
 
         return $paymentMethodsResponse;
+    }
+
+    private function doFilter(array $methodsList): array
+    {
+        $result = array_filter($methodsList, function (array $item): bool {
+            Assert::keyExists($item, 'type');
+
+            return in_array($item['type'], (array) $this->supportedMethodsList, true);
+        }, \ARRAY_FILTER_USE_BOTH);
+
+        return array_values($result);
     }
 }

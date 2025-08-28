@@ -36,7 +36,7 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.unitPrice'] = (string) $orderItem->getUnitPrice();
         $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.totalAmount'] = (string) $orderItem->getTotal();
 
-        $commodityCode = $variant instanceof \Sylius\AdyenPlugin\Entity\CommodityCodeAwareInterface ? $variant->getCommodityCode() : null;
+        $commodityCode = $variant instanceof CommodityCodeAwareInterface ? $variant->getCommodityCode() : null;
         if ($commodityCode !== null) {
             $data['enhancedSchemeData.itemDetailLine' . $lineNumber . '.commodityCode'] = $commodityCode;
         }

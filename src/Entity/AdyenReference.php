@@ -23,17 +23,13 @@ class AdyenReference implements ResourceInterface, AdyenReferenceInterface, Time
 {
     use TimestampableTrait;
 
-    /** @var ?int */
-    protected $id;
+    protected ?int $id;
 
-    /** @var ?string */
-    protected $pspReference;
+    protected ?string $pspReference;
 
-    /** @var ?PaymentInterface */
-    protected $payment;
+    protected ?PaymentInterface $payment;
 
-    /** @var ?RefundPaymentInterface */
-    protected $refundPayment;
+    protected ?RefundPaymentInterface $refundPayment;
 
     public function getId(): ?int
     {

@@ -19,12 +19,8 @@ use Psr\Log\LoggerInterface;
 
 final class LoggerProvider implements LoggerProviderInterface
 {
-    /** @var HandlerInterface */
-    private $handler;
-
-    public function __construct(HandlerInterface $handler)
+    public function __construct(private readonly HandlerInterface $handler)
     {
-        $this->handler = $handler;
     }
 
     public function getLogger(): LoggerInterface

@@ -17,7 +17,7 @@ use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 
 final class RefundPayment
 {
-    public function __construct(private RefundPaymentInterface $refundPayment)
+    public function __construct(private readonly RefundPaymentInterface $refundPayment)
     {
     }
 

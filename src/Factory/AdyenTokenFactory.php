@@ -20,12 +20,8 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 final class AdyenTokenFactory implements AdyenTokenFactoryInterface
 {
-    /** @var FactoryInterface */
-    private $baseFactory;
-
-    public function __construct(FactoryInterface $baseFactory)
+    public function __construct(private readonly FactoryInterface $baseFactory)
     {
-        $this->baseFactory = $baseFactory;
     }
 
     public function create(PaymentMethodInterface $paymentMethod, CustomerInterface $customer): AdyenTokenInterface

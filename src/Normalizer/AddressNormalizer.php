@@ -20,12 +20,8 @@ use Webmozart\Assert\Assert;
 
 final class AddressNormalizer extends AbstractPaymentNormalizer
 {
-    /** @var StreetAddressResolverInterface */
-    private $streetAddressResolver;
-
-    public function __construct(StreetAddressResolverInterface $streetAddressResolver)
+    public function __construct(private readonly StreetAddressResolverInterface $streetAddressResolver)
     {
-        $this->streetAddressResolver = $streetAddressResolver;
     }
 
     /**

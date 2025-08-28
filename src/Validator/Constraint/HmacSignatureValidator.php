@@ -26,23 +26,35 @@ class HmacSignatureValidator extends ConstraintValidator
 {
     public const PAYMENT_METHOD_FIELD_NAME = 'paymentCode';
 
-    /** @var SignatureValidatorProviderInterface */
-    private $signatureValidatorProvider;
-
-    /** @var PropertyAccessorInterface */
-    private $propertyAccessor;
-
-    /** @var NormalizerInterface */
-    private $normalizer;
-
     public function __construct(
-        SignatureValidatorProviderInterface $signatureValidatorProvider,
-        PropertyAccessorInterface $propertyAccessor,
-        NormalizerInterface $normalizer,
+        private readonly SignatureValidatorProviderInterface $signatureValidatorProvider,
+        private readonly PropertyAccessorInterface $propertyAccessor,
+        private readonly NormalizerInterface $normalizer,
     ) {
-        $this->signatureValidatorProvider = $signatureValidatorProvider;
-        $this->propertyAccessor = $propertyAccessor;
-        $this->normalizer = $normalizer;
+    }
+
+    /**
+     * @param mixed $value
+     * @param HmacSignature|Constraint $constraint
+     */
+    public function validate($value, Constraint $constraint): void
+    {
+        Assert::isInstanceOf($value, NotificationItemData::class);
+        Assert::isInstanceOf($constraint, HmacSignature::class);
+
+        $validator = $this->signatureValidatorProvider->getValidatorForCode(
+            $this->getPaymentCode(),
+        );
+
+        $params = $this->getNormalizedNotificationData($value);
+
+        try {
+            $result = $validator->isValid($params);
+        } catch (HMACKeyValidationException) {
+            $result = false;
+        }
+
+        $this->violate($result, $constraint);
     }
 
     private function violate(bool $result, HmacSignature $constraint): void
@@ -73,29 +85,5 @@ class HmacSignatureValidator extends ConstraintValidator
         $params['success'] = ($value->success ?? false) ? 'true' : 'false';
 
         return $params;
-    }
-
-    /**
-     * @param mixed $value
-     * @param Constraint|HmacSignature $constraint
-     */
-    public function validate($value, Constraint $constraint): void
-    {
-        Assert::isInstanceOf($value, NotificationItemData::class);
-        Assert::isInstanceOf($constraint, HmacSignature::class);
-
-        $validator = $this->signatureValidatorProvider->getValidatorForCode(
-            $this->getPaymentCode(),
-        );
-
-        $params = $this->getNormalizedNotificationData($value);
-
-        try {
-            $result = $validator->isValid($params);
-        } catch (HMACKeyValidationException $ex) {
-            $result = false;
-        }
-
-        $this->violate($result, $constraint);
     }
 }

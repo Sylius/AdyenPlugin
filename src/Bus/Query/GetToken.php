@@ -18,16 +18,10 @@ use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class GetToken
 {
-    /** @var OrderInterface */
-    private $order;
-
-    /** @var PaymentMethodInterface */
-    private $paymentMethod;
-
-    public function __construct(PaymentMethodInterface $paymentMethod, OrderInterface $order)
-    {
-        $this->order = $order;
-        $this->paymentMethod = $paymentMethod;
+    public function __construct(
+        private readonly PaymentMethodInterface $paymentMethod,
+        private readonly OrderInterface $order,
+    ) {
     }
 
     public function getOrder(): OrderInterface

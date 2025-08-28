@@ -30,33 +30,13 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
 {
     use GatewayConfigFromPaymentTrait;
 
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var ChannelContextInterface */
-    private $channelContext;
-
-    /** @var AdyenTransportFactory */
-    private $adyenTransportFactory;
-
-    /** @var ClientPayloadFactoryInterface */
-    private $clientPayloadFactory;
-
-    /** @var PaymentMethodsFilterInterface */
-    private $paymentMethodsFilter;
-
     public function __construct(
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        ChannelContextInterface $channelContext,
-        AdyenTransportFactory $adyenTransportFactory,
-        ClientPayloadFactoryInterface $clientPayloadFactory,
-        PaymentMethodsFilterInterface $paymentMethodsFilter,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly ChannelContextInterface $channelContext,
+        private readonly AdyenTransportFactory $adyenTransportFactory,
+        private readonly ClientPayloadFactoryInterface $clientPayloadFactory,
+        private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
     ) {
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->channelContext = $channelContext;
-        $this->adyenTransportFactory = $adyenTransportFactory;
-        $this->clientPayloadFactory = $clientPayloadFactory;
-        $this->paymentMethodsFilter = $paymentMethodsFilter;
     }
 
     public function getDefaultClient(): AdyenClientInterface
