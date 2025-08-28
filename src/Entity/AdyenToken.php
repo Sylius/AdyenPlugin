@@ -19,17 +19,13 @@ use Sylius\Component\Resource\Model\ResourceInterface;
 
 class AdyenToken implements ResourceInterface, AdyenTokenInterface
 {
-    /** @var ?int */
-    protected $id;
+    protected ?int $id;
 
-    /** @var ?CustomerInterface */
-    protected $customer;
+    protected ?CustomerInterface $customer;
 
-    /** @var ?string */
-    protected $identifier;
+    protected ?string $identifier;
 
-    /** @var ?PaymentMethodInterface */
-    protected $paymentMethod;
+    protected ?PaymentMethodInterface $paymentMethod;
 
     public function getCustomer(): ?CustomerInterface
     {

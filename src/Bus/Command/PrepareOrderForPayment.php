@@ -17,12 +17,8 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 final class PrepareOrderForPayment
 {
-    /** @var OrderInterface */
-    private $order;
-
-    public function __construct(OrderInterface $order)
+    public function __construct(private readonly OrderInterface $order)
     {
-        $this->order = $order;
     }
 
     public function getOrder(): OrderInterface

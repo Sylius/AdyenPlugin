@@ -21,15 +21,13 @@ class PreserveOrderTokenUponRedirectionCallback
 {
     public const NON_FINALIZED_CART_SESSION_KEY = '_ADYEN_PAYMENT_IN_PROGRESS';
 
-    /** @var ?SessionInterface */
-    private $session;
+    private ?SessionInterface $session = null;
 
-    public function __construct(RequestStack $session)
+    public function __construct(RequestStack $requestStack)
     {
-        if (null == $session->getMainRequest()) {
-            return;
+        if (null !== $requestStack->getMainRequest()) {
+            $this->session = $requestStack->getSession();
         }
-        $this->session = $session->getSession();
     }
 
     public function __invoke(OrderInterface $order): void
@@ -37,8 +35,8 @@ class PreserveOrderTokenUponRedirectionCallback
         if (null === $this->session) {
             return;
         }
-        $tokenValue = $order->getTokenValue();
 
+        $tokenValue = $order->getTokenValue();
         if (null === $tokenValue) {
             return;
         }

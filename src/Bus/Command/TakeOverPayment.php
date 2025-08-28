@@ -17,16 +17,10 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 final class TakeOverPayment
 {
-    /** @var OrderInterface */
-    private $order;
-
-    /** @var string */
-    private $paymentCode;
-
-    public function __construct(OrderInterface $order, string $paymentCode)
-    {
-        $this->order = $order;
-        $this->paymentCode = $paymentCode;
+    public function __construct(
+        private readonly OrderInterface $order,
+        private readonly string $paymentCode,
+    ) {
     }
 
     public function getOrder(): OrderInterface

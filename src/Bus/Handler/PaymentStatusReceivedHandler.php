@@ -60,7 +60,7 @@ final class PaymentStatusReceivedHandler
             $this->paymentRepository->add($payment);
 
             $this->processCode($resultCode, $command);
-        } catch (\InvalidArgumentException $ex) {
+        } catch (\InvalidArgumentException) {
             // probably redirect, we don't have a pspReference at this stage
         }
     }
@@ -70,7 +70,7 @@ final class PaymentStatusReceivedHandler
         try {
             $subcommand = $this->commandFactory->createForEvent($resultCode, $command->getPayment());
             $this->commandBus->dispatch($subcommand);
-        } catch (UnmappedAdyenActionException $ex) {
+        } catch (UnmappedAdyenActionException) {
             // nothing here
         }
     }

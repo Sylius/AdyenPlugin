@@ -30,18 +30,10 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
 
     public const ROUTE_NAME = 'sylius_adyen_shop_process_notifications';
 
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var LoggerInterface */
-    private $logger;
-
     public function __construct(
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        LoggerInterface $logger,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly LoggerInterface $logger,
     ) {
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->logger = $logger;
     }
 
     public static function getSubscribedEvents(): array

@@ -17,10 +17,9 @@ use Symfony\Component\Validator\Constraint;
 
 class HmacSignature extends Constraint
 {
-    /** @var string */
-    public $message = 'sylius_adyen.runtime.invalid_signature';
+    public string $message = 'sylius_adyen.runtime.invalid_signature';
 
-    public function getTargets()
+    public function getTargets(): array|string
     {
         return parent::CLASS_CONSTRAINT;
     }

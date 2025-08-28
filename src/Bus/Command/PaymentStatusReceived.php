@@ -17,12 +17,8 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class PaymentStatusReceived implements PaymentLifecycleCommand
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
+    public function __construct(private readonly PaymentInterface $payment)
     {
-        $this->payment = $payment;
     }
 
     public function getPayment(): PaymentInterface

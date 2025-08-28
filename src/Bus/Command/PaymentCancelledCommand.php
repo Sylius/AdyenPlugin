@@ -18,7 +18,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class PaymentCancelledCommand implements PaymentFinalizationCommand
 {
-    public function __construct(private PaymentInterface $payment)
+    public function __construct(private readonly PaymentInterface $payment)
     {
     }
 

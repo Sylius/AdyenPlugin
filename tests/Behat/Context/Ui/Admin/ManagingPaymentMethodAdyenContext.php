@@ -30,25 +30,17 @@ final class ManagingPaymentMethodAdyenContext extends MinkContext implements Con
     /** @var CurrentPageResolverInterface */
     private $currentPageResolver;
 
-    /** @var CreatePageInterface */
-    private $createPage;
-
     /** @var KernelInterface */
     private $kernel;
 
-    /** @var UpdatePage */
-    private $updatePage;
-
     public function __construct(
         CurrentPageResolverInterface $currentPageResolver,
-        CreatePageInterface $createPage,
-        UpdatePage $updatePage,
+        private readonly CreatePageInterface $createPage,
+        private readonly UpdatePage $updatePage,
         KernelInterface $kernel,
     ) {
-        $this->createPage = $createPage;
         $this->currentPageResolver = $currentPageResolver;
         $this->kernel = $kernel;
-        $this->updatePage = $updatePage;
     }
 
     /**

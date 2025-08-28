@@ -25,9 +25,9 @@ use Webmozart\Assert\Assert;
 final class ReversePaymentHandler
 {
     public function __construct(
-        private AdyenClientProviderInterface $adyenClientProvider,
-        private StateMachineInterface $stateMachine,
-        private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly StateMachineInterface $stateMachine,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 

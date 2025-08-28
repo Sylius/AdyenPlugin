@@ -18,12 +18,8 @@ use Sylius\Component\Payment\PaymentTransitions;
 
 final class AuthorizePayment implements PaymentFinalizationCommand
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    public function __construct(PaymentInterface $payment)
+    public function __construct(private readonly PaymentInterface $payment)
     {
-        $this->payment = $payment;
     }
 
     public function getPayment(): PaymentInterface

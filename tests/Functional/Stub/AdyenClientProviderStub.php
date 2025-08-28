@@ -20,7 +20,7 @@ use Sylius\Component\Core\Model\PaymentMethodInterface;
 final class AdyenClientProviderStub implements AdyenClientProviderInterface
 {
     public function __construct(
-        private AdyenClientInterface $client,
+        private readonly AdyenClientInterface $client,
     ) {
     }
 

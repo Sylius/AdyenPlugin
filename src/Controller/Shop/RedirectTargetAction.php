@@ -24,18 +24,10 @@ class RedirectTargetAction
 {
     public const REDIRECT_RESULT_KEY = 'redirectResult';
 
-    /** @var PaymentResponseProcessor */
-    private $paymentResponseProcessor;
-
-    /** @var PaymentDetailsResolverInterface */
-    private $paymentDetailsResolver;
-
     public function __construct(
-        PaymentResponseProcessor $paymentResponseProcessor,
-        PaymentDetailsResolverInterface $paymentDetailsResolver,
+        private readonly PaymentResponseProcessor $paymentResponseProcessor,
+        private readonly PaymentDetailsResolverInterface $paymentDetailsResolver,
     ) {
-        $this->paymentResponseProcessor = $paymentResponseProcessor;
-        $this->paymentDetailsResolver = $paymentDetailsResolver;
     }
 
     public function __invoke(Request $request, string $code): Response

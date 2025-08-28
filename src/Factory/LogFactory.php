@@ -18,12 +18,8 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 final class LogFactory implements FactoryInterface, LogFactoryInterface
 {
-    /** @var FactoryInterface */
-    private $factory;
-
-    public function __construct(FactoryInterface $factory)
+    public function __construct(private readonly FactoryInterface $factory)
     {
-        $this->factory = $factory;
     }
 
     public function createNew()

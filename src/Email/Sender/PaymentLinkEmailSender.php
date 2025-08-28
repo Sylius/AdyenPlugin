@@ -21,7 +21,7 @@ final class PaymentLinkEmailSender implements PaymentLinkEmailSenderInterface
     private const EMAIL_CODE = 'adyen_payment_link';
 
     public function __construct(
-        private SenderInterface $sender,
+        private readonly SenderInterface $sender,
     ) {
     }
 

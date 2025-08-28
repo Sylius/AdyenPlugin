@@ -20,7 +20,7 @@ use Sylius\Resource\Exception\UnsupportedMethodException;
 
 final class PaymentLinkFactory implements PaymentLinkFactoryInterface
 {
-    public function createNew()
+    public function createNew(): never
     {
         throw new UnsupportedMethodException(__METHOD__);
     }

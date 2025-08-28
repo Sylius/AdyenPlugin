@@ -22,13 +22,8 @@ class AdyenDetailsAction
 {
     public const REFERENCE_ID_KEY = 'referenceId';
 
-    /** @var PaymentDetailsResolverInterface */
-    private $paymentDetailsResolver;
-
-    public function __construct(
-        PaymentDetailsResolverInterface $paymentDetailsResolver,
-    ) {
-        $this->paymentDetailsResolver = $paymentDetailsResolver;
+    public function __construct(private readonly PaymentDetailsResolverInterface $paymentDetailsResolver)
+    {
     }
 
     public function __invoke(Request $request, string $code): Response

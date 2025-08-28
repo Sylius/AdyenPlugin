@@ -15,16 +15,8 @@ namespace Sylius\AdyenPlugin\Model;
 
 final class StreetAddressModel implements StreetAddressModelInterface
 {
-    /** @var string */
-    private $street;
-
-    /** @var string */
-    private $houseNumber;
-
-    public function __construct(string $street, string $houseNumberOrName)
+    public function __construct(private readonly string $street, private readonly string $houseNumber)
     {
-        $this->street = $street;
-        $this->houseNumber = $houseNumberOrName;
     }
 
     public function getStreet(): string

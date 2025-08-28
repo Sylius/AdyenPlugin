@@ -21,13 +21,9 @@ use Sylius\AdyenPlugin\Resolver\Configuration\ConfigurationResolver;
 
 final class AdyenTransportFactory implements AdyenTransportFactoryInterface
 {
-    /** @var ClientInterface */
-    private $adyenHttpClient;
-
     public function __construct(
-        ?ClientInterface $adyenHttpClient = null,
+        private readonly ClientInterface $adyenHttpClient = new CurlClient(),
     ) {
-        $this->adyenHttpClient = $adyenHttpClient ?? new CurlClient();
     }
 
     public function create(array $options): Client

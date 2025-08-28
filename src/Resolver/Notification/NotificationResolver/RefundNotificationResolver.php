@@ -22,7 +22,7 @@ use Webmozart\Assert\Assert;
 final class RefundNotificationResolver implements CommandResolver
 {
     public function __construct(
-        private AdyenReferenceRepositoryInterface $adyenReferenceRepository,
+        private readonly AdyenReferenceRepositoryInterface $adyenReferenceRepository,
     ) {
     }
 

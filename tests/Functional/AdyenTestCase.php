@@ -132,7 +132,7 @@ abstract class AdyenTestCase extends WebTestCase
     {
         $order = new Order();
 
-        $uniqueId = (int) (microtime(true) * 1000) + rand(1, 999);
+        $uniqueId = (int) (microtime(true) * 1000) + random_int(1, 999);
         $uniqueNumber = 'ORDER_' . $uniqueId;
 
         $reflection = new \ReflectionClass($order);

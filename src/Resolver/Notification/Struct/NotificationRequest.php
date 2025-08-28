@@ -15,9 +15,8 @@ namespace Sylius\AdyenPlugin\Resolver\Notification\Struct;
 
 class NotificationRequest
 {
-    /** @var ?bool */
-    public $live;
+    public ?bool $live = null;
 
     /** @var ?NotificationItem[] */
-    public $notificationItems;
+    public ?array $notificationItems = [];
 }

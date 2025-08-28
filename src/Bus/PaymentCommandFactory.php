@@ -24,7 +24,7 @@ use Webmozart\Assert\Assert;
 final class PaymentCommandFactory implements PaymentCommandFactoryInterface
 {
     public function __construct(
-        private EventCodeResolverInterface $eventCodeResolver,
+        private readonly EventCodeResolverInterface $eventCodeResolver,
         private array $mapping = [],
     ) {
         $this->mapping = array_merge_recursive(self::MAPPING, $mapping);

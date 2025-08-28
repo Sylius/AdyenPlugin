@@ -19,16 +19,11 @@ use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 
 final class NotificationToCommandResolver implements NotificationToCommandResolverInterface
 {
-    /** @var iterable<int, CommandResolver> */
-    private $commandResolvers;
-
     /**
      * @param iterable<int, CommandResolver> $commandResolvers
      */
-    public function __construct(
-        iterable $commandResolvers,
-    ) {
-        $this->commandResolvers = $commandResolvers;
+    public function __construct(private readonly iterable $commandResolvers)
+    {
     }
 
     public function resolve(string $paymentCode, NotificationItemData $notificationData): object
@@ -36,7 +31,7 @@ final class NotificationToCommandResolver implements NotificationToCommandResolv
         foreach ($this->commandResolvers as $resolver) {
             try {
                 return $resolver->resolve($paymentCode, $notificationData);
-            } catch (NoCommandResolvedException $ex) {
+            } catch (NoCommandResolvedException) {
             }
         }
 

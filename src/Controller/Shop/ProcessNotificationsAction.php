@@ -52,7 +52,7 @@ class ProcessNotificationsAction
             try {
                 $command = $this->notificationCommandResolver->resolve($paymentMethodCode, $notificationItem);
                 $this->messageBus->dispatch($command);
-            } catch (NoCommandResolvedException $ex) {
+            } catch (NoCommandResolvedException) {
                 $this->logger->error(sprintf(
                     'Tried to dispatch an unknown command. Notification body: %s',
                     json_encode($notificationItem, \JSON_PARTIAL_OUTPUT_ON_ERROR),

@@ -26,7 +26,7 @@ use Webmozart\Assert\Assert;
 final class CartConfigurationAction
 {
     /** @var array<ConfigurationProviderInterface> */
-    private array $configurationProviders;
+    private readonly array $configurationProviders;
 
     public function __construct(
         iterable $configurationProviders,

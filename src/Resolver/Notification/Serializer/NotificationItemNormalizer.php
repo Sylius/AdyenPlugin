@@ -56,16 +56,6 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
     }
 
     /**
-     * @param mixed $object
-     */
-    private function getNormalizationMarking($object): string
-    {
-        Assert::isInstanceOf($object, NotificationItemData::class);
-
-        return sprintf('%s_%s', self::DENORMALIZATION_PROCESSED_FLAG, spl_object_hash($object));
-    }
-
-    /**
      * @param NotificationItemData|mixed $object
      *
      * @return array<string, mixed>
@@ -97,5 +87,15 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
             $data instanceof NotificationItemData &&
             !isset($context[$this->getNormalizationMarking($data)])
         ;
+    }
+
+    /**
+     * @param mixed $object
+     */
+    private function getNormalizationMarking($object): string
+    {
+        Assert::isInstanceOf($object, NotificationItemData::class);
+
+        return sprintf('%s_%s', self::DENORMALIZATION_PROCESSED_FLAG, spl_object_hash($object));
     }
 }

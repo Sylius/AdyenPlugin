@@ -21,8 +21,8 @@ use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 final class RefundPaymentStateProcessor implements RefundPaymentStateProcessorInterface
 {
     public function __construct(
-        private StateMachineInterface $stateMachine,
-        private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private readonly StateMachineInterface $stateMachine,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 

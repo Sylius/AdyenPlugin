@@ -19,26 +19,13 @@ use Webmozart\Assert\Assert;
 
 final class CreateReferenceForRefund
 {
-    /** @var PaymentInterface */
-    private $payment;
-
-    /** @var RefundPaymentInterface */
-    private $refundPayment;
-
-    /** @var string */
-    private $refundReference;
-
     public function __construct(
-        string $refundReference,
-        RefundPaymentInterface $refundPayment,
-        PaymentInterface $payment,
+        private readonly string $refundReference,
+        private readonly RefundPaymentInterface $refundPayment,
+        private readonly PaymentInterface $payment,
     ) {
         $details = $payment->getDetails();
         Assert::keyExists($details, 'pspReference', 'Payment pspReference is not present');
-
-        $this->refundPayment = $refundPayment;
-        $this->payment = $payment;
-        $this->refundReference = $refundReference;
     }
 
     public function getRefundPayment(): RefundPaymentInterface

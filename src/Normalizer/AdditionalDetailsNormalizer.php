@@ -24,21 +24,12 @@ use Webmozart\Assert\Assert;
 
 final class AdditionalDetailsNormalizer extends AbstractPaymentNormalizer implements NormalizerAwareInterface
 {
-    /** @var RequestStack */
-    private $requestStack;
-
-    /** @var ?NormalizerInterface */
-    private $normalizer;
-
-    /** @var ShippingLineGeneratorInterface */
-    private $shippingLineGenerator;
+    private ?NormalizerInterface $normalizer;
 
     public function __construct(
-        RequestStack $requestStack,
-        ShippingLineGeneratorInterface $shippingLineGenerator,
+        private readonly RequestStack $requestStack,
+        private readonly ShippingLineGeneratorInterface $shippingLineGenerator,
     ) {
-        $this->requestStack = $requestStack;
-        $this->shippingLineGenerator = $shippingLineGenerator;
     }
 
     /**

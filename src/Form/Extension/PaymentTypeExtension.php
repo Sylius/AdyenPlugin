@@ -27,28 +27,12 @@ use Webmozart\Assert\Assert;
 
 final class PaymentTypeExtension extends AbstractTypeExtension
 {
-    /** @var PaymentCheckoutOrderResolverInterface */
-    private $paymentCheckoutOrderResolver;
-
-    /** @var PaymentMethodRepositoryInterface */
-    private $paymentMethodRepository;
-
-    /** @var ChannelContextInterface */
-    private $channelContext;
-
-    /** @var AdyenClientProviderInterface */
-    private $adyenClientProvider;
-
     public function __construct(
-        PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
-        ChannelContextInterface $channelContext,
-        AdyenClientProviderInterface $adyenClientProvider,
+        private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly ChannelContextInterface $channelContext,
+        private readonly AdyenClientProviderInterface $adyenClientProvider,
     ) {
-        $this->paymentCheckoutOrderResolver = $paymentCheckoutOrderResolver;
-        $this->paymentMethodRepository = $paymentMethodRepository;
-        $this->channelContext = $channelContext;
-        $this->adyenClientProvider = $adyenClientProvider;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -71,6 +55,11 @@ final class PaymentTypeExtension extends AbstractTypeExtension
         $builder->add($adyen);
     }
 
+    public static function getExtendedTypes(): array
+    {
+        return [PaymentType::class];
+    }
+
     private function getPaymentMethods(
         AdyenClientInterface $client,
     ): array {
@@ -80,10 +69,5 @@ final class PaymentTypeExtension extends AbstractTypeExtension
         Assert::keyExists($result, 'paymentMethods');
 
         return (array) $result['paymentMethods'];
-    }
-
-    public static function getExtendedTypes(): array
-    {
-        return [PaymentType::class];
     }
 }

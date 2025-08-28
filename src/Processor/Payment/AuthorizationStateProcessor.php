@@ -23,8 +23,8 @@ use Sylius\Component\Core\Model\PaymentMethodInterface;
 final class AuthorizationStateProcessor implements AuthorizationStateProcessorInterface
 {
     public function __construct(
-        private StateMachineInterface $stateMachine,
-        private EntityManagerInterface $entityManager,
+        private readonly StateMachineInterface $stateMachine,
+        private readonly EntityManagerInterface $entityManager,
     ) {
     }
 

@@ -41,7 +41,7 @@ final class PaymentNotificationResolver implements CommandResolver
                 $payment,
                 $notificationData,
             );
-        } catch (UnmappedAdyenActionException $ex) {
+        } catch (UnmappedAdyenActionException) {
             throw new NoCommandResolvedException();
         }
     }
@@ -71,7 +71,7 @@ final class PaymentNotificationResolver implements CommandResolver
             Assert::notNull($result);
 
             return $result;
-        } catch (NoResultException $ex) {
+        } catch (NoResultException) {
             throw new NoCommandResolvedException();
         }
     }

@@ -17,16 +17,12 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 final class RequestCapture implements AlterPaymentCommand
 {
-    /** @var OrderInterface */
-    private $payment;
-
-    public function __construct(OrderInterface $payment)
+    public function __construct(private readonly OrderInterface $order)
     {
-        $this->payment = $payment;
     }
 
     public function getOrder(): OrderInterface
     {
-        return $this->payment;
+        return $this->order;
     }
 }

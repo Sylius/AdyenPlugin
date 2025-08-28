@@ -15,6 +15,5 @@ namespace Sylius\AdyenPlugin\Resolver\Notification\Struct;
 
 class AdditionalData
 {
-    /** @var ?string */
-    public $hmacSignature;
+    public ?string $hmacSignature = null;
 }
