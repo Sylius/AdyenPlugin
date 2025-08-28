@@ -12,5 +12,14 @@
         <service id="Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifierInterface"
                  alias="sylius_adyen.modifier.express_checkout.paypal.order_address" />
 
+        <service
+                id="sylius_adyen.modifier.express_checkout.google_pay.order_address"
+                class="Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifier"
+        >
+            <argument type="service" id="sylius.factory.address"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifierInterface"
+                 alias="sylius_adyen.modifier.express_checkout.google_pay.order_address" />
+
     </services>
 </container>

@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Mock;
 
-use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
@@ -31,22 +30,6 @@ final class RequestMother
         $request->setSession($session);
 
         return $request;
-    }
-
-    public static function createWithSessionForDefinedOrderId(): Request
-    {
-        $result = self::createWithSession();
-        $result->getSession()->set(SuccessfulResponseProcessor::ORDER_ID_KEY, 42);
-
-        return $result;
-    }
-
-    public static function createWithSessionForSpecifiedQueryToken(): Request
-    {
-        $result = self::createWithSession();
-        $result->query->set(SuccessfulResponseProcessor::TOKEN_VALUE_KEY, 'Szczebrzeszyn');
-
-        return $result;
     }
 
     public static function createWithLocaleSet(): Request

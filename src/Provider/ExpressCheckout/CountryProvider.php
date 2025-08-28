@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
+namespace Sylius\AdyenPlugin\Provider\ExpressCheckout;
 
 use Sylius\Component\Addressing\Model\CountryInterface;
 use Sylius\Component\Core\Model\ChannelInterface;

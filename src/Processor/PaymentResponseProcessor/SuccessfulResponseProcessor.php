@@ -22,17 +22,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class SuccessfulResponseProcessor extends AbstractProcessor
 {
-    public const MY_ORDERS_ROUTE_NAME = 'sylius_shop_account_order_index';
-
     public const THANKS_ROUTE_NAME = 'sylius_shop_order_thank_you';
 
     public const PAYMENT_PROCEED_CODES = ['authorised'];
 
     public const ORDER_ID_KEY = 'sylius_order_id';
-
-    public const TOKEN_VALUE_KEY = 'tokenValue';
-
-    public const LABEL_PAYMENT_COMPLETED = 'sylius.payment.completed';
 
     public function __construct(
         UrlGeneratorInterface $urlGenerator,
@@ -58,24 +52,8 @@ class SuccessfulResponseProcessor extends AbstractProcessor
         $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
         $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
-        if ($this->shouldTheAlternativeThanksPageBeShown($request)) {
-            $this->addFlash($request, self::FLASH_INFO, self::LABEL_PAYMENT_COMPLETED);
-            $targetRoute = self::MY_ORDERS_ROUTE_NAME;
-        }
+        $request->getSession()->set(self::ORDER_ID_KEY, $payment->getOrder()->getId());
 
         return $this->generateUrl($targetRoute, $request, $payment);
-    }
-
-    private function shouldTheAlternativeThanksPageBeShown(Request $request): bool
-    {
-        if (null !== $request->query->get(self::TOKEN_VALUE_KEY)) {
-            return true;
-        }
-
-        if (null !== $request->getSession()->get(self::ORDER_ID_KEY)) {
-            return false;
-        }
-
-        return true;
     }
 }

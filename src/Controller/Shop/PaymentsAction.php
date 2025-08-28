@@ -24,7 +24,6 @@ use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
-use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,8 +37,6 @@ class PaymentsAction
     use PayableOrderPaymentTrait;
 
     public const REDIRECT_TARGET_ACTION = 'sylius_adyen_shop_thank_you';
-
-    public const ORDER_ID_KEY = 'sylius_order_id';
 
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
@@ -55,7 +52,7 @@ class PaymentsAction
     public function __invoke(Request $request, ?string $code = null): JsonResponse
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
-        $this->prepareOrder($request, $order);
+        $this->messageBus->dispatch(new PrepareOrderForPayment($order));
 
         if (null !== $code) {
             $this->messageBus->dispatch(new TakeOverPayment($order, $code));
@@ -115,14 +112,5 @@ class PaymentsAction
             ],
             UrlGeneratorInterface::ABSOLUTE_URL,
         );
-    }
-
-    private function prepareOrder(Request $request, OrderInterface $order): void
-    {
-        if (null === $request->get('tokenValue')) {
-            $request->getSession()->set(self::ORDER_ID_KEY, $order->getId());
-        }
-
-        $this->messageBus->dispatch(new PrepareOrderForPayment($order));
     }
 }

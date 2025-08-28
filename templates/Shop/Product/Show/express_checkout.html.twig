@@ -1,3 +1,9 @@
-<div id="adyen-product-express-checkout" class="ui segment">
+<div
+    id="adyen-product-express-checkout"
+    class="ui segment"
+    data-config-url="{{ path('sylius_adyen_shop_express_checkout_product_configuration') }}"
+    data-product-id="{{ resource.id }}"
+    data-shipping-required="{{ resource.variants[0].shippingRequired }}"
+>
     {{ sylius_template_event('sylius.shop.product.show.right_sidebar.express_checkout') }}
 </div>

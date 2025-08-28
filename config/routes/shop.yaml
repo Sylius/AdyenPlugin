@@ -3,3 +3,4 @@ sylius_adyen_localized:
 
 sylius_adyen_express_checkout:
     resource: "@SyliusAdyenPlugin/config/routes/shop/express_checkout.yaml"
+    prefix: /adyen/express-checkout

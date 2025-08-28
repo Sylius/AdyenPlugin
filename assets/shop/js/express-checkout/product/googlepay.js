@@ -1,9 +1,32 @@
 import { createFetchOptions } from '../utils.js';
+import {SELECTORS} from "../constants";
 
 export class GooglePayHandler {
     constructor(configuration) {
         this.configuration = configuration;
+        this.orderToken = null;
+
+        const $container = document.getElementById(SELECTORS.PRODUCT_CONTAINER);
+        this.shippingRequired = $container.getAttribute('data-shipping-required') === '1';
+        this.productId = $container.getAttribute('data-product-id');
     }
+
+    handleClick = async (resolve, reject) => {
+        const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
+        const response = await fetch(
+            this.configuration.googlePay.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
+            createFetchOptions({
+                formData,
+            })
+        );
+        const data = await response.json();
+        if (data.error) {
+            return reject(data.message);
+        }
+
+        this.orderToken = data.orderToken;
+        return resolve();
+    };
 
     handlePaymentDataChanged = async (intermediatePaymentData) => {
         try {
@@ -13,6 +36,7 @@ export class GooglePayHandler {
             const response = await fetch(this.configuration.googlePay.path.shippingOptions, createFetchOptions({
                 shippingAddress,
                 shippingOptionId: shippingOptionData?.id,
+                tokenValue: this.orderToken,
             }));
             const data = await response.json();
 
@@ -38,10 +62,16 @@ export class GooglePayHandler {
             const response = await fetch(this.configuration.googlePay.path.checkout, createFetchOptions({
                 email,
                 shippingAddress,
-                shippingOptionId: shippingOptionData?.id
+                shippingOptionId: shippingOptionData?.id,
+                tokenValue: this.orderToken,
             }));
 
             const data = await response.json();
+
+            if (data.error) {
+                throw new Error(data.message);
+            }
+
             actions.resolve(data);
         } catch (error) {
             actions.reject(error.message);
@@ -50,7 +80,13 @@ export class GooglePayHandler {
 
     handleSubmit = async (state) => {
         try {
-            const response = await fetch(this.configuration.googlePay.path.payments, createFetchOptions(state.data));
+            const response = await fetch(
+                this.configuration.googlePay.path.payments,
+                createFetchOptions({
+                    ...state.data,
+                    tokenValue: this.orderToken,
+                })
+            );
             const data = await response.json();
 
             window.location.replace(data.redirect);
@@ -59,15 +95,22 @@ export class GooglePayHandler {
         }
     };
 
+    handleError = (error) => {
+        if (this.orderToken !== null) {
+            fetch(this.configuration.googlePay.path.removeCart.replace('_TOKEN_VALUE_', this.orderToken), { method: 'DELETE' });
+            this.orderToken = null;
+        }
+    };
+
     getConfig() {
         let callbackIntents = ['SHIPPING_ADDRESS'];
-        if (this.configuration.shippingOptionRequired) {
+        if (this.shippingRequired) {
             callbackIntents.push('SHIPPING_OPTION');
         }
 
         return {
             isExpress: true,
-            expressPage: 'cart',
+            expressPage: 'pdp',
             emailRequired: true,
             callbackIntents: callbackIntents,
             shippingAddressRequired: true,
@@ -75,13 +118,15 @@ export class GooglePayHandler {
                 allowedCountryCodes: this.configuration.allowedCountryCodes,
                 phoneNumberRequired: false,
             },
-            shippingOptionRequired: this.configuration.shippingOptionRequired,
+            shippingOptionRequired: this.shippingRequired,
             transactionInfo: this.configuration.googlePay.transactionInfo,
             paymentDataCallbacks: {
-                onPaymentDataChanged: this.handlePaymentDataChanged
+                onPaymentDataChanged: this.handlePaymentDataChanged,
             },
-            onAuthorized: this.handleAuthorized,
+            onClick: this.handleClick,
             onSubmit: this.handleSubmit,
+            onAuthorized: this.handleAuthorized,
+            onError: this.handleError,
         };
     }
 }
