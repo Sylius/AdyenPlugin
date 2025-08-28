@@ -16,6 +16,10 @@ export class GooglePayHandler {
             }));
             const data = await response.json();
 
+            if (data.error) {
+                throw new Error(data.message);
+            }
+
             if (shippingOptionData) {
                 paymentDataRequestUpdate.newShippingOptionParameters = data.shippingOptionParameters;
             }
@@ -48,9 +52,7 @@ export class GooglePayHandler {
         try {
             const response = await fetch(this.configuration.googlePay.path.payments, createFetchOptions(state.data));
             const data = await response.json();
-            console.log('handleSubmit response:');
-            console.log(window.location);
-            console.log(data.redirect);
+
             window.location.replace(data.redirect);
         } catch (error) {
             console.error('Payment submission failed:', error);
