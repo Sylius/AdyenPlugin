@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Form\Type;
 
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\EsdTypeProviderInterface;
 use Sylius\AdyenPlugin\Validator\Constraint\AdyenCredentials;
@@ -23,7 +24,10 @@ use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\HiddenType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
+use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Choice;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
 final class ConfigurationType extends AbstractType
@@ -124,7 +128,24 @@ final class ConfigurationType extends AbstractType
                 'label' => 'sylius_adyen.ui.merchant_category_code',
                 'help' => 'sylius_adyen.ui.merchant_category_code_help',
                 'required' => false,
-            ]);
+            ])
+            ->add('captureMode', ChoiceType::class, [
+                'label' => 'sylius_adyen.ui.capture_mode',
+                'choices' => [
+                    'sylius_adyen.ui.capture_mode_automatic' => PaymentCaptureMode::AUTOMATIC,
+                    'sylius_adyen.ui.capture_mode_manual' => PaymentCaptureMode::MANUAL,
+                ],
+                'placeholder' => false,
+                'constraints' => [
+                    new Choice([
+                        'choices' => [PaymentCaptureMode::AUTOMATIC, PaymentCaptureMode::MANUAL],
+                        'message' => 'sylius_adyen.capture_mode.not_blank',
+                        'groups' => ['sylius'],
+                    ]),
+                ],
+                'required' => false,
+            ])
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver): void
