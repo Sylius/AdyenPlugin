@@ -16,12 +16,10 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\HttpFoundation\Request;
 
-final class CartConfigurationAction extends AbstractConfigurationAction
+final class ProductConfigurationAction extends AbstractConfigurationAction
 {
     protected function configureShipping(array $configuration, OrderInterface $order, Request $request): array
     {
-        $configuration['shippingOptionRequired'] = $order->isShippingRequired();
-
         return $configuration;
     }
 }

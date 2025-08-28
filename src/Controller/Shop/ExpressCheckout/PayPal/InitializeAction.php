@@ -16,7 +16,6 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 use Adyen\AdyenException;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
-use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -51,7 +50,7 @@ final class InitializeAction
         $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
 
-        $this->prepareOrder($request, $order);
+        $this->messageBus->dispatch(new PrepareOrderForPayment($order));
 
         $payment = $order->getLastPayment(PaymentInterface::STATE_CART);
         $payment->setMethod($paymentMethod);
@@ -75,14 +74,5 @@ final class InitializeAction
                 'code' => $exception->getCode(),
             ], $exception->getCode());
         }
-    }
-
-    private function prepareOrder(Request $request, OrderInterface $order): void
-    {
-        if (null === $request->get('tokenValue')) {
-            $request->getSession()->set(SuccessfulResponseProcessor::ORDER_ID_KEY, $order->getId());
-        }
-
-        $this->messageBus->dispatch(new PrepareOrderForPayment($order));
     }
 }

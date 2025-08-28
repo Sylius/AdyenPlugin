@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\Envelope;
@@ -55,28 +56,11 @@ class SuccessfulResponseProcessorTest extends AbstractProcessor
         ];
     }
 
-    public static function provideForTestRedirect(): array
+    public function testRedirect(): void
     {
-        return [
-            'generic' => [
-                RequestMother::createWithSessionForDefinedOrderId(),
-                'thank-you',
-            ],
-            'alternative' => [
-                RequestMother::createWithSessionForSpecifiedQueryToken(),
-                '/orders/',
-                true,
-            ],
-        ];
-    }
-
-    #[DataProvider('provideForTestRedirect')]
-    public function testRedirect(
-        Request $request,
-        string $expectedUrlEnding,
-        bool $expectFlash = false,
-    ) {
+        $order = $this->createMock(OrderInterface::class);
         $payment = $this->createMock(PaymentInterface::class);
+        $payment->method('getOrder')->willReturn($order);
 
         $paymentStatusReceivedCommand = $this->createMock(PaymentLifecycleCommand::class);
         $this->paymentCommandFactory
@@ -92,14 +76,9 @@ class SuccessfulResponseProcessorTest extends AbstractProcessor
             ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
         ;
 
+        $request = RequestMother::createWithSession();
         $result = $this->processor->process('Szczebrzeszyn', $request, $payment);
 
-        $this->assertStringEndsWith($expectedUrlEnding, $result);
-
-        if (!$expectFlash) {
-            return;
-        }
-
-        $this->assertNotEmpty($request->getSession()->getFlashbag()->get('info'));
+        $this->assertStringEndsWith('thank-you', $result);
     }
 }

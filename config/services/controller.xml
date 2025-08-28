@@ -14,29 +14,69 @@
             <argument type="tagged_iterator" tag="sylius_adyen.express_checkout.cart.configuration" index-by="key" />
             <argument type="service" id="sylius.context.cart.composite"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.country"/>
+            <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
+        </service>
+
+        <service
+            id="sylius_adyen.controller.shop.express_checkout.product_configuration"
+            class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ProductConfigurationAction"
+        >
+            <argument type="tagged_iterator" tag="sylius_adyen.express_checkout.cart.configuration" index-by="key" />
+            <argument type="service" id="sylius.context.cart.new"/>
+            <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
+            <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
+            <argument type="service" id="sylius.context.cart.composite"/>
+        </service>
+
+        <service
+                id="sylius_adyen.controller.shop.express_checkout.add_to_new_cart"
+                class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\AddToNewCartAction"
+        >
+            <argument type="service" id="sylius.factory.add_to_cart_command" />
+            <argument type="service" id="sylius.context.cart.new" />
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <argument type="service" id="sylius.factory.order_item" />
+            <argument type="service" id="form.factory" />
+            <argument type="service">
+                <service class="Sylius\Component\Resource\Metadata\MetadataInterface">
+                    <factory service="sylius.resource_registry" method="get" />
+                    <argument type="string">sylius.order_item</argument>
+                </service>
+            </argument>
+            <argument type="service" id="sylius.resource_controller.new_resource_factory" />
+            <argument type="service" id="sylius.modifier.order_item_quantity" />
+            <argument type="service" id="sylius.modifier.order" />
+            <argument type="service" id="sylius.resource_controller.request_configuration_factory" />
+            <argument type="service" id="sylius.unique_id_based_order_token_assigner" />
+        </service>
+
+        <service
+            id="sylius_adyen.controller.shop.express_checkout.remove_cart"
+            class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\RemoveCartAction"
+        >
+            <argument type="service" id="sylius.repository.order"/>
         </service>
 
         <service
             id="sylius_adyen.controller.shop.express_checkout.google_pay.shipping_options"
             class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay\ShippingOptionsAction"
         >
-            <argument type="service" id="sylius.context.cart.composite"/>
-            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
+            <argument type="service" id="sylius.manager.order"/>
+            <argument type="service" id="sylius.repository.shipping_method"/>
             <argument type="service" id="sylius.order_processing.order_processor"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.address"/>
-            <argument type="service" id="sylius.registry.shipping_calculator"/>
-            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius_adyen.modifier.express_checkout.google_pay.order_address"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"/>
+            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters"/>
         </service>
 
         <service
             id="sylius_adyen.controller.shop.express_checkout.google_pay.checkout"
             class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay\CheckoutAction"
         >
-            <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
             <argument type="service" id="sylius.manager.order"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.address"/>
+            <argument type="service" id="sylius_adyen.modifier.express_checkout.google_pay.order_address"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.customer"/>
             <argument type="service" id="sylius_abstraction.state_machine"/>
             <argument type="service" id="sylius.repository.shipping_method"/>

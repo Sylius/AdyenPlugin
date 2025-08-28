@@ -15,14 +15,13 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay;
 
 use Doctrine\Persistence\ObjectManager;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifierInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProviderInterface;
-use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderCheckoutTransitions;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
-use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Webmozart\Assert\Assert;
@@ -30,9 +29,9 @@ use Webmozart\Assert\Assert;
 final class CheckoutAction
 {
     public function __construct(
-        private readonly CartContextInterface $cartContext,
+        private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly ObjectManager $orderManager,
-        private readonly AddressProviderInterface $addressProvider,
+        private readonly OrderAddressModifierInterface $orderAddressModifier,
         private readonly CustomerProviderInterface $customerProvider,
         private readonly StateMachineInterface $stateMachine,
         private readonly ShippingMethodRepositoryInterface $shippingMethodRepository,
@@ -42,35 +41,37 @@ final class CheckoutAction
 
     public function __invoke(Request $request): JsonResponse
     {
-        /** @var OrderInterface $order */
-        $order = $this->cartContext->getCart();
+        $order = $this->paymentCheckoutOrderResolver->resolve();
 
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
 
         $email = $data['email'] ?? null;
-        Assert::notNull($email);
-        $shippingAddressData = $data['shippingAddress'] ?? null;
-        Assert::isArray($shippingAddressData);
+        $newAddress = $data['shippingAddress'] ?? null;
         $shippingOptionId = $data['shippingOptionId'] ?? null;
-        Assert::notNull($shippingOptionId);
 
-        $address = $this->addressProvider->createFullAddress($shippingAddressData);
+        if (!isset($email, $newAddress)) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Missing required parameters: email or shippingAddress.',
+            ], 400);
+        }
 
-        $order->setBillingAddress($address);
-        $order->setShippingAddress($address);
+        $this->orderAddressModifier->modify($order, $newAddress);
 
         $customer = $order->getCustomer();
         if ($customer === null) {
-            $customer = $this->customerProvider->getOrCreateCustomer($email, $address);
+            $customer = $this->customerProvider->getOrCreateCustomer($email, $order->getBillingAddress());
             $order->setCustomer($customer);
         }
 
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_ADDRESS);
 
-        $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $shippingOptionId]);
-        $order->getShipments()->first()->setMethod($shippingMethod);
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
+        if ($order->isShippingRequired()) {
+            $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $shippingOptionId]);
+            $order->getShipments()->first()->setMethod($shippingMethod);
+            $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
+        }
 
         $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
         $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);

@@ -13,11 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
 
-use Sylius\Component\Core\Model\AddressInterface;
+use Sylius\Component\Core\Model\OrderInterface;
 
-interface AddressProviderInterface
+interface ShippingOptionParametersProviderInterface
 {
-    public function createTemporaryAddress(array $addressData): AddressInterface;
-
-    public function createFullAddress(array $addressData): AddressInterface;
+    public function provide(OrderInterface $order): array;
 }

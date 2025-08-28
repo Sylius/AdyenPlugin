@@ -1,41 +1,67 @@
 sylius_adyen_shop_express_checkout_cart_configuration:
-    path: /adyen/express-checkout/cart-configuration
+    path: /cart-configuration
     methods: [GET]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.cart_configuration
 
+sylius_adyen_shop_express_checkout_product_configuration:
+    path: /product-configuration
+    methods: [GET]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.product_configuration
+
+sylius_adyen_shop_express_checkout_add_to_new_cart:
+    path: /add-to-new-cart/{productId}
+    methods: [POST]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.add_to_new_cart
+        _sylius:
+            factory:
+                method: createForProduct
+                arguments: [ expr:notFoundOnNull(service('sylius.repository.product').find($productId)) ]
+            form:
+                type: Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType
+                options:
+                    product: expr:notFoundOnNull(service('sylius.repository.product').find($productId))
+
+sylius_adyen_shop_express_checkout_remove_cart:
+    path: /remove-cart/{tokenValue}
+    methods: [DELETE]
+    defaults:
+        _controller: sylius_adyen.controller.shop.express_checkout.remove_cart
+
 sylius_adyen_shop_express_checkout_google_pay_shipping_options:
-    path: /adyen/express-checkout/google-pay/shipping-options
+    path: /google-pay/shipping-options
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.google_pay.shipping_options
 
 sylius_adyen_shop_express_checkout_google_pay_checkout:
-    path: /adyen/express-checkout/google-pay/checkout
+    path: /google-pay/checkout
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.google_pay.checkout
 
 sylius_adyen_shop_express_checkout_paypal_initialize:
-    path: /adyen/express-checkout/paypal/initialize
+    path: /paypal/initialize
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.paypal.initialize
 
 sylius_adyen_shop_express_checkout_paypal_shipping_address_change:
-    path: /adyen/express-checkout/paypal/shipping-address-change
+    path: /paypal/shipping-address-change
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.paypal.shipping_address_change
 
 sylius_adyen_shop_express_checkout_paypal_shipping_options_change:
-    path: /adyen/express-checkout/paypal/shipping-options-change
+    path: /paypal/shipping-options-change
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.paypal.shipping_options_change
 
 sylius_adyen_shop_express_checkout_paypal_checkout:
-    path: /adyen/express-checkout/paypal/checkout
+    path: /paypal/checkout
     methods: [POST]
     defaults:
         _controller: sylius_adyen.controller.shop.express_checkout.paypal.checkout

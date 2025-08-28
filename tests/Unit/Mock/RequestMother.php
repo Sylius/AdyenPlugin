@@ -33,22 +33,6 @@ final class RequestMother
         return $request;
     }
 
-    public static function createWithSessionForDefinedOrderId(): Request
-    {
-        $result = self::createWithSession();
-        $result->getSession()->set(SuccessfulResponseProcessor::ORDER_ID_KEY, 42);
-
-        return $result;
-    }
-
-    public static function createWithSessionForSpecifiedQueryToken(): Request
-    {
-        $result = self::createWithSession();
-        $result->query->set(SuccessfulResponseProcessor::TOKEN_VALUE_KEY, 'Szczebrzeszyn');
-
-        return $result;
-    }
-
     public static function createWithLocaleSet(): Request
     {
         $result = Request::create('/', 'GET', [], [], [], ['REMOTE_ADDR' => self::WHERE_YOUR_HOME_IS]);

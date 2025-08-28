@@ -13,13 +13,15 @@
                  alias="sylius_adyen.provider.express_checkout.google_pay.transaction_info" />
 
         <service
-            id="sylius_adyen.provider.express_checkout.google_pay.address"
-            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProvider"
+            id="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProvider"
         >
-            <argument type="service" id="sylius.factory.address"/>
+            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius.registry.shipping_calculator"/>
+            <argument type="service" id="sylius.money_formatter"/>
         </service>
-        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\AddressProviderInterface"
-                 alias="sylius_adyen.provider.express_checkout.google_pay.address" />
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters" />
 
         <service
             id="sylius_adyen.provider.express_checkout.customer"
@@ -32,13 +34,13 @@
                  alias="sylius_adyen.provider.express_checkout.customer" />
 
         <service
-            id="sylius_adyen.provider.express_checkout.google_pay.country"
-            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CountryProvider"
+            id="sylius_adyen.provider.express_checkout.country"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProvider"
         >
             <argument type="service" id="sylius.repository.country"/>
         </service>
-        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\CountryProviderInterface"
-                 alias="sylius_adyen.provider.express_checkout.google_pay.country" />
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.country" />
 
         <service
             id="sylius_adyen.provider.express_checkout.cart.google_pay_configuration"
