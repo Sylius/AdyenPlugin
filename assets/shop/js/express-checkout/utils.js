@@ -1,5 +1,3 @@
-import {SELECTORS} from "./constants";
-
 export const createFetchOptions = (data) => ({
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -11,7 +9,7 @@ export const loadConfiguration = async (url) => {
     return await response.json();
 };
 
-export const showErrorMessage = (message) => {
+export const showErrorMessage = (message, selector) => {
     clearErrorMessage();
 
     const errorElement = document.createElement('div');
@@ -35,7 +33,7 @@ export const showErrorMessage = (message) => {
                 animation: fadeIn 0.3s ease-in;
             `;
 
-    const $container = document.getElementById(SELECTORS.CART_CONTAINER);
+    const $container = document.getElementById(selector);
     $container.insertBefore(errorElement, $container.firstChild);
 }
 
@@ -44,4 +42,10 @@ export const clearErrorMessage = () => {
     if (existingError) {
         existingError.remove();
     }
+}
+
+export const createUrlWithToken = (url, token) => {
+    if (!token) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}tokenValue=${token}`;
 }

@@ -26,12 +26,11 @@ final class OrderAddressModifier implements OrderAddressModifierInterface
 
     public function modify(
         OrderInterface $order,
-        array $billingAddressData,
-        array $shippingAddressData,
+        array $newAddress,
         array $payerData,
     ): void {
-        $this->setAddress($order->getBillingAddress(), $billingAddressData, $payerData);
-        $this->setAddress($order->getShippingAddress(), $billingAddressData, $payerData);
+        $this->setAddress($order->getBillingAddress() ?? $this->addressFactory->createNew(), $newAddress, $payerData);
+        $this->setAddress($order->getShippingAddress() ?? $this->addressFactory->createNew(), $newAddress, $payerData);
     }
 
     public function modifyTemporaryAddress(

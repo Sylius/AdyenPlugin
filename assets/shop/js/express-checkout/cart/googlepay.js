@@ -38,7 +38,6 @@ export class GooglePayHandler {
             const response = await fetch(this.configuration.googlePay.path.checkout, createFetchOptions({
                 email,
                 shippingAddress,
-                shippingOptionId: shippingOptionData?.id
             }));
 
             const data = await response.json();

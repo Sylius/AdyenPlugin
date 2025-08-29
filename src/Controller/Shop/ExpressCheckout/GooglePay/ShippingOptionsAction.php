@@ -22,6 +22,7 @@ use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Webmozart\Assert\Assert;
 
 final class ShippingOptionsAction
@@ -54,21 +55,31 @@ final class ShippingOptionsAction
             ], 400);
         }
 
-        $this->orderAddressModifier->modifyTemporaryAddress($order, $newAddress);
-        $this->orderProcessor->process($order);
-
-        if ($order->isShippingRequired()) {
-            $shipment = $order->getShipments()->first();
-            $shippingMethod = $this->shippingMethodsRepository->findOneBy(['code' => $shippingOptionId]);
-            $shipment->setMethod($shippingMethod);
+        try {
+            $this->orderAddressModifier->modifyTemporaryAddress($order, $newAddress);
             $this->orderProcessor->process($order);
+
+            if ($order->isShippingRequired() && $shippingOptionId !== 'shipping_option_unselected') {
+                $shipment = $order->getShipments()->first();
+                $shippingMethod = $this->shippingMethodsRepository->findOneBy(['code' => $shippingOptionId]);
+                Assert::notNull($shippingMethod);
+
+                $shipment->setMethod($shippingMethod);
+                $this->orderProcessor->process($order);
+            }
+
+            $this->orderManager->flush();
+
+            return new JsonResponse([
+                'shippingOptionParameters' => $this->shippingOptionParametersProvider->provide($order),
+                'transactionInfo' => $this->transactionInfoProvider->provide($order),
+            ]);
+        } catch (\Exception $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Order could not be processed.',
+                'code' => $exception->getCode(),
+            ], Response::HTTP_BAD_REQUEST);
         }
-
-        $this->orderManager->flush();
-
-        return new JsonResponse([
-            'shippingOptionParameters' => $this->shippingOptionParametersProvider->provide($order),
-            'transactionInfo' => $this->transactionInfoProvider->provide($order),
-        ]);
     }
 }

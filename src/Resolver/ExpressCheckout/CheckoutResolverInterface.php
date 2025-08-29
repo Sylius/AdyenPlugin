@@ -11,13 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal;
+namespace Sylius\AdyenPlugin\Resolver\ExpressCheckout;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
-interface OrderAddressModifierInterface
+interface CheckoutResolverInterface
 {
-    public function modify(OrderInterface $order, array $newAddress, array $payerData): void;
-
-    public function modifyTemporaryAddress(OrderInterface $order, array $addressData): void;
+    public function resolve(OrderInterface $order): void;
 }

@@ -21,5 +21,14 @@
         <service id="Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifierInterface"
                  alias="sylius_adyen.modifier.express_checkout.google_pay.order_address" />
 
+        <service
+                id="sylius_adyen.modifier.express_checkout.order_customer"
+                class="Sylius\AdyenPlugin\Modifier\ExpressCheckout\OrderCustomerModifier"
+        >
+            <argument type="service" id="sylius.resolver.customer"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Modifier\ExpressCheckout\OrderCustomerModifierInterface"
+                 alias="sylius_adyen.modifier.express_checkout.order_customer" />
+
     </services>
 </container>

@@ -13,24 +13,23 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 
-use Adyen\AdyenException;
 use Doctrine\Persistence\ObjectManager;
 use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
 use Sylius\AdyenPlugin\Exception\PaypalNoShippingMethodsAvailableException;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifierInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Order\Context\CartContextInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
 final class ShippingAddressChangeAction
 {
     public function __construct(
-        private readonly CartContextInterface $cartContext,
+        private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly OrderProcessorInterface $orderProcessor,
         private readonly ObjectManager $orderManager,
@@ -41,8 +40,7 @@ final class ShippingAddressChangeAction
 
     public function __invoke(Request $request): JsonResponse
     {
-        /** @var OrderInterface $order */
-        $order = $this->cartContext->getCart();
+        $order = $this->paymentCheckoutOrderResolver->resolve();
 
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
@@ -78,12 +76,12 @@ final class ShippingAddressChangeAction
                 'error' => true,
                 'code' => 'NO_SHIPPING_OPTION',
             ], 400);
-        } catch (AdyenException $exception) {
+        } catch (\Exception $exception) {
             return new JsonResponse([
                 'error' => true,
-                'message' => $exception->getMessage(),
+                'message' => 'Order could not be processed',
                 'code' => $exception->getCode(),
-            ], $exception->getCode());
+            ], Response::HTTP_BAD_REQUEST);
         }
     }
 }

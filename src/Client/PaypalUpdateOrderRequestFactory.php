@@ -51,34 +51,36 @@ final class PaypalUpdateOrderRequestFactory implements PaypalUpdateOrderRequestF
             'value' => $order->getTotal(),
         ]));
 
-        $shipment = $order->getShipments()->first();
-        $shippingMethods = $this->shippingMethodsResolver->getSupportedMethods($shipment);
+        if ($order->isShippingRequired()) {
+            $shipment = $order->getShipments()->first();
+            $shippingMethods = $this->shippingMethodsResolver->getSupportedMethods($shipment);
 
-        if ($order->isShippingRequired() && 0 === count($shippingMethods)) {
-            throw new PaypalNoShippingMethodsAvailableException();
+            if (0 === count($shippingMethods)) {
+                throw new PaypalNoShippingMethodsAvailableException();
+            }
+
+            $deliveryMethods = [];
+            foreach ($shippingMethods as $shippingMethod) {
+                /** @var CalculatorInterface $calculator */
+                $calculator = $this->calculators->get($shippingMethod->getCalculator());
+                $fee = $calculator->calculate($shipment, $shippingMethod->getConfiguration());
+
+                $deliveryMethod = new DeliveryMethod([
+                    'type' => 'Shipping',
+                    'reference' => $shippingMethod->getCode(),
+                    'description' => $shippingMethod->getName(),
+                    'amount' => new Amount([
+                        'currency' => $order->getCurrencyCode(),
+                        'value' => $fee,
+                    ]),
+                    'selected' => $shipment->getMethod() === $shippingMethod,
+                ]);
+
+                $deliveryMethods[] = $deliveryMethod;
+            }
+
+            $request->setDeliveryMethods($deliveryMethods);
         }
-
-        $deliveryMethods = [];
-        foreach ($shippingMethods as $shippingMethod) {
-            /** @var CalculatorInterface $calculator */
-            $calculator = $this->calculators->get($shippingMethod->getCalculator());
-            $fee = $calculator->calculate($shipment, $shippingMethod->getConfiguration());
-
-            $deliveryMethod = new DeliveryMethod([
-                'type' => 'Shipping',
-                'reference' => $shippingMethod->getCode(),
-                'description' => $shippingMethod->getName(),
-                'amount' => new Amount([
-                    'currency' => $order->getCurrencyCode(),
-                    'value' => $fee,
-                ]),
-                'selected' => $shipment->getMethod() === $shippingMethod,
-            ]);
-
-            $deliveryMethods[] = $deliveryMethod;
-        }
-
-        $request->setDeliveryMethods($deliveryMethods);
 
         return $request;
     }

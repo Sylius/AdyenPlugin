@@ -84,5 +84,15 @@
                 id="sylius_adyen.resolver.address.street_address"
         />
 
+        <service
+            id="sylius_adyen.resolver.order.express_checkout.checkout"
+            class="Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolver"
+        >
+            <argument type="service" id="sylius.manager.order"/>
+            <argument type="service" id="sylius_abstraction.state_machine"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface" alias="sylius_adyen.resolver.order.express_checkout.checkout"/>
+
     </services>
 </container>
