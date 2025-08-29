@@ -34,7 +34,7 @@ final class AuthorizationStateProcessor implements AuthorizationStateProcessorIn
         if (!$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             return;
         }
-        if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL)) {
+        if (!$this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
             return;
         }
 

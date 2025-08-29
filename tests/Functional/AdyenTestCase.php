@@ -15,6 +15,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
@@ -43,6 +44,8 @@ abstract class AdyenTestCase extends WebTestCase
     protected PaymentLinkRepositoryInterface $paymentLinkRepository;
 
     protected AdyenReferenceRepositoryInterface $adyenReferenceRepository;
+
+    protected StateMachineInterface $stateMachine;
 
     protected static PaymentMethod $sharedPaymentMethod;
 
@@ -101,6 +104,10 @@ abstract class AdyenTestCase extends WebTestCase
         $this->adyenClientStub = $container->get('sylius_adyen.test.adyen_client_stub');
         $this->paymentLinkRepository = $container->get('sylius_adyen.repository.payment_link');
         $this->adyenReferenceRepository = $container->get('sylius_adyen.repository.adyen_reference');
+
+        /** @var StateMachineInterface $stateMachine */
+        $stateMachine = $container->get('sylius_abstraction.state_machine');
+        $this->stateMachine = $stateMachine;
 
         $this->initializeServices($container);
     }
@@ -226,6 +233,13 @@ abstract class AdyenTestCase extends WebTestCase
         ];
 
         return $webhookData;
+    }
+
+    protected function setCaptureMode(string $captureMode): void
+    {
+        $config = self::$sharedPaymentMethod->getGatewayConfig()->getConfig();
+        $config['captureMode'] = $captureMode;
+        self::$sharedPaymentMethod->getGatewayConfig()->setConfig($config);
     }
 
     protected function getEntityManager(): EntityManagerInterface

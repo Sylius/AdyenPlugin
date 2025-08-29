@@ -17,6 +17,8 @@ use Adyen\AdyenException;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 
@@ -31,6 +33,7 @@ final class CheckoutProcessTest extends AdyenTestCase
     protected function initializeServices($container): void
     {
         $this->setupTestCartContext();
+        $this->setCaptureMode(PaymentCaptureMode::AUTOMATIC);
 
         $this->paymentsAction = $this->getPaymentsAction();
         $this->paymentsDetailsAction = $this->getPaymentDetailsAction();
@@ -71,6 +74,92 @@ final class CheckoutProcessTest extends AdyenTestCase
         $payment = $this->testOrder->getLastPayment();
 
         $this->simulateWebhook($payment, 'authorisation', true);
+
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+        self::assertArrayHasKey('resultCode', $payment->getDetails());
+        self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
+        self::assertArrayHasKey('pspReference', $payment->getDetails());
+        self::assertEquals('TEST_PSP_REF_123', $payment->getDetails()['pspReference']);
+    }
+
+    public function testSuccessfulCheckoutWithCardPaymentUsingManualCaptureMode(): void
+    {
+        $this->setCaptureMode(PaymentCaptureMode::MANUAL);
+
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'Authorised',
+            'pspReference' => 'TEST_PSP_REF_123',
+            'merchantReference' => 'ORDER_123',
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'encryptedCardNumber' => 'test_encrypted_number',
+                'encryptedExpiryMonth' => 'test_encrypted_month',
+                'encryptedExpiryYear' => 'test_encrypted_year',
+                'encryptedSecurityCode' => 'test_encrypted_cvv',
+            ],
+        ]);
+
+        $response = ($this->paymentsAction)($request);
+
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseData = json_decode((string) $response->getContent(), true);
+        self::assertArrayHasKey('resultCode', $responseData);
+        self::assertEquals('Authorised', $responseData['resultCode']);
+        self::assertArrayHasKey('pspReference', $responseData);
+        self::assertEquals('TEST_PSP_REF_123', $responseData['pspReference']);
+        self::assertArrayHasKey('redirect', $responseData);
+
+        $payment = $this->testOrder->getLastPayment();
+
+        $this->simulateWebhook($payment, 'authorisation', true);
+
+        self::assertEquals(PaymentInterface::STATE_AUTHORIZED, $payment->getState());
+        self::assertArrayHasKey('resultCode', $payment->getDetails());
+        self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
+        self::assertArrayHasKey('pspReference', $payment->getDetails());
+        self::assertEquals('TEST_PSP_REF_123', $payment->getDetails()['pspReference']);
+    }
+
+    public function testSuccessfulCheckoutWithCardPaymentUsingManualCaptureModeWithManualPaymentCompletion(): void
+    {
+        $this->setCaptureMode(PaymentCaptureMode::MANUAL);
+
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => 'Authorised',
+            'pspReference' => 'TEST_PSP_REF_123',
+            'merchantReference' => 'ORDER_123',
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => [
+                'type' => 'scheme',
+                'encryptedCardNumber' => 'test_encrypted_number',
+                'encryptedExpiryMonth' => 'test_encrypted_month',
+                'encryptedExpiryYear' => 'test_encrypted_year',
+                'encryptedSecurityCode' => 'test_encrypted_cvv',
+            ],
+        ]);
+
+        $response = ($this->paymentsAction)($request);
+
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseData = json_decode((string) $response->getContent(), true);
+        self::assertArrayHasKey('resultCode', $responseData);
+        self::assertEquals('Authorised', $responseData['resultCode']);
+        self::assertArrayHasKey('pspReference', $responseData);
+        self::assertEquals('TEST_PSP_REF_123', $responseData['pspReference']);
+        self::assertArrayHasKey('redirect', $responseData);
+
+        $payment = $this->testOrder->getLastPayment();
+
+        $this->simulateWebhook($payment, 'authorisation', true);
+
+        $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_COMPLETE);
 
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
         self::assertArrayHasKey('resultCode', $payment->getDetails());

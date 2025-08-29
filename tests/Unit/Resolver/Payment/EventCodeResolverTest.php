@@ -20,8 +20,7 @@ use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 
 class EventCodeResolverTest extends TestCase
 {
-    /** @var EventCodeResolver */
-    private $resolver;
+    private EventCodeResolver $resolver;
 
     protected function setUp(): void
     {
@@ -93,22 +92,10 @@ class EventCodeResolverTest extends TestCase
         $this->assertEquals('CAPTURE', $result);
     }
 
-    public function testResolveReturnsAuthorizationForAuthorizationWithExpiryDate(): void
+    public function testResolveReturnsAuthorizationForAuthorization(): void
     {
         $notificationData = new NotificationItemData();
         $notificationData->eventCode = EventCodeResolverInterface::EVENT_AUTHORIZATION;
-        $notificationData->additionalData = ['expiryDate' => '10/25'];
-
-        $result = $this->resolver->resolve($notificationData);
-
-        $this->assertEquals(EventCodeResolverInterface::EVENT_AUTHORIZATION, $result);
-    }
-
-    public function testResolveReturnsMappedPaymentMethodForAuthorization(): void
-    {
-        $notificationData = new NotificationItemData();
-        $notificationData->eventCode = EventCodeResolverInterface::EVENT_AUTHORIZATION;
-        $notificationData->paymentMethod = 'klarna';
         $notificationData->additionalData = [];
 
         $result = $this->resolver->resolve($notificationData);
@@ -116,27 +103,14 @@ class EventCodeResolverTest extends TestCase
         $this->assertEquals(EventCodeResolverInterface::EVENT_AUTHORIZATION, $result);
     }
 
-    public function testResolveReturnsCaptureForUnmappedAuthorizationPaymentMethod(): void
+    public function testResolveReturnsPayByLinkAuthorizationForAuthorizationWithPaymentLinkId(): void
     {
         $notificationData = new NotificationItemData();
         $notificationData->eventCode = EventCodeResolverInterface::EVENT_AUTHORIZATION;
-        $notificationData->paymentMethod = 'unknown_method';
-        $notificationData->additionalData = [];
+        $notificationData->additionalData = ['paymentLinkId' => 'PL123456789'];
 
         $result = $this->resolver->resolve($notificationData);
 
-        $this->assertEquals(EventCodeResolverInterface::EVENT_CAPTURE, $result);
-    }
-
-    public function testResolveReturnsCaptureForAuthorizationWithoutPaymentMethod(): void
-    {
-        $notificationData = new NotificationItemData();
-        $notificationData->eventCode = EventCodeResolverInterface::EVENT_AUTHORIZATION;
-        $notificationData->paymentMethod = null;
-        $notificationData->additionalData = [];
-
-        $result = $this->resolver->resolve($notificationData);
-
-        $this->assertEquals(EventCodeResolverInterface::EVENT_CAPTURE, $result);
+        $this->assertEquals(EventCodeResolverInterface::EVENT_PAY_BY_LINK_AUTHORISATION, $result);
     }
 }

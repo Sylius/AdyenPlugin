@@ -31,12 +31,8 @@ final class EventCodeResolver implements EventCodeResolverInterface
         if (isset($notificationData->additionalData['paymentLinkId'])) {
             return self::EVENT_PAY_BY_LINK_AUTHORISATION;
         }
-        // Adyen doesn't provide a "card" payment method name but specifies a brand for each, so make it generic
-        if (isset($notificationData->additionalData['expiryDate'])) {
-            return self::EVENT_AUTHORIZATION;
-        }
 
-        return self::PAYMENT_METHOD_TYPES[$notificationData->paymentMethod] ?? self::EVENT_CAPTURE;
+        return self::EVENT_AUTHORIZATION;
     }
 
     private function resolveReversal(NotificationItemData $notificationData): string

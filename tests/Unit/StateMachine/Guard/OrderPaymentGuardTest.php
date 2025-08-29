@@ -65,7 +65,7 @@ final class OrderPaymentGuardTest extends TestCase
         self::assertFalse($this->guard->canBeCancelled($order));
     }
 
-    public function testItDeniesCancellationForNonAdyenPayment(): void
+    public function testItAllowsCancellationForNonAdyenPayment(): void
     {
         $payment = $this->createMock(PaymentInterface::class);
         $order = $this->createMock(OrderInterface::class);
@@ -76,18 +76,18 @@ final class OrderPaymentGuardTest extends TestCase
             ->with($payment)
             ->willReturn(false);
 
-        self::assertFalse($this->guard->canBeCancelled($order));
+        self::assertTrue($this->guard->canBeCancelled($order));
     }
 
-    public function testItDeniesCancellationWhenPaymentIsNull(): void
+    public function testItAllowsCancellationWhenPaymentIsNull(): void
     {
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn(null);
 
-        self::assertFalse($this->guard->canBeCancelled($order));
+        self::assertTrue($this->guard->canBeCancelled($order));
     }
 
-    public function testItDeniesCancellationWhenPaymentMethodIsNull(): void
+    public function testItAllowsCancellationWhenPaymentMethodIsNull(): void
     {
         $payment = $this->createMock(PaymentInterface::class);
         $order = $this->createMock(OrderInterface::class);
@@ -98,6 +98,6 @@ final class OrderPaymentGuardTest extends TestCase
             ->with($payment)
             ->willReturn(false);
 
-        self::assertFalse($this->guard->canBeCancelled($order));
+        self::assertTrue($this->guard->canBeCancelled($order));
     }
 }

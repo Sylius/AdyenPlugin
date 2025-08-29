@@ -18,6 +18,7 @@
             class="Sylius\AdyenPlugin\EventSubscriber\RoutePaymentCompleteTransitionSubscriber"
             id="sylius_adyen.event_subscriber.filter_payment_complete_transition_subscriber"
         >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
             <argument type="service" id="sylius.command_bus"/>
             <tag name="kernel.event_subscriber"/>
         </service>

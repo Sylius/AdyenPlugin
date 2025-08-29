@@ -16,7 +16,9 @@ namespace Sylius\AdyenPlugin\EventSubscriber;
 use SM\Event\SMEvents;
 use SM\Event\TransitionEvent;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -25,6 +27,7 @@ use Symfony\Component\Messenger\MessageBusInterface;
 final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberInterface
 {
     public function __construct(
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly MessageBusInterface $messageBus,
     ) {
     }
@@ -53,6 +56,14 @@ final class RoutePaymentCompleteTransitionSubscriber implements EventSubscriberI
     public function doFilter(TransitionEvent $event): void
     {
         if (!$this->isProcessableAdyenPayment($event)) {
+            return;
+        }
+
+        $payment = $this->getObject($event);
+        if (
+            !$this->adyenPaymentMethodChecker->isAdyenPayment($payment) ||
+            !$this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)
+        ) {
             return;
         }
 

@@ -18,6 +18,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Checker\Refund\OrderRefundingAvailabilityChecker;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -117,7 +118,7 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
     }
 
     #[DataProvider('adyenPaymentStatesProvider')]
-    public function testReturnsFalseForAdyenPaymentsInSpecificStates(
+    public function testReturnsFalseForAdyenPaymentsWithAutomaticCaptureInSpecificStates(
         string $paymentState,
     ): void {
         $orderNumber = 'ORDER-123';
@@ -141,6 +142,12 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
             ->with($payment)
             ->willReturn(true);
 
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(true);
+
         $payment
             ->expects($this->once())
             ->method('getState')
@@ -153,6 +160,46 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
         $result = ($this->checker)($orderNumber);
 
         self::assertFalse($result);
+    }
+
+    public function testDelegatesToDecoratedCheckerForAdyenPaymentsWithManualCapture(): void
+    {
+        $orderNumber = 'ORDER-123';
+        $order = $this->createMock(OrderInterface::class);
+        $payment = $this->createMock(PaymentInterface::class);
+
+        $this->orderRepository
+            ->expects($this->once())
+            ->method('findOneByNumber')
+            ->with($orderNumber)
+            ->willReturn($order);
+
+        $order
+            ->expects($this->once())
+            ->method('getLastPayment')
+            ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(false); // Manual capture mode
+
+        $this->decoratedChecker
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($orderNumber)
+            ->willReturn(true);
+
+        $result = ($this->checker)($orderNumber);
+
+        self::assertTrue($result);
     }
 
     public static function adyenPaymentStatesProvider(): \Generator

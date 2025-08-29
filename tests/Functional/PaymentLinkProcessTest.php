@@ -13,11 +13,14 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\AdyenPlugin\Entity\PaymentLink;
 use Sylius\AdyenPlugin\Entity\PaymentLinkInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
@@ -36,8 +39,11 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         $this->generatePayLinkAction = $this->getGeneratePayLinkAction();
     }
 
-    public function testPaymentLinkGeneration(): void
+    #[DataProvider('provideCaptureModesForGeneration')]
+    public function testPaymentLinkGeneration(string $captureMode): void
     {
+        $this->setCaptureMode($captureMode);
+
         $paymentLinkId = 'PL_TEST_GENERATED_123456';
         $paymentLinkUrl = 'https://test.adyen.link/PL_TEST_GENERATED_123456';
 
@@ -109,8 +115,11 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         self::assertStringContainsString($paymentLinkUrl, $emailContent);
     }
 
-    public function testPaymentLinkRegeneration(): void
+    #[DataProvider('provideCaptureModesForGeneration')]
+    public function testPaymentLinkRegeneration(string $captureMode): void
     {
+        $this->setCaptureMode($captureMode);
+
         $this->testOrder->setState(OrderInterface::STATE_NEW);
         $this->testOrder->setPaymentState(OrderPaymentStates::STATE_AWAITING_PAYMENT);
 
@@ -187,8 +196,16 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         self::assertStringNotContainsString('https://test.adyen.link/PL_OLD_LINK_123456', $emailContent);
     }
 
-    public function testSuccessfulAuthorizationThroughPaymentLink(): void
+    public static function provideCaptureModesForGeneration(): iterable
     {
+        yield 'automatic' => [PaymentCaptureMode::AUTOMATIC];
+        yield 'manual' => [PaymentCaptureMode::MANUAL];
+    }
+
+    public function testSuccessfulAuthorizationThroughPaymentLinkInAutomaticCaptureMode(): void
+    {
+        $this->setCaptureMode(PaymentCaptureMode::AUTOMATIC);
+
         $this->testOrder->setState(OrderInterface::STATE_NEW);
         $this->testOrder->setPaymentState(OrderPaymentStates::STATE_AWAITING_PAYMENT);
 
@@ -250,5 +267,79 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         self::assertArrayHasKey('pspReference', $paymentDetails);
         self::assertEquals('AUTH_PSP_REF_789', $paymentDetails['pspReference']);
         self::assertArrayHasKey('paymentLinkId', $paymentDetails['additionalData']);
+    }
+
+    public function testSuccessfulAuthorizationThroughPaymentLinkInManualCaptureModeAndCompleteAction(): void
+    {
+        $this->setCaptureMode(PaymentCaptureMode::MANUAL);
+
+        $this->testOrder->setState(OrderInterface::STATE_NEW);
+        $this->testOrder->setPaymentState(OrderPaymentStates::STATE_AWAITING_PAYMENT);
+
+        $payment = $this->testOrder->getLastPayment();
+        $payment->setState(PaymentInterface::STATE_PROCESSING);
+
+        $paymentLinkId = 'PL_TEST_LINK_ID_123456';
+        $paymentLink = new PaymentLink($payment, $paymentLinkId, 'dummy_link');
+
+        $entityManager = $this->getEntityManager();
+        $entityManager->persist($paymentLink);
+        $entityManager->flush();
+
+        self::assertEquals(OrderInterface::STATE_NEW, $this->testOrder->getState());
+        self::assertEquals(OrderPaymentStates::STATE_AWAITING_PAYMENT, $this->testOrder->getPaymentState());
+        self::assertEquals(PaymentInterface::STATE_PROCESSING, $payment->getState());
+
+        $existingPaymentLink = $this->paymentLinkRepository->findOneBy(['paymentLinkId' => $paymentLinkId]);
+        self::assertNotNull($existingPaymentLink);
+        self::assertInstanceOf(PaymentLinkInterface::class, $existingPaymentLink);
+        self::assertEquals($paymentLinkId, $existingPaymentLink->getPaymentLinkId());
+        self::assertEquals($payment, $existingPaymentLink->getPayment());
+
+        $adyenReferences = $this->adyenReferenceRepository->findBy(['payment' => $payment]);
+        self::assertCount(0, $adyenReferences);
+
+        $webhookData = $this->createWebhookData(
+            'AUTHORISATION',
+            'AUTH_PSP_REF_789',
+            $this->testOrder->getNumber(),
+            [],
+            true,
+            $paymentLinkId,
+        );
+
+        $request = $this->createWebhookRequest($webhookData);
+        $response = ($this->processNotificationsAction)(self::PAYMENT_METHOD_CODE, $request);
+
+        self::assertEquals('[accepted]', $response->getContent());
+
+        $entityManager->flush();
+
+        self::assertEquals(OrderInterface::STATE_NEW, $this->testOrder->getState());
+        self::assertEquals(OrderPaymentStates::STATE_AUTHORIZED, $this->testOrder->getPaymentState());
+        self::assertEquals(PaymentInterface::STATE_AUTHORIZED, $payment->getState());
+
+        $deletedPaymentLink = $this->paymentLinkRepository->findOneBy(['paymentLinkId' => $paymentLinkId]);
+        self::assertNull($deletedPaymentLink, 'Payment link should be removed after successful authorization');
+
+        $adyenReferences = $this->adyenReferenceRepository->findBy(['payment' => $payment]);
+        self::assertCount(1, $adyenReferences, 'A new AdyenReference should be created for the payment');
+
+        /** @var AdyenReferenceInterface $adyenReference */
+        $adyenReference = $adyenReferences[0];
+        self::assertEquals('AUTH_PSP_REF_789', $adyenReference->getPspReference());
+        self::assertEquals($payment, $adyenReference->getPayment());
+
+        $paymentDetails = $payment->getDetails();
+        self::assertArrayHasKey('pspReference', $paymentDetails);
+        self::assertEquals('AUTH_PSP_REF_789', $paymentDetails['pspReference']);
+        self::assertArrayHasKey('paymentLinkId', $paymentDetails['additionalData']);
+
+        $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_COMPLETE);
+        $entityManager->flush();
+
+        self::assertEquals(OrderInterface::STATE_NEW, $this->testOrder->getState());
+        self::assertEquals(OrderPaymentStates::STATE_PAID, $this->testOrder->getPaymentState());
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
     }
 }
