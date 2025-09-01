@@ -11,9 +11,16 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Client;
+namespace Sylius\AdyenPlugin\Filter;
+
+use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
 
 interface PaymentMethodsFilterInterface
 {
-    public function filter(array $paymentMethodsResponse): array;
+    /**
+     * @param AvailablePaymentMethod[] $paymentMethods
+     *
+     * @return AvailablePaymentMethod[]
+     */
+    public function filter(array $paymentMethods): array;
 }

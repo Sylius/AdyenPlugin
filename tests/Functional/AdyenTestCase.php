@@ -42,6 +42,7 @@ use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Locale\Model\Locale;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\Sylius\AdyenPlugin\Entity\ProductVariant;
@@ -130,7 +131,7 @@ abstract class AdyenTestCase extends WebTestCase
         parent::tearDown();
     }
 
-    protected function initializeServices($container): void
+    protected function initializeServices(ContainerInterface $container): void
     {
         // Override in child classes to initialize specific services
     }
