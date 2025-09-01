@@ -29,7 +29,7 @@ class NotificationItemData
 
     public ?string $paymentMethod = null;
 
-    public ?bool $success = null;
+    public bool|string|null $success = null;
 
     public ?string $pspReference = null;
 
