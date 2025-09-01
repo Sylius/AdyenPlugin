@@ -1,18 +1,36 @@
-import { createFetchOptions, showErrorMessage } from '../utils.js';
+import { createFetchOptions, showErrorMessage, createUrlWithToken } from '../utils.js';
 import {SELECTORS} from "../constants";
 
 export class PayPalHandler {
     constructor(configuration) {
         this.configuration = configuration;
         this.paypalPspReference = null;
+        this.productId = null;
     }
+
+    handleClick = async (data, actions) => {
+        const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
+        const response = await fetch(
+            this.configuration.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
+            createFetchOptions({
+                formData,
+            })
+        );
+        const result = await response.json();
+        if (data.error) {
+            return actions.reject(result.message);
+        }
+
+        this.orderToken = result.orderToken;
+        return actions.resolve();
+    };
 
     handleSubmit = async (state, component) => {
         try {
             const response = await fetch(
-                this.configuration.paypal.path.initialize,
+                createUrlWithToken(this.configuration.paypal.path.initialize, this.orderToken),
                 createFetchOptions({
-                    ...state.data
+                    ...state.data,
                 })
             );
             const result = await response.json();
@@ -24,7 +42,7 @@ export class PayPalHandler {
                 throw new Error('No PayPal action received from server');
             }
         } catch (error) {
-            showErrorMessage(error.message, SELECTORS.CART_CONTAINER);
+            showErrorMessage(error.message, SELECTORS.PRODUCT_CONTAINER);
         }
     };
 
@@ -35,11 +53,11 @@ export class PayPalHandler {
             }
 
             const response = await fetch(
-                this.configuration.paypal.path.addressChange,
+                createUrlWithToken(this.configuration.paypal.path.addressChange, this.orderToken),
                 createFetchOptions({
                     paymentData: component.paymentData,
                     pspReference: this.paypalPspReference,
-                    shippingAddress: data.shippingAddress
+                    shippingAddress: data.shippingAddress,
                 })
             );
             const result = await response.json();
@@ -65,11 +83,11 @@ export class PayPalHandler {
             }
 
             const response = await fetch(
-                this.configuration.paypal.path.optionsChange,
+                createUrlWithToken(this.configuration.paypal.path.optionsChange, this.orderToken),
                 createFetchOptions({
                     paymentData: component.paymentData,
                     pspReference: this.paypalPspReference,
-                    selectedDeliveryMethod: data.selectedShippingOption
+                    selectedDeliveryMethod: data.selectedShippingOption,
                 })
             );
             const result = await response.json();
@@ -87,7 +105,7 @@ export class PayPalHandler {
             }
 
             const response = await fetch(
-                this.configuration.paypal.path.checkout,
+                createUrlWithToken(this.configuration.paypal.path.checkout, this.orderToken),
                 createFetchOptions({
                     deliveryAddress: data.deliveryAddress,
                     payer : data.authorizedEvent.payer,
@@ -109,7 +127,7 @@ export class PayPalHandler {
     handleAdditionalDetails = async (state, component) => {
         try {
             const response = await fetch(
-                this.configuration.paypal.path.paymentDetails,
+                createUrlWithToken(this.configuration.paypal.path.paymentDetails, this.orderToken),
                 createFetchOptions({
                     details: state.data.details,
                     paymentData: component.paymentData,
@@ -123,28 +141,33 @@ export class PayPalHandler {
 
             window.location.replace(result.redirect);
         } catch (error) {
-            showErrorMessage(error.message, SELECTORS.CART_CONTAINER);
+            showErrorMessage(error.message, SELECTORS.PRODUCT_CONTAINER);
         }
     };
 
     handleError = (error) => {
         this.paypalPspReference = null;
+        if (this.orderToken !== null) {
+            fetch(this.configuration.path.removeCart.replace('_TOKEN_VALUE_', this.orderToken), { method: 'DELETE' });
+            this.orderToken = null;
+        }
         if (error.message) {
-            showErrorMessage(error.message, SELECTORS.CART_CONTAINER);
+            showErrorMessage(error.message, SELECTORS.PRODUCT_CONTAINER);
         }
     };
 
-    getConfig() {
+    getConfig(productId) {
+        this.productId = productId;
         return {
             amount: {
                 currency: this.configuration.paypal.amount.currency,
-                value: this.configuration.paypal. amount.value
             },
             isExpress: true,
             blockPayPalCreditButton: true,
             blockPayPalPayLaterButton: true,
             blockPayPalVenmoButton: true,
 
+            onClick: this.handleClick,
             onSubmit: this.handleSubmit,
             onShippingAddressChange: this.handleShippingAddressChange,
             onShippingOptionsChange: this.handleShippingOptionsChange,

@@ -18,11 +18,10 @@ use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
-use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -31,7 +30,7 @@ use Webmozart\Assert\Assert;
 final class InitializeAction
 {
     public function __construct(
-        private readonly CartContextInterface $cartContext,
+        private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly MessageBusInterface $messageBus,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentRepositoryInterface $paymentRepository,
@@ -41,8 +40,7 @@ final class InitializeAction
 
     public function __invoke(Request $request): JsonResponse
     {
-        /** @var OrderInterface $order */
-        $order = $this->cartContext->getCart();
+        $order = $this->paymentCheckoutOrderResolver->resolve();
 
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);

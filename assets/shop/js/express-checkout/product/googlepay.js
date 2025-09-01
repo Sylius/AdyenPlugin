@@ -1,20 +1,20 @@
-import { createFetchOptions } from '../utils.js';
+import {createFetchOptions, createUrlWithToken} from '../utils.js';
 import {SELECTORS} from "../constants";
 
 export class GooglePayHandler {
     constructor(configuration) {
         this.configuration = configuration;
         this.orderToken = null;
+        this.productId = null;
 
         const $container = document.getElementById(SELECTORS.PRODUCT_CONTAINER);
         this.shippingRequired = $container.getAttribute('data-shipping-required') === '1';
-        this.productId = $container.getAttribute('data-product-id');
     }
 
     handleClick = async (resolve, reject) => {
         const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
         const response = await fetch(
-            this.configuration.googlePay.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
+            this.configuration.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
             createFetchOptions({
                 formData,
             })
@@ -33,11 +33,13 @@ export class GooglePayHandler {
             const { shippingAddress, shippingOptionData } = intermediatePaymentData;
             const paymentDataRequestUpdate = {};
 
-            const response = await fetch(this.configuration.googlePay.path.shippingOptions, createFetchOptions({
-                shippingAddress,
-                shippingOptionId: shippingOptionData?.id,
-                tokenValue: this.orderToken,
-            }));
+            const response = await fetch(
+                createUrlWithToken(this.configuration.googlePay.path.shippingOptions, this.orderToken),
+                createFetchOptions({
+                    shippingAddress,
+                    shippingOptionId: shippingOptionData?.id,
+                })
+            );
             const data = await response.json();
 
             if (data.error) {
@@ -59,12 +61,13 @@ export class GooglePayHandler {
         try {
             const { email, shippingAddress, shippingOptionData } = paymentData.authorizedEvent;
 
-            const response = await fetch(this.configuration.googlePay.path.checkout, createFetchOptions({
-                email,
-                shippingAddress,
-                shippingOptionId: shippingOptionData?.id,
-                tokenValue: this.orderToken,
-            }));
+            const response = await fetch(
+                createUrlWithToken(this.configuration.googlePay.path.checkout, this.orderToken),
+                createFetchOptions({
+                    email,
+                    shippingAddress,
+                })
+            );
 
             const data = await response.json();
 
@@ -81,10 +84,9 @@ export class GooglePayHandler {
     handleSubmit = async (state) => {
         try {
             const response = await fetch(
-                this.configuration.googlePay.path.payments,
+                createUrlWithToken(this.configuration.googlePay.path.payments, this.orderToken),
                 createFetchOptions({
                     ...state.data,
-                    tokenValue: this.orderToken,
                 })
             );
             const data = await response.json();
@@ -97,12 +99,13 @@ export class GooglePayHandler {
 
     handleError = (error) => {
         if (this.orderToken !== null) {
-            fetch(this.configuration.googlePay.path.removeCart.replace('_TOKEN_VALUE_', this.orderToken), { method: 'DELETE' });
+            fetch(this.configuration.path.removeCart.replace('_TOKEN_VALUE_', this.orderToken), { method: 'DELETE' });
             this.orderToken = null;
         }
     };
 
-    getConfig() {
+    getConfig(productId) {
+        this.productId = productId;
         let callbackIntents = ['SHIPPING_ADDRESS'];
         if (this.shippingRequired) {
             callbackIntents.push('SHIPPING_OPTION');

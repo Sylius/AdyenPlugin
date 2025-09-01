@@ -13,62 +13,55 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 
-use Doctrine\Persistence\ObjectManager;
-use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Modifier\ExpressCheckout\OrderCustomerModifierInterface;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifierInterface;
-use Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProviderInterface;
-use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\OrderCheckoutTransitions;
-use Sylius\Component\Order\Context\CartContextInterface;
+use Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface;
+use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Webmozart\Assert\Assert;
 
 final class CheckoutAction
 {
     public function __construct(
-        private readonly CartContextInterface $cartContext,
-        private readonly ObjectManager $orderManager,
-        private readonly CustomerProviderInterface $customerProvider,
-        private readonly StateMachineInterface $stateMachine,
+        private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly OrderAddressModifierInterface $orderAddressModifier,
+        private readonly OrderCustomerModifierInterface $orderCustomerModifier,
+        private readonly CheckoutResolverInterface $checkoutResolver,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        /** @var OrderInterface $order */
-        $order = $this->cartContext->getCart();
+        $order = $this->paymentCheckoutOrderResolver->resolve();
 
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
 
-        $newBillingAddress = $data['billingAddress'] ?? null;
-        $newShippingAddress = $data['deliveryAddress'] ?? null;
+        $newAddress = $data['deliveryAddress'] ?? null;
         $payer = $data['payer'] ?? null;
 
-        if (!isset($newBillingAddress, $newShippingAddress, $payer)) {
+        if (!isset($newAddress, $payer)) {
             return new JsonResponse([
                 'error' => true,
-                'message' => 'Missing required parameters: billingAddress, deliveryAddress, or payer.',
+                'message' => 'Missing required parameters: deliveryAddress, or payer.',
             ], 400);
         }
 
-        $this->orderAddressModifier->modify($order, $newBillingAddress, $newShippingAddress, $payer);
+        try {
+            $this->orderAddressModifier->modify($order, $newAddress, $payer);
+            $this->orderCustomerModifier->modify($order, $payer['email_address'] ?? null);
 
-        $email = $payer['email_address'] ?? null;
-        $customer = $order->getCustomer();
-        if ($customer === null) {
-            $customer = $this->customerProvider->getOrCreateCustomer($email, $order->getBillingAddress());
-            $order->setCustomer($customer);
+            $this->checkoutResolver->resolve($order);
+
+            return new JsonResponse(['orderToken' => $order->getTokenValue()]);
+        } catch (\Exception $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Order cannot be checked out.',
+                'code' => $exception->getCode(),
+            ], Response::HTTP_BAD_REQUEST);
         }
-
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_ADDRESS);
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
-
-        $this->orderManager->flush();
-
-        return new JsonResponse(['order_id' => $order->getId()]);
     }
 }

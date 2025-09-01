@@ -25,7 +25,7 @@
             <argument type="service" id="sylius.context.cart.new"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
-            <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="router"/>
         </service>
 
         <service
@@ -75,12 +75,9 @@
             class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay\CheckoutAction"
         >
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
-            <argument type="service" id="sylius.manager.order"/>
             <argument type="service" id="sylius_adyen.modifier.express_checkout.google_pay.order_address"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.customer"/>
-            <argument type="service" id="sylius_abstraction.state_machine"/>
-            <argument type="service" id="sylius.repository.shipping_method"/>
-            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.modifier.express_checkout.order_customer"/>
+            <argument type="service" id="sylius_adyen.resolver.order.express_checkout.checkout"/>
         </service>
 
         <service
@@ -98,7 +95,7 @@
             id="sylius_adyen.controller.shop.express_checkout.paypal.initialize"
             class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\InitializeAction"
         >
-            <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
             <argument type="service" id="sylius.command_bus"/>
             <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius.repository.payment"/>
@@ -109,7 +106,7 @@
             id="sylius_adyen.controller.shop.express_checkout.paypal.shipping_address_change"
             class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\ShippingAddressChangeAction"
         >
-            <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius.order_processing.order_processor"/>
             <argument type="service" id="sylius.manager.order"/>
@@ -121,7 +118,7 @@
             id="sylius_adyen.controller.shop.express_checkout.paypal.shipping_options_change"
             class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\ShippingOptionsChangeAction"
         >
-            <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius.repository.shipping_method"/>
             <argument type="service" id="sylius.order_processing.order_processor"/>
@@ -133,11 +130,10 @@
                 id="sylius_adyen.controller.shop.express_checkout.paypal.checkout"
                 class="Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\CheckoutAction"
         >
-            <argument type="service" id="sylius.context.cart.composite"/>
-            <argument type="service" id="sylius.manager.order"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.customer"/>
-            <argument type="service" id="sylius_abstraction.state_machine"/>
+            <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
             <argument type="service" id="sylius_adyen.modifier.express_checkout.paypal.order_address"/>
+            <argument type="service" id="sylius_adyen.modifier.express_checkout.order_customer"/>
+            <argument type="service" id="sylius_adyen.resolver.order.express_checkout.checkout"/>
         </service>
 
         <service

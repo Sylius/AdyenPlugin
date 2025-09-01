@@ -1,12 +1,14 @@
 import { SELECTORS } from '../constants.js';
 import { loadConfiguration } from '../utils.js';
 import { GooglePayHandler } from './googlepay.js';
+import { PayPalHandler } from "./paypal.js";
 
 const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
+    const productId = $container.getAttribute('data-product-id');
     if (!configUrl) return;
 
-    const { AdyenCheckout, GooglePay } = window.AdyenWeb;
+    const { AdyenCheckout, GooglePay, PayPal } = window.AdyenWeb;
 
     const configuration = await loadConfiguration(configUrl);
 
@@ -19,7 +21,7 @@ const initExpressCheckout = async ($container) => {
     });
 
     const googlePayHandler = new GooglePayHandler(configuration);
-    const googlePay = new GooglePay(checkout, googlePayHandler.getConfig());
+    const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
 
     googlePay
         .isAvailable()
@@ -28,6 +30,18 @@ const initExpressCheckout = async ($container) => {
         })
         .catch(e => {
             console.error('Google Pay is not available:', e);
+        });
+
+    const paypalHandler = new PayPalHandler(configuration);
+    const payPal = new PayPal(checkout, paypalHandler.getConfig(productId));
+
+    payPal
+        .isAvailable()
+        .then(() => {
+            payPal.mount(SELECTORS.PAYPAL_MOUNT);
+        })
+        .catch(e => {
+            console.error('PayPal is not available:', e);
         });
 };
 

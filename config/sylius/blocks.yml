@@ -35,7 +35,7 @@ sylius_ui:
                     template: "@SyliusAdyenPlugin/Shop/Cart/Summary/express_checkout.html.twig"
                     priority: -10
 
-        sylius.shop.cart.summary.express_checkout:
+        sylius.shop.cart.summary.adyen_express_checkout:
             blocks:
                 apple_pay:
                     template: "@SyliusAdyenPlugin/Shop/Cart/Summary/ExpressCheckout/apple_pay.html.twig"
@@ -53,7 +53,7 @@ sylius_ui:
                     template: "@SyliusAdyenPlugin/Shop//Product/Show/express_checkout.html.twig"
                     priority: -10
 
-        sylius.shop.product.show.right_sidebar.express_checkout:
+        sylius.shop.product.show.right_sidebar.adyen_express_checkout:
             blocks:
                 apple_pay:
                     template: "@SyliusAdyenPlugin/Shop/Product/Show/ExpressCheckout/apple_pay.html.twig"

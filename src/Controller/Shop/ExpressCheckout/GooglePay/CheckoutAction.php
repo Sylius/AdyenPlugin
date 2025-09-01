@@ -13,29 +13,22 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay;
 
-use Doctrine\Persistence\ObjectManager;
-use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifierInterface;
-use Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Modifier\ExpressCheckout\OrderCustomerModifierInterface;
+use Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
-use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\OrderCheckoutTransitions;
-use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Webmozart\Assert\Assert;
 
 final class CheckoutAction
 {
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        private readonly ObjectManager $orderManager,
         private readonly OrderAddressModifierInterface $orderAddressModifier,
-        private readonly CustomerProviderInterface $customerProvider,
-        private readonly StateMachineInterface $stateMachine,
-        private readonly ShippingMethodRepositoryInterface $shippingMethodRepository,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly OrderCustomerModifierInterface $orderCustomerModifier,
+        private readonly CheckoutResolverInterface $checkoutResolver,
     ) {
     }
 
@@ -48,7 +41,6 @@ final class CheckoutAction
 
         $email = $data['email'] ?? null;
         $newAddress = $data['shippingAddress'] ?? null;
-        $shippingOptionId = $data['shippingOptionId'] ?? null;
 
         if (!isset($email, $newAddress)) {
             return new JsonResponse([
@@ -57,28 +49,19 @@ final class CheckoutAction
             ], 400);
         }
 
-        $this->orderAddressModifier->modify($order, $newAddress);
+        try {
+            $this->orderAddressModifier->modify($order, $newAddress);
+            $this->orderCustomerModifier->modify($order, $email);
 
-        $customer = $order->getCustomer();
-        if ($customer === null) {
-            $customer = $this->customerProvider->getOrCreateCustomer($email, $order->getBillingAddress());
-            $order->setCustomer($customer);
+            $this->checkoutResolver->resolve($order);
+
+            return new JsonResponse(['orderToken' => $order->getTokenValue()]);
+        } catch (\Exception $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => 'Order cannot be checked out.',
+                'code' => $exception->getCode(),
+            ], Response::HTTP_BAD_REQUEST);
         }
-
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_ADDRESS);
-
-        if ($order->isShippingRequired()) {
-            $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $shippingOptionId]);
-            $order->getShipments()->first()->setMethod($shippingMethod);
-            $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
-        }
-
-        $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
-        $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
-
-        $this->orderManager->flush();
-
-        return new JsonResponse(['order_id' => $order->getId()]);
     }
 }

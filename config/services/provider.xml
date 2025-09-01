@@ -24,15 +24,6 @@
                  alias="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters" />
 
         <service
-            id="sylius_adyen.provider.express_checkout.customer"
-            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProvider"
-        >
-            <argument type="service" id="sylius.resolver.customer"/>
-        </service>
-        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\CustomerProviderInterface"
-                 alias="sylius_adyen.provider.express_checkout.customer" />
-
-        <service
             id="sylius_adyen.provider.express_checkout.country"
             class="Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProvider"
         >
