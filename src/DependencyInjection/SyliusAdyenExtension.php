@@ -22,9 +22,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class SyliusAdyenExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
-    public const TRANSPORT_FACTORY_ID = 'sylius_adyen.client.adyen_transport_factory';
-
-    public const SUPPORTED_PAYMENT_METHODS_LIST = 'sylius_adyen.supported_payment_methods';
+    public const SYLIUS_ADYEN_PAYMENT_METHODS_ALLOWED_TYPES = 'sylius_adyen.payment_methods.allowed_types';
 
     public function prepend(ContainerBuilder $container): void
     {
@@ -36,21 +34,26 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
 
         $container->prependExtensionConfig('sylius_labs_doctrine_migrations_extra', [
             'migrations' => [
-                'Sylius\AdyenPlugin\Migrations' => ['Sylius\Bundle\CoreBundle\Migrations', 'Sylius\RefundPlugin\Migrations'],
+                'Sylius\AdyenPlugin\Migrations' => [
+                    'Sylius\Bundle\CoreBundle\Migrations',
+                    'Sylius\RefundPlugin\Migrations',
+                ],
             ],
         ]);
     }
 
-    public function loadInternal(array $config, ContainerBuilder $container): void
+    protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
     {
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
         $loader->load('services.xml');
 
-        $container->setParameter(self::SUPPORTED_PAYMENT_METHODS_LIST, (array) $config['supported_types']);
-        $container->setParameter('sylius_adyen.esd.supported_currencies', $config['esd']['supported_currencies']);
-        $container->setParameter('sylius_adyen.esd.supported_countries', $config['esd']['supported_countries']);
-        $container->setParameter('sylius_adyen.esd.supported_card_brands', $config['esd']['supported_card_brands']);
-        $container->setParameter('sylius_adyen.integrator_name', $config['integrator_name']);
+        $allowedTypes = $mergedConfig['payment_methods']['allowed_types'];
+
+        $container->setParameter(self::SYLIUS_ADYEN_PAYMENT_METHODS_ALLOWED_TYPES, $allowedTypes);
+        $container->setParameter('sylius_adyen.esd.supported_currencies', $mergedConfig['esd']['supported_currencies']);
+        $container->setParameter('sylius_adyen.esd.supported_countries', $mergedConfig['esd']['supported_countries']);
+        $container->setParameter('sylius_adyen.esd.supported_card_brands', $mergedConfig['esd']['supported_card_brands']);
+        $container->setParameter('sylius_adyen.integrator_name', $mergedConfig['integrator_name']);
     }
 
     public function getConfiguration(array $config, ContainerBuilder $container): ConfigurationInterface
