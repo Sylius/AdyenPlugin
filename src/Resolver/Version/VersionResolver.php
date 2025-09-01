@@ -25,8 +25,9 @@ final class VersionResolver implements VersionResolverInterface
 
     private readonly array $applicationInfo;
 
-    public function __construct()
-    {
+    public function __construct(
+        private readonly string $integratorName,
+    ) {
         $this->applicationInfo = $this->resolveApplicationInfo();
     }
 
@@ -39,13 +40,13 @@ final class VersionResolver implements VersionResolverInterface
     {
         return [
             'merchantApplication' => [
-                'name' => 'Sylius Adyen Plugin',
+                'name' => 'adyen-sylius',
                 'version' => $this->getPluginVersion(),
             ],
             'externalPlatform' => [
                 'name' => 'Sylius',
                 'version' => SyliusCoreBundle::VERSION,
-                'integrator' => 'Sylius',
+                'integrator' => $this->integratorName,
             ],
         ];
     }

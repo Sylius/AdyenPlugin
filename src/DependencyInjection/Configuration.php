@@ -58,6 +58,9 @@ final class Configuration implements ConfigurationInterface
                         ->end()
                     ->end()
                 ->end()
+                ->scalarNode('integrator_name')
+                    ->defaultValue('Sylius')
+                ->end()
 
             ->end()
             ->beforeNormalization()
