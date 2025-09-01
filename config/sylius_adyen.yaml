@@ -1,5 +1,25 @@
 sylius_adyen:
+    payment_methods:
+        mode: 'config'
+        allowed_types:
+            - 'scheme'
+            - 'paypal'
+            - 'googlepay'
+            - 'alipay'
+            - 'alipay_hk'
+            - 'alma'
+            - 'ach'
+            - 'bcmc'
+            - 'bcmc_mobile'
+            - 'blik'
+            - 'ideal'
+            - 'klarna'
+            - 'klarna_paynow'
+            - 'klarna_account'
+            - 'p24'
+            - 'twint'
+
     esd:
-        supported_currencies: ['USD']
-        supported_countries: ['US']
-        supported_card_brands: ['visa','mc']
+        supported_currencies: [ 'USD' ]
+        supported_countries: [ 'US' ]
+        supported_card_brands: [ 'visa','mc' ]

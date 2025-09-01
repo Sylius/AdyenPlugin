@@ -13,16 +13,13 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\DependencyInjection;
 
+use Sylius\AdyenPlugin\Filter\PaymentMethodsMode;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 final class Configuration implements ConfigurationInterface
 {
     public const DEFAULT_LOGGER = 'logger';
-
-    public const DEFAULT_PAYMENT_METHODS = [
-        'scheme', 'dotpay', 'ideal', 'alipay', 'applepay', 'blik', 'amazonpay', 'sepadirectdebit',
-    ];
 
     public function getConfigTreeBuilder(): TreeBuilder
     {
@@ -31,10 +28,17 @@ final class Configuration implements ConfigurationInterface
         $treeBuilder
             ->getRootNode()
             ->children()
-                ->arrayNode('supported_types')
-                    ->ignoreExtraKeys(false)
-                    ->beforeNormalization()
-                        ->always(static fn ($arg) => (array) $arg)
+                ->arrayNode('payment_methods')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->enumNode('mode')
+                            ->values(array_map(fn (PaymentMethodsMode $mode) => $mode->value, PaymentMethodsMode::cases()))
+                            ->defaultValue(PaymentMethodsMode::CONFIG->value)
+                        ->end()
+                        ->arrayNode('allowed_types')
+                            ->scalarPrototype()->end()
+                            ->defaultValue([])
+                        ->end()
                     ->end()
                 ->end()
                 ->scalarNode('logger')
@@ -61,21 +65,6 @@ final class Configuration implements ConfigurationInterface
                 ->scalarNode('integrator_name')
                     ->defaultValue('Sylius')
                 ->end()
-
-            ->end()
-            ->beforeNormalization()
-            ->always(static function ($arg) {
-                $arg = (array) $arg;
-
-                if (array_key_exists('supported_types', $arg)) {
-                    return $arg;
-                }
-
-                $arg['supported_types'] = self::DEFAULT_PAYMENT_METHODS;
-
-                return $arg;
-            })
-            ->end()
         ;
 
         return $treeBuilder;
