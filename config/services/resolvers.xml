@@ -44,7 +44,9 @@
         <service
             id="sylius_adyen.resolver.version.version"
             class="Sylius\AdyenPlugin\Resolver\Version\VersionResolver"
-        />
+        >
+            <argument>%sylius_adyen.integrator_name%</argument>
+        </service>
 
         <service
             class="Sylius\AdyenPlugin\Resolver\Notification\NotificationResolver"

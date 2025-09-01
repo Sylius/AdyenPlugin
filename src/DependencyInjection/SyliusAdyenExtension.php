@@ -50,6 +50,7 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
         $container->setParameter('sylius_adyen.esd.supported_currencies', $config['esd']['supported_currencies']);
         $container->setParameter('sylius_adyen.esd.supported_countries', $config['esd']['supported_countries']);
         $container->setParameter('sylius_adyen.esd.supported_card_brands', $config['esd']['supported_card_brands']);
+        $container->setParameter('sylius_adyen.integrator_name', $config['integrator_name']);
     }
 
     public function getConfiguration(array $config, ContainerBuilder $container): ConfigurationInterface
