@@ -29,7 +29,7 @@ final class DoctrineHandler extends AbstractProcessingHandler
 
     protected function write(array|LogRecord $record): void
     {
-        $log = $this->logFactory->create($record['message'], $record['level'], 0);
+        $log = $this->logFactory->create(substr($record['message'], 0, 5000), $record['level'], 0);
 
         $this->repository->add($log);
     }
