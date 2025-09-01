@@ -17,8 +17,8 @@ use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ConfigurationProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
+use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,6 +34,7 @@ abstract class AbstractConfigurationAction
         private readonly CartContextInterface $cartContext,
         private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         private readonly CountryProviderInterface $countryProvider,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
     ) {
         Assert::allIsInstanceOf(
             $configurationProviders,
@@ -48,14 +49,13 @@ abstract class AbstractConfigurationAction
         /** @var OrderInterface $order */
         $order = $this->cartContext->getCart();
 
-        $paymentMethods = $this->paymentMethodsProvider->provideForOrder(AdyenClientProviderInterface::FACTORY_NAME, $order);
+        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder(AdyenClientProviderInterface::FACTORY_NAME, $order);
 
-        /** @var PaymentMethodInterface $paymentMethod */
-        $paymentMethod = $order->getLastPayment()->getMethod();
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode(AdyenClientProviderInterface::FACTORY_NAME);
         $config = $paymentMethod->getGatewayConfig()->getConfig();
 
         $configuration = [
-            'paymentMethods' => $paymentMethods['paymentMethods'],
+            'paymentMethods' => $paymentMethodsData,
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],
