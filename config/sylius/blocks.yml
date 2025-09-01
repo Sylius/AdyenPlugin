@@ -8,6 +8,8 @@ sylius_ui:
             blocks:
                 adyen:
                     template: '@SyliusAdyenPlugin/Shop/_javascripts.html.twig'
+                adyen_analytics:
+                    template: '@SyliusAdyenPlugin/Shop/_analytics.html.twig'
 
         sylius.admin.update:
             blocks:
