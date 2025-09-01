@@ -13,11 +13,15 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Model\Checkout\PaymentMethodsRequest;
+use Adyen\Model\Checkout\PaymentMethodsResponse;
 use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Adyen\Service\Checkout;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
+use Adyen\Service\Checkout\PaymentsApi;
 use Adyen\Service\Checkout\UtilityApi;
 use Adyen\Service\Modification;
 use Adyen\Service\Recurring;
@@ -26,7 +30,6 @@ use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
-use Webmozart\Assert\Assert;
 
 final class AdyenClient implements AdyenClientInterface
 {
@@ -38,7 +41,6 @@ final class AdyenClient implements AdyenClientInterface
         array $options,
         AdyenTransportFactoryInterface $adyenTransportFactory,
         private readonly ClientPayloadFactoryInterface $clientPayloadFactory,
-        private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
     ) {
         $options = ArrayObject::ensureArrayObject($options);
         $options->defaults(self::DEFAULT_OPTIONS);
@@ -55,17 +57,15 @@ final class AdyenClient implements AdyenClientInterface
         $this->transport = $adyenTransportFactory->create($options->getArrayCopy());
     }
 
-    public function getAvailablePaymentMethods(
+    public function getPaymentMethodsResponse(
         OrderInterface $order,
         ?AdyenTokenInterface $adyenToken = null,
-    ): array {
-        $paymentMethods = (array) $this->getCheckout()->paymentMethods(
-            $this->clientPayloadFactory->createForAvailablePaymentMethods($this->options, $order, $adyenToken),
+    ): PaymentMethodsResponse {
+        return $this->getPaymentsApi()->paymentMethods(
+            new PaymentMethodsRequest(
+                $this->clientPayloadFactory->createForAvailablePaymentMethods($this->options, $order, $adyenToken),
+            ),
         );
-
-        Assert::keyExists($paymentMethods, 'paymentMethods');
-
-        return $this->paymentMethodsFilter->filter($paymentMethods);
     }
 
     public function paymentDetails(
@@ -202,6 +202,12 @@ final class AdyenClient implements AdyenClientInterface
         return new Checkout(
             $this->transport,
         );
+    }
+
+    /** @throws AdyenException */
+    private function getPaymentsApi(): PaymentsApi
+    {
+        return new PaymentsApi($this->transport);
     }
 
     private function getPaymentLinksApi(): PaymentLinksApi

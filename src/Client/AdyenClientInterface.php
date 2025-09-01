@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\Model\Checkout\PaymentMethodsResponse;
 use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -37,10 +38,10 @@ interface AdyenClientInterface
 
     public const CREDIT_CARD_TYPE = 'scheme';
 
-    public function getAvailablePaymentMethods(
+    public function getPaymentMethodsResponse(
         OrderInterface $order,
         ?AdyenTokenInterface $adyenToken = null,
-    ): array;
+    ): PaymentMethodsResponse;
 
     public function getEnvironment(): string;
 
