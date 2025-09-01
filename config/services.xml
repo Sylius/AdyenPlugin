@@ -29,7 +29,7 @@
             id="sylius_adyen.controller.shop.dropin_configuration"
         >
             <argument type="service" id="sylius.context.cart.composite"/>
-            <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
+            <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <argument type="service" id="router"/>
             <argument type="service" id="sylius.repository.order"/>
             <argument type="service" id="translator"/>
@@ -38,14 +38,19 @@
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider"
-            id="sylius_adyen.provider.payment_methods_for_order"
+            id="sylius_adyen.provider.payment_methods"
+            class="Sylius\AdyenPlugin\Provider\PaymentMethodsProvider"
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
             <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.filter.configured_payment_methods"/>
+            <argument type="service" id="sylius_adyen.filter.stored_payment_methods"/>
+            <argument type="service" id="sylius_adyen.mapper.payment_methods"/>
             <argument type="service" id="sylius.command_bus"/>
         </service>
+        <service id="Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface" alias="sylius_adyen.provider.payment_methods" />
+
 
         <service
             id="sylius_adyen.clearer.payment_references"
