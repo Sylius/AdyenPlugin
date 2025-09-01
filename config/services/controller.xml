@@ -16,6 +16,7 @@
             <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
         </service>
 
         <service
@@ -28,6 +29,7 @@
             <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
             <argument type="service" id="router"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
         </service>
 
         <service

@@ -50,14 +50,14 @@ abstract class AbstractConfigurationAction
         /** @var OrderInterface $order */
         $order = $this->cartContext->getCart();
 
-        $paymentMethods = $this->paymentMethodsProvider->provideForOrder(AdyenClientProviderInterface::FACTORY_NAME, $order);
+        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder(AdyenClientProviderInterface::FACTORY_NAME, $order);
 
         $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
         $config = $paymentMethod->getGatewayConfig()->getConfig();
 
         $configuration = [
-            'paymentMethods' => $paymentMethods['paymentMethods'],
+            'paymentMethods' => $paymentMethodsData,
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],
