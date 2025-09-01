@@ -1,0 +1,5 @@
+sylius_adyen:
+    esd:
+        supported_currencies: ['USD']
+        supported_countries: ['US']
+        supported_card_brands: ['visa','mc']
