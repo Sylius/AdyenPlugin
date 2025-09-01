@@ -31,6 +31,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
@@ -111,7 +112,7 @@ abstract class AdyenTestCase extends WebTestCase
         parent::tearDown();
     }
 
-    protected function initializeServices($container): void
+    protected function initializeServices(ContainerInterface $container): void
     {
         // Override in child classes to initialize specific services
     }

@@ -13,8 +13,9 @@
         >
             <argument type="tagged_iterator" tag="sylius_adyen.express_checkout.cart.configuration" index-by="key" />
             <argument type="service" id="sylius.context.cart.composite"/>
-            <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
+            <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
         </service>
 
         <service
@@ -23,9 +24,10 @@
         >
             <argument type="tagged_iterator" tag="sylius_adyen.express_checkout.cart.configuration" index-by="key" />
             <argument type="service" id="sylius.context.cart.new"/>
-            <argument type="service" id="sylius_adyen.provider.payment_methods_for_order"/>
+            <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <argument type="service" id="sylius_adyen.provider.express_checkout.country"/>
             <argument type="service" id="router"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
         </service>
 
         <service

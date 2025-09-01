@@ -6,6 +6,21 @@
         <defaults public="true"/>
 
         <service
+            id="sylius_adyen.filter.configured_payment_methods"
+            class="Sylius\AdyenPlugin\Filter\ConfiguredPaymentMethodsFilter"
+        >
+            <argument>%sylius_adyen.payment_methods.allowed_types%</argument>
+            <argument>%sylius_adyen.payment_methods.mode%</argument>
+        </service>
+        <service id="Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface" alias="sylius_adyen.filter.configured_payment_methods" />
+
+        <service
+            id="sylius_adyen.filter.stored_payment_methods"
+            class="Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilter"
+        />
+        <service id="Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface" alias="sylius_adyen.filter.stored_payment_methods" />
+
+        <service
             class="Sylius\AdyenPlugin\EventSubscriber\FilterHttpAuthenticationForNotificationProcessor"
             id="sylius_adyen.event_subscriber.filter_http_authentication_for_notification_processor"
         >

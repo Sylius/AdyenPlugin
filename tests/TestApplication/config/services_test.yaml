@@ -11,6 +11,10 @@ services:
         class: Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub
         public: true
 
+    sylius_adyen.filter.configured_payment_methods:
+        class: Tests\Sylius\AdyenPlugin\Functional\Stub\TestConfiguredPaymentMethodsFilter
+        public: true
+
     # Test cart context for order resolution
     sylius_adyen.test.cart_context:
         class: Tests\Sylius\AdyenPlugin\Functional\Service\TestCartContext

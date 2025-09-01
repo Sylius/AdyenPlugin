@@ -13,9 +13,8 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Form\Extension;
 
-use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Form\Type\PaymentMethodChoiceType;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Bundle\CoreBundle\Form\Type\Checkout\PaymentType;
@@ -23,7 +22,6 @@ use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\FormType;
 use Symfony\Component\Form\FormBuilderInterface;
-use Webmozart\Assert\Assert;
 
 final class PaymentTypeExtension extends AbstractTypeExtension
 {
@@ -31,7 +29,7 @@ final class PaymentTypeExtension extends AbstractTypeExtension
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly ChannelContextInterface $channelContext,
-        private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
     ) {
     }
 
@@ -44,11 +42,12 @@ final class PaymentTypeExtension extends AbstractTypeExtension
 
         $paymentMethods = $this->paymentMethodRepository->findAllByChannel($this->channelContext->getChannel());
         foreach ($paymentMethods as $paymentMethod) {
-            $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
-            $paymentMethods = $this->getPaymentMethods($client);
+            $order = $this->paymentCheckoutOrderResolver->resolve();
+            $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod->getCode(), $order);
+
             $adyen->add((string) $paymentMethod->getCode(), PaymentMethodChoiceType::class, [
-                'environment' => $client->getEnvironment(),
-                'payment_methods' => $paymentMethods,
+                'environment' => $paymentMethod->getGatewayConfig()->getConfig()['environment'],
+                'payment_methods' => $paymentMethodsData['paymentMethods'],
             ]);
         }
 
@@ -58,16 +57,5 @@ final class PaymentTypeExtension extends AbstractTypeExtension
     public static function getExtendedTypes(): array
     {
         return [PaymentType::class];
-    }
-
-    private function getPaymentMethods(
-        AdyenClientInterface $client,
-    ): array {
-        $order = $this->paymentCheckoutOrderResolver->resolve();
-
-        $result = $client->getAvailablePaymentMethods($order);
-        Assert::keyExists($result, 'paymentMethods');
-
-        return (array) $result['paymentMethods'];
     }
 }

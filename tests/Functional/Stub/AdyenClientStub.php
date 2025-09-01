@@ -13,12 +13,15 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Functional\Stub;
 
+use Adyen\Model\Checkout\PaymentMethod as AdyenPaymentMethod;
+use Adyen\Model\Checkout\PaymentMethodsResponse;
 use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
+use Adyen\Model\Checkout\StoredPaymentMethod as AdyenStoredPaymentMethod;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
-use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Order\Model\OrderInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
 
 final class AdyenClientStub implements AdyenClientInterface
@@ -36,6 +39,48 @@ final class AdyenClientStub implements AdyenClientInterface
     private array $expiredPaymentLinkIds = [];
 
     private ?\Exception $exception = null;
+
+    private ?PaymentMethodsResponse $paymentMethodsResponse = null;
+
+    /**
+     * Set what the stub should return from getPaymentMethodsResponse().
+     *
+     * @param list<array{
+     *   type: string,
+     *   name?: string,
+     *   brands?: list<string>,
+     *   configuration?: array,
+     *   issuers?: array,
+     *   details?: array
+     * }> $availableMethods
+     * @param list<array{
+     *   id: string,
+     *   type: string,
+     *   supportedShopperInteractions?: list<string>,
+     *   brand?: string,
+     *   lastFour?: string,
+     *   expiryMonth?: string,
+     *   expiryYear?: string,
+     *   holderName?: string
+     * }> $storedMethods
+     */
+    public function setPaymentMethodsResponse(array $availableMethods, array $storedMethods = []): void
+    {
+        $availableObjects = array_map(
+            static fn (array $methodData): AdyenPaymentMethod => new AdyenPaymentMethod($methodData),
+            $availableMethods,
+        );
+
+        $storedObjects = array_map(
+            static fn (array $storedData): AdyenStoredPaymentMethod => new AdyenStoredPaymentMethod($storedData),
+            $storedMethods,
+        );
+
+        $this->paymentMethodsResponse = new PaymentMethodsResponse([
+            'paymentMethods' => $availableObjects,
+            'storedPaymentMethods' => $storedObjects,
+        ]);
+    }
 
     public function setSubmitPaymentResponse(array $response): void
     {
@@ -94,18 +139,18 @@ final class AdyenClientStub implements AdyenClientInterface
         return $this->submitPaymentResponse;
     }
 
-    public function getAvailablePaymentMethods(
+    public function getPaymentMethodsResponse(
         OrderInterface $order,
         ?AdyenTokenInterface $adyenToken = null,
-    ): array {
-        return [
-            'paymentMethods' => [
-                [
-                    'type' => 'scheme',
-                    'name' => 'Cards',
-                ],
-            ],
-        ];
+    ): PaymentMethodsResponse {
+        if ($this->paymentMethodsResponse instanceof PaymentMethodsResponse) {
+            return $this->paymentMethodsResponse;
+        }
+
+        return new PaymentMethodsResponse([
+            'paymentMethods' => [new AdyenPaymentMethod(['type' => 'scheme', 'name' => 'Cards'])],
+            'storedPaymentMethods' => [],
+        ]);
     }
 
     public function getEnvironment(): string

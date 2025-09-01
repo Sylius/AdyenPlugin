@@ -11,11 +11,10 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Provider;
+namespace Sylius\AdyenPlugin\Filter;
 
-use Sylius\Component\Core\Model\OrderInterface;
-
-interface PaymentMethodsForOrderProviderInterface
+enum PaymentMethodsMode: string
 {
-    public function provideConfiguration(OrderInterface $order, ?string $code = null): ?array;
+    case CONFIG = 'config';
+    case MERCHANT_ACCOUNT = 'merchant_account';
 }

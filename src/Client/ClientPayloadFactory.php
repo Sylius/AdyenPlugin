@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\Amount;
-use Adyen\Model\Checkout\PaymentDetails;
 use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
 use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
@@ -33,37 +32,6 @@ use Webmozart\Assert\Assert;
 
 final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 {
-    /** @var string[] */
-    private array $allowedMethodsList = [
-        'ideal',
-        'paypal',
-        'directEbanking', // Klarna - Sofort
-        'applepay',
-        'googlepay',
-        'alipay',
-        'twint',
-        'bizum',
-        'blik',
-        'dotpay',
-        'scheme',
-        'klarna',
-        'klarna_account',
-        'klarna_paynow',
-        'bcmc',
-        'bcmc_mobile',
-        'benefit',
-        'knet',
-        'naps',
-        'omannet',
-        'ach',
-        'directdebit_GB',
-        'ratepay_directdebit',
-        'wechatpayWeb',
-        'wechatpaySDK',
-        'wechatpayQR',
-        'onlineBanking_PL', // Przelewy24
-    ];
-
     public function __construct(
         private readonly VersionResolverInterface $versionResolver,
         private readonly NormalizerInterface $normalizer,
@@ -71,10 +39,6 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         private readonly CompositeEsdCollectorInterface $esdCollector,
         private readonly PaypalUpdateOrderRequestFactoryInterface $paypalUpdateOrderRequestFactory,
     ) {
-        $this->allowedMethodsList = array_values(array_unique(array_merge(
-            $this->allowedMethodsList,
-            (new PaymentDetails())->getTypeAllowableValues(),
-        )));
     }
 
     public function createForAvailablePaymentMethods(
@@ -96,7 +60,6 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             'countryCode' => $countryCode,
             'shopperLocale' => $locale,
             'channel' => 'Web',
-            'allowedPaymentMethods' => $this->allowedMethodsList,
         ];
 
         $payload = $this->injectShopperReference($payload, $adyenToken);
