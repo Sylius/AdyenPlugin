@@ -14,9 +14,11 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
-use Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider;
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -34,7 +36,7 @@ class DropinConfigurationAction
 
     public function __construct(
         private readonly CartContextInterface $cartContext,
-        private readonly PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
+        private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly TranslatorInterface $translator,
@@ -52,8 +54,11 @@ class DropinConfigurationAction
             return $this->getResponseForDroppedOrder($request);
         }
 
-        $config = $this->paymentMethodsForOrderProvider->provideConfiguration($order, $code);
-        Assert::isArray($config);
+        $paymentMethods = $this->paymentMethodsProvider->provideForOrder($code, $order);
+
+        /** @var PaymentMethodInterface $paymentMethod */
+        $paymentMethod = $order->getLastPayment()->getMethod();
+        $config = $paymentMethod->getGatewayConfig()->getConfig();
 
         $billingAddress = $order->getBillingAddress();
         Assert::isInstanceOf($billingAddress, AddressInterface::class);
@@ -72,7 +77,7 @@ class DropinConfigurationAction
                 'city' => $billingAddress->getCity(),
                 'postcode' => $billingAddress->getPostcode(),
             ],
-            'paymentMethods' => $config['paymentMethods'],
+            'paymentMethods' => $paymentMethods['paymentMethods'],
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],
