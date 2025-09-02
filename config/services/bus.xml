@@ -56,6 +56,7 @@
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
         </service>

@@ -245,7 +245,7 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
     public function testIsCaptureModeWithPaymentThrowsExceptionWhenPaymentMethodIsNull(): void
     {
         $payment = $this->createMock(PaymentInterface::class);
-        
+
         $payment
             ->expects($this->once())
             ->method('getMethod')

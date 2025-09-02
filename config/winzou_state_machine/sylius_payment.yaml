@@ -32,7 +32,11 @@ winzou_state_machine:
                     do: ["@sylius_adyen.processor.order.update_order_payment_state", "process"]
                     args: ["object.getOrder()"]
             guard:
-                guard_complete:
+                guard_manual_complete:
                     on: ["complete"]
                     do: ["@sylius_adyen.state_machine.guard.payment", "canBeCompleted"]
+                    args: ["object"]
+                guard_manual_cancel:
+                    on: ["cancel"]
+                    do: ["@sylius_adyen.state_machine.guard.payment", "canBeCancelled"]
                     args: ["object"]

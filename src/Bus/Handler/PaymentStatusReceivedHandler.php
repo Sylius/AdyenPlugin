@@ -49,10 +49,10 @@ final class PaymentStatusReceivedHandler
         $order = $payment->getOrder();
         Assert::isInstanceOf($order, OrderInterface::class);
 
+        $this->commandBus->dispatch(new CreatePaymentDetailForPayment($payment));
+
         if ($this->isAccepted($resultCode)) {
             $this->updateOrderState($order);
-        } else {
-            $this->commandBus->dispatch(new CreatePaymentDetailForPayment($payment));
         }
 
         try {

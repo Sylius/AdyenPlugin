@@ -38,20 +38,36 @@ final class OrderRefundingAvailabilityChecker implements OrderRefundingAvailabil
         Assert::notNull($order);
 
         $payment = $order->getLastPayment();
-        if (null !== $payment && $this->paymentCannotBeRefunded($payment)) {
+        if (
+            null === $payment ||
+            $this->automaticPaymentCannotBeRefunded($payment) ||
+            $this->manualPaymentCannotBeRefunded($payment)
+        ) {
             return false;
         }
 
         return $this->decoratedChecker->__invoke($orderNumber);
     }
 
-    private function paymentCannotBeRefunded(PaymentInterface $payment): bool
+    private function automaticPaymentCannotBeRefunded(PaymentInterface $payment): bool
     {
         return
             $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
             $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) &&
             in_array($payment->getState(), [
                 PaymentGraph::STATE_PROCESSING_REVERSAL,
+                PaymentInterface::STATE_COMPLETED,
+                PaymentInterface::STATE_REFUNDED,
+            ], true)
+        ;
+    }
+
+    private function manualPaymentCannotBeRefunded(PaymentInterface $payment): bool
+    {
+        return
+            $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL) &&
+            !in_array($payment->getState(), [
                 PaymentInterface::STATE_COMPLETED,
                 PaymentInterface::STATE_REFUNDED,
             ], true)

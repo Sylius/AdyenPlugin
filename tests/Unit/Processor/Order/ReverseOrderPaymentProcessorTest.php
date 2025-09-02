@@ -116,6 +116,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
                 if ($state === PaymentInterface::STATE_COMPLETED) {
                     return $completedPayment;
                 }
+
                 return $lastPayment;
             });
 

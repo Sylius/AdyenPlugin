@@ -16,14 +16,15 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
+use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\AdyenPlugin\Entity\PaymentLink;
 use Sylius\AdyenPlugin\Entity\PaymentLinkInterface;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
-use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
+use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mime\Email;
 
@@ -33,10 +34,13 @@ final class PaymentLinkProcessTest extends AdyenTestCase
 
     private GeneratePayLinkAction $generatePayLinkAction;
 
+    private RepositoryInterface $adyenPaymentDetailRepository;
+
     protected function initializeServices($container): void
     {
         $this->processNotificationsAction = $this->getProcessNotificationsAction();
         $this->generatePayLinkAction = $this->getGeneratePayLinkAction();
+        $this->adyenPaymentDetailRepository = $container->get('sylius_adyen.repository.adyen_payment_detail');
     }
 
     #[DataProvider('provideCaptureModesForGeneration')]
@@ -113,6 +117,10 @@ final class PaymentLinkProcessTest extends AdyenTestCase
 
         $emailContent = $message->toString();
         self::assertStringContainsString($paymentLinkUrl, $emailContent);
+
+        // PaymentDetail should not be created during link generation - only during authorization
+        $paymentDetails = $this->adyenPaymentDetailRepository->findBy(['payment' => $payment]);
+        self::assertCount(0, $paymentDetails, 'PaymentDetail should not be created during payment link generation');
     }
 
     #[DataProvider('provideCaptureModesForGeneration')]
@@ -267,9 +275,12 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         self::assertArrayHasKey('pspReference', $paymentDetails);
         self::assertEquals('AUTH_PSP_REF_789', $paymentDetails['pspReference']);
         self::assertArrayHasKey('paymentLinkId', $paymentDetails['additionalData']);
+
+        $adyenPaymentDetails = $this->adyenPaymentDetailRepository->findBy(['payment' => $payment]);
+        self::assertCount(1, $adyenPaymentDetails, 'PaymentDetail should be created during payment link authorization in automatic capture mode');
     }
 
-    public function testSuccessfulAuthorizationThroughPaymentLinkInManualCaptureModeAndCompleteAction(): void
+    public function testSuccessfulAuthorizationThroughPaymentLinkInManualCaptureModeIsAutomaticallyCompleted(): void
     {
         $this->setCaptureMode(PaymentCaptureMode::MANUAL);
 
@@ -335,11 +346,14 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         self::assertEquals('AUTH_PSP_REF_789', $paymentDetails['pspReference']);
         self::assertArrayHasKey('paymentLinkId', $paymentDetails['additionalData']);
 
-        $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_COMPLETE);
-        $entityManager->flush();
+        // PaymentDetail should be created during authorization with the configured capture mode
+        $adyenPaymentDetails = $this->adyenPaymentDetailRepository->findBy(['payment' => $payment]);
+        self::assertCount(1, $adyenPaymentDetails, 'PaymentDetail should be created during payment link authorization');
 
-        self::assertEquals(OrderInterface::STATE_NEW, $this->testOrder->getState());
-        self::assertEquals(OrderPaymentStates::STATE_PAID, $this->testOrder->getPaymentState());
-        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+        /** @var AdyenPaymentDetailInterface $adyenPaymentDetail */
+        $adyenPaymentDetail = $adyenPaymentDetails[0];
+        self::assertEquals(PaymentCaptureMode::MANUAL, $adyenPaymentDetail->getCaptureMode(), 'PaymentDetail should use the configured capture mode for the payment method');
+        self::assertEquals($payment->getAmount(), $adyenPaymentDetail->getAmount());
+        self::assertEquals($payment, $adyenPaymentDetail->getPayment());
     }
 }

@@ -15,5 +15,9 @@
         <service id="sylius_adyen.state_machine.guard.order_payment" class="Sylius\AdyenPlugin\StateMachine\Guard\OrderPaymentGuard">
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
+
+        <service id="sylius_adyen.state_machine.guard.order" class="Sylius\AdyenPlugin\StateMachine\Guard\OrderGuard">
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
     </services>
 </container>

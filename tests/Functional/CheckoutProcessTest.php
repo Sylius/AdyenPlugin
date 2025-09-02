@@ -14,11 +14,12 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use Adyen\AdyenException;
+use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
+use Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
-use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 
@@ -30,6 +31,8 @@ final class CheckoutProcessTest extends AdyenTestCase
 
     private ProcessNotificationsAction $processNotificationsAction;
 
+    private CaptureOrderPaymentAction $captureOrderPaymentAction;
+
     protected function initializeServices($container): void
     {
         $this->setupTestCartContext();
@@ -38,6 +41,7 @@ final class CheckoutProcessTest extends AdyenTestCase
         $this->paymentsAction = $this->getPaymentsAction();
         $this->paymentsDetailsAction = $this->getPaymentDetailsAction();
         $this->processNotificationsAction = $this->getProcessNotificationsAction();
+        $this->captureOrderPaymentAction = $this->getCaptureOrderPaymentAction();
 
         $container->set('sylius.email_sender', $this->createMock(SenderInterface::class));
     }
@@ -124,7 +128,7 @@ final class CheckoutProcessTest extends AdyenTestCase
         self::assertEquals('TEST_PSP_REF_123', $payment->getDetails()['pspReference']);
     }
 
-    public function testSuccessfulCheckoutWithCardPaymentUsingManualCaptureModeWithManualPaymentCompletion(): void
+    public function testSuccessfulCheckoutWithCardPaymentUsingManualCaptureModeWithManualPaymentCapturing(): void
     {
         $this->setCaptureMode(PaymentCaptureMode::MANUAL);
 
@@ -159,9 +163,30 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         $this->simulateWebhook($payment, 'authorisation', true);
 
-        $this->stateMachine->apply($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_COMPLETE);
+        // Get the message bus spy to capture dispatched messages
+        $container = self::getContainer();
+        $messageBusSpy = $container->get('sylius_adyen.test.message_bus_spy');
+        $messageBusSpy->clearDispatchedMessages();
 
-        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+        $this->captureOrderPaymentAction->__invoke(
+            (string) $this->testOrder->getId(),
+            (string) $payment->getId(),
+            $this->createRequest(),
+        );
+
+        // Assert that RequestCapture command was dispatched
+        $dispatchedMessages = $messageBusSpy->getDispatchedMessages();
+        $captureCommands = array_filter($dispatchedMessages, function ($message) {
+            return $message instanceof RequestCapture;
+        });
+
+        self::assertCount(1, $captureCommands, 'Expected exactly one RequestCapture command to be dispatched');
+
+        $captureCommand = reset($captureCommands);
+        self::assertInstanceOf(RequestCapture::class, $captureCommand);
+        self::assertSame($payment->getOrder(), $captureCommand->getOrder());
+
+        self::assertEquals(PaymentInterface::STATE_PROCESSING, $payment->getState());
         self::assertArrayHasKey('resultCode', $payment->getDetails());
         self::assertEquals('Authorised', $payment->getDetails()['resultCode']);
         self::assertArrayHasKey('pspReference', $payment->getDetails());

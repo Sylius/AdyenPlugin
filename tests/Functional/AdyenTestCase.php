@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
@@ -260,6 +261,11 @@ abstract class AdyenTestCase extends WebTestCase
     protected function getProcessNotificationsAction(): ProcessNotificationsAction
     {
         return self::getContainer()->get('sylius_adyen.controller.shop.process_notifications');
+    }
+
+    protected function getCaptureOrderPaymentAction(): CaptureOrderPaymentAction
+    {
+        return self::getContainer()->get('sylius_adyen.controller.admin.order_payment.capture');
     }
 
     protected function getGeneratePayLinkAction(): GeneratePayLinkAction

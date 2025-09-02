@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Processor\Order;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\OrderPaymentTransitions;
@@ -29,12 +30,25 @@ final class UpdateOrderPaymentStateProcessor implements OrderPaymentProcessorInt
 
     public function process(?OrderInterface $order): void
     {
-        if (null === $order || $order->getPaymentState() !== OrderPaymentStates::STATE_PAID) {
+        $payment = $order?->getLastPayment();
+        if (
+            null === $order ||
+            null === $payment ||
+            !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)
+        ) {
             return;
         }
 
-        $payment = $order->getLastPayment();
-        if (null === $payment || !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
+        if (
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) &&
+            $order->getPaymentState() !== OrderPaymentStates::STATE_PAID
+        ) {
+            return;
+        }
+
+        if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL) &&
+            !in_array($order->getPaymentState(), [OrderPaymentStates::STATE_PAID, OrderPaymentStates::STATE_AUTHORIZED], true)
+        ) {
             return;
         }
 

@@ -13,13 +13,12 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Functional;
 
-use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
 use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Controller\Admin\ReverseOrderPaymentAction;
-use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\Amount;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
@@ -32,6 +31,7 @@ use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Order\OrderTransitions;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class PaymentReversalTest extends AdyenTestCase
@@ -102,13 +102,13 @@ final class PaymentReversalTest extends AdyenTestCase
 
     public function testReversalNotInitiatedForAdyenPaymentWithManualCapture(): void
     {
-        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_NEW, PaymentCaptureMode::MANUAL, PaymentInterface::STATE_NEW);
+        $this->setupOrderWithAdyenPayment(OrderInterface::STATE_NEW, PaymentCaptureMode::MANUAL, PaymentInterface::STATE_AUTHORIZED);
 
         $this->stateMachine->apply($this->testOrder, OrderTransitions::GRAPH, OrderTransitions::TRANSITION_CANCEL);
         self::assertEquals(OrderInterface::STATE_CANCELLED, $this->testOrder->getState());
 
         $payment = $this->testOrder->getLastPayment();
-        self::assertEquals(PaymentInterface::STATE_CANCELLED, $payment->getState());
+        self::assertEquals(PaymentInterface::STATE_PROCESSING, $payment->getState());
 
         $reversalRequest = $this->adyenClientStub->getLastReversalRequest();
         self::assertNull($reversalRequest);
@@ -123,17 +123,11 @@ final class PaymentReversalTest extends AdyenTestCase
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
 
         $request = new Request();
+
+        $this->expectException(BadRequestHttpException::class);
+        $this->expectExceptionMessage('is not an Adyen payment with automatic capture mode.');
+
         ($this->reverseOrderPaymentAction)((string) $this->testOrder->getId(), (string) $payment->getId(), $request);
-
-        $entityManager = $this->getEntityManager();
-        $entityManager->flush();
-
-        self::assertEquals(OrderInterface::STATE_FULFILLED, $this->testOrder->getState());
-        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
-        self::assertEquals(OrderPaymentStates::STATE_PAID, $this->testOrder->getPaymentState());
-
-        $reversalRequest = $this->adyenClientStub->getLastReversalRequest();
-        self::assertNull($reversalRequest);
     }
 
     public function testPaymentStateChangesToProcessingReversalOnCancelTransitionWithAutomaticCapture(): void
@@ -371,10 +365,18 @@ final class PaymentReversalTest extends AdyenTestCase
         $payment = $this->testOrder->getLastPayment();
         $this->simulateWebhook($payment, 'authorisation');
 
-        $payment->setState($paymentState);
+        // Set payment state based on capture mode
+        if ($captureMode === PaymentCaptureMode::MANUAL) {
+            // For manual capture, payment stays in authorized state after authorization webhook
+            $payment->setState($paymentState);
+            $this->testOrder->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
+        } else {
+            // For automatic capture, payment goes to completed state
+            $payment->setState($paymentState);
+            $this->testOrder->setPaymentState(OrderPaymentStates::STATE_PAID);
+        }
 
         $this->testOrder->setState($orderState);
-        $this->testOrder->setPaymentState(OrderPaymentStates::STATE_PAID);
 
         $this->getEntityManager()->flush();
     }

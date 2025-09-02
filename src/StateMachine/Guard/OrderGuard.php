@@ -15,11 +15,10 @@ namespace Sylius\AdyenPlugin\StateMachine\Guard;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
-use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class OrderPaymentGuard
+final class OrderGuard
 {
     public function __construct(
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
@@ -28,19 +27,14 @@ final class OrderPaymentGuard
 
     public function canBeCancelled(OrderInterface $order): bool
     {
-        $payment = $order->getLastPayment();
-        if (
-            null === $payment ||
-            false === $this->adyenPaymentMethodChecker->isAdyenPayment($payment)
-        ) {
-            return true;
-        }
-
-        if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
-            return $payment->getState() !== PaymentGraph::STATE_PROCESSING_REVERSAL;
-        }
-        if ($payment->getState() === PaymentInterface::STATE_PROCESSING) {
-            return false;
+        foreach ($order->getPayments() as $payment) {
+            if (
+                $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
+                $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL) &&
+                $payment->getState() === PaymentInterface::STATE_PROCESSING
+            ) {
+                return false;
+            }
         }
 
         return true;

@@ -25,9 +25,12 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class AuthorizationStateProcessorTest extends TestCase
 {
-    private MockObject|AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker;
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
+
     private MockObject|StateMachineInterface $stateMachine;
+
     private EntityManagerInterface|MockObject $entityManager;
+
     private AuthorizationStateProcessor $processor;
 
     protected function setUp(): void
