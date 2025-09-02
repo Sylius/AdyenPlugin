@@ -33,6 +33,7 @@ final class Configuration implements ConfigurationInterface
                         ->arrayNode('allowed_types')
                             ->scalarPrototype()->end()
                             ->defaultValue([])
+                            ->performNoDeepMerging()
                         ->end()
                     ->end()
                 ->end()
