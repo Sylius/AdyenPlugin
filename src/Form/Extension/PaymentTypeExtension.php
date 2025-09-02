@@ -42,7 +42,7 @@ final class PaymentTypeExtension extends AbstractTypeExtension
             'mapped' => false,
         ]);
 
-        $paymentMethods = $this->paymentMethodRepository->findAllByChannel($this->channelContext->getChannel());
+        $paymentMethods = $this->paymentMethodRepository->findAllAdyenByChannel($this->channelContext->getChannel());
         foreach ($paymentMethods as $paymentMethod) {
             $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
             $paymentMethods = $this->getPaymentMethods($client);

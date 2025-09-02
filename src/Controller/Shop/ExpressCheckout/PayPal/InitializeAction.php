@@ -45,7 +45,7 @@ final class InitializeAction
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
 
-        $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
+        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
 
         $this->messageBus->dispatch(new PrepareOrderForPayment($order));
