@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Filter;
 
-use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
+use Sylius\AdyenPlugin\Model\PaymentMethod;
 use Sylius\AdyenPlugin\Model\StoredPaymentMethod;
 
 interface StoredPaymentMethodsFilterInterface
 {
     /**
      * @param StoredPaymentMethod[]    $stored
-     * @param AvailablePaymentMethod[] $available
+     * @param PaymentMethod[] $available
      *
      * @return StoredPaymentMethod[]
      */

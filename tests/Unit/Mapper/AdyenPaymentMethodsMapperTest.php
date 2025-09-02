@@ -17,7 +17,7 @@ use Adyen\Model\Checkout\PaymentMethod as AdyenPaymentMethod;
 use Adyen\Model\Checkout\StoredPaymentMethod as AdyenStoredPaymentMethod;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Mapper\AdyenPaymentMethodsMapper;
-use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
+use Sylius\AdyenPlugin\Model\PaymentMethod;
 use Sylius\AdyenPlugin\Model\StoredPaymentMethod;
 
 final class AdyenPaymentMethodsMapperTest extends TestCase
@@ -47,13 +47,13 @@ final class AdyenPaymentMethodsMapperTest extends TestCase
         $result = $this->mapper->mapAvailable([$pm1, $pm2]);
 
         $expected = [
-            new AvailablePaymentMethod(
+            new PaymentMethod(
                 type: 'scheme',
                 name: 'Credit Card',
                 brands: ['visa', 'mc'],
                 configuration: ['supported' => true],
             ),
-            new AvailablePaymentMethod(
+            new PaymentMethod(
                 type: 'ideal',
                 name: 'iDEAL',
                 configuration: null,
@@ -74,7 +74,7 @@ final class AdyenPaymentMethodsMapperTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertEquals(
-            [new AvailablePaymentMethod(type: 'paypal', name: 'PayPal', brands: [], configuration: null, issuers: null)],
+            [new PaymentMethod(type: 'paypal', name: 'PayPal', brands: [], configuration: null, issuers: null)],
             $result,
         );
     }

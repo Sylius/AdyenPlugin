@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Mapper;
 
 use Adyen\Model\Checkout\PaymentMethod as AdyenPaymentMethod;
 use Adyen\Model\Checkout\StoredPaymentMethod as AdyenStoredPaymentMethod;
-use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
+use Sylius\AdyenPlugin\Model\PaymentMethod;
 use Sylius\AdyenPlugin\Model\StoredPaymentMethod;
 
 final class AdyenPaymentMethodsMapper implements PaymentMethodsMapperInterface
@@ -30,7 +30,7 @@ final class AdyenPaymentMethodsMapper implements PaymentMethodsMapperInterface
                 continue;
             }
 
-            $result[] = new AvailablePaymentMethod(
+            $result[] = new PaymentMethod(
                 type: $type,
                 name: $method->getName(),
                 brands: $method->getBrands() ?? [],
@@ -42,11 +42,11 @@ final class AdyenPaymentMethodsMapper implements PaymentMethodsMapperInterface
         return $result;
     }
 
-    public function mapStored(array $adyenStored): array
+    public function mapStored(array $adyenStoredPaymentMethods): array
     {
         $result = [];
         /** @var AdyenStoredPaymentMethod $method */
-        foreach ($adyenStored as $method) {
+        foreach ($adyenStoredPaymentMethods as $method) {
             $id = $method->getId();
             $type = $method->getType();
             if ($id === null || $type === null) {

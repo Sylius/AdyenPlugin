@@ -13,14 +13,14 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Filter;
 
-use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
+use Sylius\AdyenPlugin\Model\PaymentMethod;
 use Sylius\AdyenPlugin\Model\StoredPaymentMethod;
 
 final class StoredPaymentMethodsFilter implements StoredPaymentMethodsFilterInterface
 {
     public function filterAgainstAvailable(array $stored, array $available): array
     {
-        $availableTypes = array_flip(array_map(fn (AvailablePaymentMethod $method) => $method->type, $available));
+        $availableTypes = array_flip(array_map(fn (PaymentMethod $method) => $method->type, $available));
 
         return array_values(array_filter(
             $stored,

@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Mapper;
 
-use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
+use Sylius\AdyenPlugin\Model\PaymentMethod;
 use Sylius\AdyenPlugin\Model\StoredPaymentMethod;
 
 interface PaymentMethodsMapperInterface
@@ -21,14 +21,14 @@ interface PaymentMethodsMapperInterface
     /**
      * @param array<int,object> $adyenPaymentMethods
      *
-     * @return AvailablePaymentMethod[]
+     * @return list<PaymentMethod>
      */
     public function mapAvailable(array $adyenPaymentMethods): array;
 
     /**
-     * @param array<int,object> $adyenStored
+     * @param array<int,object> $adyenStoredPaymentMethods
      *
-     * @return StoredPaymentMethod[]
+     * @return list<StoredPaymentMethod>
      */
-    public function mapStored(array $adyenStored): array;
+    public function mapStored(array $adyenStoredPaymentMethods): array;
 }
