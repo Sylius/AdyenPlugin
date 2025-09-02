@@ -130,7 +130,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('isCaptureMode')
             ->with($completedPayment, PaymentCaptureMode::AUTOMATIC)
-            ->willReturn(false); // Manual capture
+            ->willReturn(false);
 
         $this->commandBus
             ->expects($this->never())

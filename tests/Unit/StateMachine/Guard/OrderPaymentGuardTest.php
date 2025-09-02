@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Unit\StateMachine\Guard;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\StateMachine\Guard\OrderPaymentGuard;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -46,6 +47,11 @@ final class OrderPaymentGuardTest extends TestCase
             ->with($payment)
             ->willReturn(true);
 
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(false);
+
         self::assertTrue($this->guard->canBeCancelled($order));
     }
 
@@ -60,6 +66,11 @@ final class OrderPaymentGuardTest extends TestCase
         $this->adyenPaymentMethodChecker->expects($this->once())
             ->method('isAdyenPayment')
             ->with($payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
             ->willReturn(true);
 
         self::assertFalse($this->guard->canBeCancelled($order));

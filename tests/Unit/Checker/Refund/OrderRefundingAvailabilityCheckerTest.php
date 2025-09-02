@@ -91,17 +91,40 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
                 ->method('isAdyenPayment')
                 ->with($payment)
                 ->willReturn($isAdyenPayment);
+
+            $this->adyenPaymentMethodChecker
+                ->expects($this->never())
+                ->method('isCaptureMode');
+        } else {
+            $this->adyenPaymentMethodChecker
+                ->expects($this->never())
+                ->method('isAdyenPayment');
+            $this->adyenPaymentMethodChecker
+                ->expects($this->never())
+                ->method('isCaptureMode');
         }
 
-        $this->decoratedChecker
-            ->expects($this->once())
-            ->method('__invoke')
-            ->with($orderNumber)
-            ->willReturn(true);
+        if ($hasPayment && !$isAdyenPayment) {
+            // Only delegate when we have a payment that is not Adyen
+            $this->decoratedChecker
+                ->expects($this->once())
+                ->method('__invoke')
+                ->with($orderNumber)
+                ->willReturn(true);
+        } else {
+            // No delegation for no payment or Adyen payment
+            $this->decoratedChecker
+                ->expects($this->never())
+                ->method('__invoke');
+        }
 
         $result = ($this->checker)($orderNumber);
 
-        self::assertTrue($result);
+        if ($hasPayment && !$isAdyenPayment) {
+            self::assertTrue($result);
+        } else {
+            self::assertFalse($result);
+        }
     }
 
     public static function delegationScenariosProvider(): \Generator
@@ -142,6 +165,7 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
             ->with($payment)
             ->willReturn(true);
 
+        // Only checks automatic capture mode since it returns true
         $this->adyenPaymentMethodChecker
             ->expects($this->once())
             ->method('isCaptureMode')
@@ -185,11 +209,29 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
             ->with($payment)
             ->willReturn(true);
 
+        // First check for automatic capture mode (will return false), then manual (will return true)
+        $captureModeCallCount = 0;
         $this->adyenPaymentMethodChecker
-            ->expects($this->once())
+            ->expects($this->exactly(2))
             ->method('isCaptureMode')
-            ->with($payment, PaymentCaptureMode::AUTOMATIC)
-            ->willReturn(false); // Manual capture mode
+            ->willReturnCallback(function ($p, $mode) use ($payment, &$captureModeCallCount) {
+                self::assertSame($payment, $p);
+                ++$captureModeCallCount;
+                if ($captureModeCallCount === 1) {
+                    self::assertSame(PaymentCaptureMode::AUTOMATIC, $mode);
+
+                    return false; // Not automatic
+                }
+                self::assertSame(PaymentCaptureMode::MANUAL, $mode);
+
+                return true; // It's manual capture
+            });
+
+        // Payment state should be checked for manual capture payment
+        $payment
+            ->expects($this->once())
+            ->method('getState')
+            ->willReturn(PaymentInterface::STATE_COMPLETED);
 
         $this->decoratedChecker
             ->expects($this->once())
@@ -215,5 +257,191 @@ final class OrderRefundingAvailabilityCheckerTest extends TestCase
         yield 'Adyen payment in refunded state' => [
             'paymentState' => PaymentInterface::STATE_REFUNDED,
         ];
+    }
+
+    public function testDelegatesToDecoratedCheckerForAutomaticCaptureInAllowedState(): void
+    {
+        $orderNumber = 'ORDER-123';
+        $order = $this->createMock(OrderInterface::class);
+        $payment = $this->createMock(PaymentInterface::class);
+
+        $this->orderRepository
+            ->expects($this->once())
+            ->method('findOneByNumber')
+            ->with($orderNumber)
+            ->willReturn($order);
+
+        $order
+            ->expects($this->once())
+            ->method('getLastPayment')
+            ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        // First check automatic capture (returns true), then check state
+        $this->adyenPaymentMethodChecker
+            ->expects($this->exactly(2))
+            ->method('isCaptureMode')
+            ->willReturnCallback(function ($p, $mode) {
+                static $callCount = 0;
+                ++$callCount;
+                if ($callCount === 1) {
+                    self::assertSame(PaymentCaptureMode::AUTOMATIC, $mode);
+
+                    return true; // It's automatic
+                }
+                self::assertSame(PaymentCaptureMode::MANUAL, $mode);
+
+                return false; // Not manual
+            });
+
+        // Use AUTHORIZED state which is not in the blocked list for automatic capture
+        $payment
+            ->expects($this->once())
+            ->method('getState')
+            ->willReturn(PaymentInterface::STATE_AUTHORIZED);
+
+        $this->decoratedChecker
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($orderNumber)
+            ->willReturn(true);
+
+        $result = ($this->checker)($orderNumber);
+
+        self::assertTrue($result);
+    }
+
+    #[DataProvider('manualCaptureNonRefundableStatesProvider')]
+    public function testReturnsFalseForManualCaptureInNonRefundableStates(string $paymentState): void
+    {
+        $orderNumber = 'ORDER-123';
+        $order = $this->createMock(OrderInterface::class);
+        $payment = $this->createMock(PaymentInterface::class);
+
+        $this->orderRepository
+            ->expects($this->once())
+            ->method('findOneByNumber')
+            ->with($orderNumber)
+            ->willReturn($order);
+
+        $order
+            ->expects($this->once())
+            ->method('getLastPayment')
+            ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        // First check automatic (returns false), then manual (returns true)
+        $captureModeCallCount = 0;
+        $this->adyenPaymentMethodChecker
+            ->expects($this->exactly(2))
+            ->method('isCaptureMode')
+            ->willReturnCallback(function ($p, $mode) use ($payment, &$captureModeCallCount) {
+                self::assertSame($payment, $p);
+                ++$captureModeCallCount;
+                if ($captureModeCallCount === 1) {
+                    self::assertSame(PaymentCaptureMode::AUTOMATIC, $mode);
+
+                    return false; // Not automatic
+                }
+                self::assertSame(PaymentCaptureMode::MANUAL, $mode);
+
+                return true; // It's manual
+            });
+
+        $payment
+            ->expects($this->once())
+            ->method('getState')
+            ->willReturn($paymentState);
+
+        $this->decoratedChecker
+            ->expects($this->never())
+            ->method('__invoke');
+
+        $result = ($this->checker)($orderNumber);
+
+        self::assertFalse($result);
+    }
+
+    public static function manualCaptureNonRefundableStatesProvider(): \Generator
+    {
+        yield 'manual capture in new state' => [PaymentInterface::STATE_NEW];
+        yield 'manual capture in processing state' => [PaymentInterface::STATE_PROCESSING];
+        yield 'manual capture in failed state' => [PaymentInterface::STATE_FAILED];
+        yield 'manual capture in cancelled state' => [PaymentInterface::STATE_CANCELLED];
+        yield 'manual capture in authorized state' => [PaymentInterface::STATE_AUTHORIZED];
+    }
+
+    #[DataProvider('manualCaptureRefundableStatesProvider')]
+    public function testDelegatesToDecoratedCheckerForManualCaptureInRefundableStates(string $paymentState): void
+    {
+        $orderNumber = 'ORDER-123';
+        $order = $this->createMock(OrderInterface::class);
+        $payment = $this->createMock(PaymentInterface::class);
+
+        $this->orderRepository
+            ->expects($this->once())
+            ->method('findOneByNumber')
+            ->with($orderNumber)
+            ->willReturn($order);
+
+        $order
+            ->expects($this->once())
+            ->method('getLastPayment')
+            ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        // First check automatic (returns false), then manual (returns true)
+        $captureModeCallCount = 0;
+        $this->adyenPaymentMethodChecker
+            ->expects($this->exactly(2))
+            ->method('isCaptureMode')
+            ->willReturnCallback(function ($p, $mode) use ($payment, &$captureModeCallCount) {
+                self::assertSame($payment, $p);
+                ++$captureModeCallCount;
+                if ($captureModeCallCount === 1) {
+                    self::assertSame(PaymentCaptureMode::AUTOMATIC, $mode);
+
+                    return false; // Not automatic
+                }
+                self::assertSame(PaymentCaptureMode::MANUAL, $mode);
+
+                return true; // It's manual
+            });
+
+        $payment
+            ->expects($this->once())
+            ->method('getState')
+            ->willReturn($paymentState);
+
+        $this->decoratedChecker
+            ->expects($this->once())
+            ->method('__invoke')
+            ->with($orderNumber)
+            ->willReturn(true);
+
+        $result = ($this->checker)($orderNumber);
+
+        self::assertTrue($result);
+    }
+
+    public static function manualCaptureRefundableStatesProvider(): \Generator
+    {
+        yield 'manual capture in completed state' => [PaymentInterface::STATE_COMPLETED];
+        yield 'manual capture in refunded state' => [PaymentInterface::STATE_REFUNDED];
     }
 }

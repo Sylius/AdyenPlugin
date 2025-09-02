@@ -39,6 +39,10 @@ final class OrderRefundsListAvailabilityChecker implements OrderRefundingAvailab
         }
 
         $payment = $order->getLastPayment();
+        if (null !== $payment && !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
+            return $this->decoratedChecker->__invoke($orderNumber);
+        }
+
         if (
             null === $payment ||
             $this->automaticPaymentCannotBeRefunded($payment) ||
@@ -53,7 +57,6 @@ final class OrderRefundsListAvailabilityChecker implements OrderRefundingAvailab
     private function manualPaymentCannotBeRefunded(PaymentInterface $payment): bool
     {
         return
-            $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
             $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL) &&
             !in_array($payment->getState(), [
                 PaymentInterface::STATE_COMPLETED,
@@ -65,7 +68,6 @@ final class OrderRefundsListAvailabilityChecker implements OrderRefundingAvailab
     private function automaticPaymentCannotBeRefunded(PaymentInterface $payment): bool
     {
         return
-            $this->adyenPaymentMethodChecker->isAdyenPayment($payment) &&
             $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) &&
             in_array($payment->getState(), [
                 PaymentGraph::STATE_PROCESSING_REVERSAL,

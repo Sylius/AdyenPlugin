@@ -17,13 +17,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Processor\Order\UpdateOrderPaymentStateProcessor;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Core\OrderPaymentTransitions;
 
-final class CancelOrderPaymentProcessorTest extends TestCase
+final class UpdateOrderPaymentProcessorTest extends TestCase
 {
     private UpdateOrderPaymentStateProcessor $processor;
 
@@ -56,15 +57,30 @@ final class CancelOrderPaymentProcessorTest extends TestCase
 
     public function testDoesNothingWhenOrderPaymentStateIsNotPaid(): void
     {
+        $payment = $this->createMock(PaymentInterface::class);
         $order = $this->createMock(OrderInterface::class);
+
+        $order
+            ->expects($this->once())
+            ->method('getLastPayment')
+            ->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(true);
+
         $order
             ->expects($this->once())
             ->method('getPaymentState')
             ->willReturn(OrderPaymentStates::STATE_AWAITING_PAYMENT);
-
-        $order
-            ->expects($this->never())
-            ->method('getLastPayment');
 
         $this->stateMachine
             ->expects($this->never())
@@ -80,15 +96,19 @@ final class CancelOrderPaymentProcessorTest extends TestCase
     public function testDoesNothingWhenPaymentIsNull(): void
     {
         $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
 
         $order
             ->expects($this->once())
             ->method('getLastPayment')
             ->willReturn(null);
+
+        $order
+            ->expects($this->never())
+            ->method('getPaymentState');
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->never())
+            ->method('isAdyenPayment');
 
         $this->stateMachine
             ->expects($this->never())
@@ -106,10 +126,6 @@ final class CancelOrderPaymentProcessorTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
 
         $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
 
         $order
             ->expects($this->once())
@@ -121,6 +137,14 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->method('isAdyenPayment')
             ->with($payment)
             ->willReturn(false);
+
+        $order
+            ->expects($this->never())
+            ->method('getPaymentState');
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->never())
+            ->method('isCaptureMode');
 
         $this->stateMachine
             ->expects($this->never())
@@ -138,10 +162,6 @@ final class CancelOrderPaymentProcessorTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
 
         $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
 
         $order
             ->expects($this->once())
@@ -153,6 +173,29 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->method('isAdyenPayment')
             ->with($payment)
             ->willReturn(true);
+
+        // Mock both capture mode checks - automatic returns false, manual returns true
+        $captureModeCallCount = 0;
+        $this->adyenPaymentMethodChecker
+            ->expects($this->exactly(2))
+            ->method('isCaptureMode')
+            ->willReturnCallback(function ($p, $mode) use ($payment, &$captureModeCallCount) {
+                self::assertSame($payment, $p);
+                ++$captureModeCallCount;
+                if ($captureModeCallCount === 1) {
+                    self::assertSame(PaymentCaptureMode::AUTOMATIC, $mode);
+
+                    return false; // Not automatic
+                }
+                self::assertSame(PaymentCaptureMode::MANUAL, $mode);
+
+                return true; // It's manual
+            });
+
+        $order
+            ->expects($this->once())
+            ->method('getPaymentState')
+            ->willReturn(OrderPaymentStates::STATE_PAID);
 
         $this->stateMachine
             ->expects($this->once())
@@ -173,10 +216,6 @@ final class CancelOrderPaymentProcessorTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
 
         $order = $this->createMock(OrderInterface::class);
-        $order
-            ->expects($this->once())
-            ->method('getPaymentState')
-            ->willReturn(OrderPaymentStates::STATE_PAID);
 
         $order
             ->expects($this->once())
@@ -188,6 +227,29 @@ final class CancelOrderPaymentProcessorTest extends TestCase
             ->method('isAdyenPayment')
             ->with($payment)
             ->willReturn(true);
+
+        // Mock both capture mode checks - automatic returns false, manual returns true
+        $captureModeCallCount = 0;
+        $this->adyenPaymentMethodChecker
+            ->expects($this->exactly(2))
+            ->method('isCaptureMode')
+            ->willReturnCallback(function ($p, $mode) use ($payment, &$captureModeCallCount) {
+                self::assertSame($payment, $p);
+                ++$captureModeCallCount;
+                if ($captureModeCallCount === 1) {
+                    self::assertSame(PaymentCaptureMode::AUTOMATIC, $mode);
+
+                    return false; // Not automatic
+                }
+                self::assertSame(PaymentCaptureMode::MANUAL, $mode);
+
+                return true; // It's manual
+            });
+
+        $order
+            ->expects($this->once())
+            ->method('getPaymentState')
+            ->willReturn(OrderPaymentStates::STATE_PAID);
 
         $matcher = $this->exactly(2);
         $this->stateMachine

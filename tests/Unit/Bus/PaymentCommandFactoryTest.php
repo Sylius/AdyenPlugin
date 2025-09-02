@@ -116,7 +116,6 @@ final class PaymentCommandFactoryTest extends TestCase
         self::assertSame($payment, $command->payment);
         self::assertSame($notificationData, $command->notificationData);
 
-        // Verify notification data is preserved with all properties
         self::assertEquals('TEST-PSP-REF-123', $command->notificationData->pspReference);
         self::assertEquals('MERCHANT-REF-456', $command->notificationData->merchantReference);
         self::assertEquals($event, $command->notificationData->eventCode);

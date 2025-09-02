@@ -163,7 +163,6 @@ final class CheckoutProcessTest extends AdyenTestCase
 
         $this->simulateWebhook($payment, 'authorisation', true);
 
-        // Get the message bus spy to capture dispatched messages
         $container = self::getContainer();
         $messageBusSpy = $container->get('sylius_adyen.test.message_bus_spy');
         $messageBusSpy->clearDispatchedMessages();
@@ -174,7 +173,6 @@ final class CheckoutProcessTest extends AdyenTestCase
             $this->createRequest(),
         );
 
-        // Assert that RequestCapture command was dispatched
         $dispatchedMessages = $messageBusSpy->getDispatchedMessages();
         $captureCommands = array_filter($dispatchedMessages, function ($message) {
             return $message instanceof RequestCapture;

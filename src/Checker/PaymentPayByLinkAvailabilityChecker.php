@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Checker;
 
-use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -30,10 +29,7 @@ final class PaymentPayByLinkAvailabilityChecker implements PaymentPayByLinkAvail
 
     public function canBeGenerated(PaymentInterface $payment): bool
     {
-        if ($this->adyenPaymentMethodChecker->isAdyenPayment($payment) === false) {
-            return false;
-        }
-        if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
+        if (!$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
             return false;
         }
 

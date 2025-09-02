@@ -1,11 +1,6 @@
 winzou_state_machine:
     sylius_order:
         callbacks:
-#            before:
-#                cancel_authorized_payment:
-#                    on: ["cancel"]
-#                    do: [ "@sylius_adyen.callback.request_cancel", "__invoke" ]
-#                    args: [ "object" ]
             after:
                 # Overrides the default sylius_cancel_payment for special handling of Adyen payments
                 sylius_cancel_payment:
