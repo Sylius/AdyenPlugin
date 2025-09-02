@@ -39,7 +39,7 @@ final class CheckoutResolver implements CheckoutResolverInterface
             $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
         }
 
-        $paymentMethod = $this->paymentMethodRepository->findOneByChannel($order->getChannel());
+        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
         $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);

@@ -33,7 +33,7 @@ trait PaymentMethodRepositoryTrait
         ;
     }
 
-    public function findOneByChannel(ChannelInterface $channel): ?PaymentMethodInterface
+    public function findOneAdyenByChannel(ChannelInterface $channel): ?PaymentMethodInterface
     {
         return $this
             ->getQueryForChannel($channel)
@@ -43,7 +43,7 @@ trait PaymentMethodRepositoryTrait
         ;
     }
 
-    public function findAllByChannel(ChannelInterface $channel): array
+    public function findAllAdyenByChannel(ChannelInterface $channel): array
     {
         return $this
             ->getQueryForChannel($channel)

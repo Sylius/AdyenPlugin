@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider;
+use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -25,11 +26,12 @@ final class ProductConfigurationAction extends AbstractConfigurationAction
     public function __construct(
         iterable $configurationProviders,
         CartContextInterface $cartContext,
+        PaymentMethodRepositoryInterface $paymentMethodRepository,
         PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
         CountryProviderInterface $countryProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
-        parent::__construct($configurationProviders, $cartContext, $paymentMethodsForOrderProvider, $countryProvider);
+        parent::__construct($configurationProviders, $cartContext, $paymentMethodRepository, $paymentMethodsForOrderProvider, $countryProvider);
     }
 
     protected function configureShipping(array $configuration, OrderInterface $order, Request $request): array

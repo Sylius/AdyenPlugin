@@ -41,7 +41,7 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
 
     public function getDefaultClient(): AdyenClientInterface
     {
-        $paymentMethod = $this->paymentMethodRepository->findOneByChannel(
+        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel(
             $this->channelContext->getChannel(),
         );
 
