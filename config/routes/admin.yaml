@@ -21,3 +21,8 @@ sylius_adyen_admin_order_payment_reverse:
     path: /order/{id}/payments/{paymentId}/reverse
     methods: [GET]
     controller: sylius_adyen.controller.admin.order_payment.reverse
+
+sylius_adyen_admin_order_payment_capture:
+    path: /order/{id}/payments/{paymentId}/capture
+    methods: [PUT]
+    controller: sylius_adyen.controller.admin.order_payment.capture

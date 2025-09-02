@@ -11,11 +11,11 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin;
+namespace Sylius\AdyenPlugin\Checker;
 
-final class PaymentCaptureMode
+use Sylius\Component\Core\Model\PaymentInterface;
+
+interface PaymentPayByLinkAvailabilityCheckerInterface
 {
-    public const MANUAL = 'manual';
-
-    public const AUTOMATIC = 'automatic';
+    public function canBeGenerated(PaymentInterface $payment): bool;
 }

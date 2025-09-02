@@ -22,6 +22,10 @@ interface AdyenPaymentDetailInterface extends ResourceInterface
 
     public function setAmount(int $amount): void;
 
+    public function getCaptureMode(): string;
+
+    public function setCaptureMode(string $captureMode): void;
+
     public function getPayment(): ?PaymentInterface;
 
     public function setPayment(PaymentInterface $payment): void;

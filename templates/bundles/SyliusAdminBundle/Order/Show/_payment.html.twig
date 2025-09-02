@@ -14,7 +14,7 @@
             {{ money.format(payment.amount, payment.order.currencyCode) }}
         </div>
     </div>
-    {% if sylius_sm_can(payment, constant('Sylius\\AdyenPlugin\\PaymentGraph::GRAPH'), constant('Sylius\\AdyenPlugin\\PaymentGraph::TRANSITION_COMPLETE')) %}
+    {% if not sylius_adyen_is_adyen_payment(payment) and sylius_sm_can(payment, constant('Sylius\\AdyenPlugin\\PaymentGraph::GRAPH'), constant('Sylius\\AdyenPlugin\\PaymentGraph::TRANSITION_COMPLETE')) %}
         <div class="ui segment">
             <form action="{{ path('sylius_admin_order_payment_complete', {'orderId': order.id, 'id': payment.id}) }}" method="post" novalidate>
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token(payment.id) }}" />
@@ -23,8 +23,16 @@
             </form>
         </div>
     {% endif %}
-    {% set allowed_generate_states = [constant('Sylius\\Component\\Payment\\Model\\PaymentInterface::STATE_NEW'), constant('Sylius\\Component\\Payment\\Model\\PaymentInterface::STATE_PROCESSING')] %}
-    {%- if sylius_adyen_is_adyen_payment(payment) and payment.state in allowed_generate_states -%}
+    {%- if sylius_adyen_can_be_captured(payment) -%}
+        <div class="ui segment">
+            <form action="{{ path('sylius_adyen_admin_order_payment_capture', {'id': order.id, 'paymentId': payment.id}) }}" method="post" novalidate>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token(payment.id) }}" />
+                <input type="hidden" name="_method" value="PUT">
+                <button type="submit" class="ui icon labeled tiny blue fluid loadable button"><i class="check icon"></i> {{ 'sylius.ui.complete'|trans }}</button>
+            </form>
+        </div>
+    {%- endif -%}
+    {%- if sylius_adyen_can_generate_payment_link(payment) -%}
         {% set should_be_resent = payment.state != constant('Sylius\\Component\\Payment\\Model\\PaymentInterface::STATE_NEW') %}
         <div class="ui segment">
             <a

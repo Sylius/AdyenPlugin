@@ -13,6 +13,12 @@
 
         <field name="amount" column="amount" type="integer" />
 
+        <field name="captureMode" column="capture_mode" type="string" length="64">
+            <options>
+                <option name="default">automatic</option>
+            </options>
+        </field>
+
         <field name="createdAt" column="created_at" type="datetime">
             <gedmo:timestampable on="create"/>
         </field>

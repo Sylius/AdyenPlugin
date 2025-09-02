@@ -13,12 +13,21 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Checker;
 
+use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
+use Webmozart\Assert\Assert;
 
 final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterface
 {
+    /** @param RepositoryInterface<AdyenPaymentDetailInterface> $adyenPaymentDetailRepository */
+    public function __construct(
+        private RepositoryInterface $adyenPaymentDetailRepository,
+    ) {
+    }
+
     public function isAdyenPayment(PaymentInterface $payment): bool
     {
         /** @var PaymentMethodInterface|null $method */
@@ -42,16 +51,17 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
         return $factoryName === AdyenClientProviderInterface::FACTORY_NAME;
     }
 
-    public function isCaptureMode(PaymentInterface|PaymentMethodInterface $payment, string $mode): bool
+    public function isCaptureMode(PaymentInterface $payment, string $mode): bool
     {
-        if ($payment instanceof PaymentInterface) {
-            $payment = $payment->getMethod();
-            if (null === $payment) {
-                throw new \InvalidArgumentException('The payment has no payment method assigned.');
-            }
+        $paymentDetail = $this->adyenPaymentDetailRepository->findOneBy(['payment' => $payment]);
+        if (null !== $paymentDetail) {
+            return $mode === $paymentDetail->getCaptureMode();
         }
 
-        $gatewayConfig = $payment->getGatewayConfig();
+        $paymentMethod = $payment->getMethod();
+        Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
+
+        $gatewayConfig = $paymentMethod->getGatewayConfig();
 
         return $mode === ($gatewayConfig?->getConfig()['captureMode'] ?? null);
     }

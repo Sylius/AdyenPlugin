@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Factory;
 
 use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
@@ -28,6 +29,10 @@ final class AdyenPaymentDetailFactory implements AdyenPaymentDetailFactoryInterf
         $result = $this->createNew();
         $result->setPayment($payment);
         $result->setAmount($payment->getAmount());
+        $result->setCaptureMode(
+            $payment->getMethod()?->getGatewayConfig()?->getConfig()['captureMode'] ??
+            PaymentCaptureMode::AUTOMATIC,
+        );
 
         return $result;
     }

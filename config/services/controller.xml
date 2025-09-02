@@ -148,5 +148,16 @@
             <argument type="service" id="request_stack" />
             <argument type="service" id="router" />
         </service>
+
+        <service
+            id="sylius_adyen.controller.admin.order_payment.capture"
+            class="Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction"
+        >
+            <argument type="service" id="sylius.repository.payment" />
+            <argument type="service" id="sylius_adyen.processor.manual_capture" />
+            <argument type="service" id="router" />
+            <argument type="service" id="request_stack" />
+            <argument type="service" id="monolog.logger.adyen" />
+        </service>
     </services>
 </container>
