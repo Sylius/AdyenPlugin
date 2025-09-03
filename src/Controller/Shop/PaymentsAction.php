@@ -17,13 +17,14 @@ use Adyen\AdyenException;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
-use Sylius\AdyenPlugin\Bus\Query\GetToken;
 use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
+use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +32,7 @@ use Symfony\Component\Messenger\HandleTrait;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
-class PaymentsAction
+final class PaymentsAction
 {
     use HandleTrait;
     use PayableOrderPaymentTrait;
@@ -44,6 +45,8 @@ class PaymentsAction
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
         private readonly PaymentReferencesClearerInterface $paymentReferencesClearer,
+        private readonly ShopperReferenceResolverInterface $shopperReferenceResolver,
+        private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
         MessageBusInterface $messageBus,
     ) {
         $this->messageBus = $messageBus;
@@ -54,7 +57,7 @@ class PaymentsAction
         $order = $this->paymentCheckoutOrderResolver->resolve();
         $this->messageBus->dispatch(new PrepareOrderForPayment($order));
 
-        if (null !== $code) {
+        if ($code !== null) {
             $this->messageBus->dispatch(new TakeOverPayment($order, $code));
         }
 
@@ -62,10 +65,13 @@ class PaymentsAction
         /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $payment->getMethod();
         $url = $this->prepareTargetUrl($paymentMethod, $request);
-        /**
-         * @var AdyenTokenInterface $customerIdentifier
-         */
-        $customerIdentifier = $this->handle(new GetToken($paymentMethod, $order));
+
+        /** @var CustomerInterface|null $customer */
+        $customer = $this->currentShopUserProvider->getShopUser()?->getCustomer();
+
+        $shopperReference = $customer !== null
+            ? $this->shopperReferenceResolver->resolve($paymentMethod, $customer)
+            : null;
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
 
@@ -76,23 +82,19 @@ class PaymentsAction
                 $url,
                 $request->request->all(),
                 $order,
-                $customerIdentifier,
+                $shopperReference,
             );
 
             $payment->setDetails($result);
             $this->messageBus->dispatch(new PaymentStatusReceived($payment));
 
-            return new JsonResponse(
-                $payment->getDetails()
-                +
-                [
+            return new JsonResponse($payment->getDetails() + [
                     'redirect' => $this->paymentResponseProcessor->process(
                         (string) $paymentMethod->getCode(),
                         $request,
                         $payment,
                     ),
-                ],
-            );
+                ]);
         } catch (AdyenException $exception) {
             return new JsonResponse([
                 'error' => true,
