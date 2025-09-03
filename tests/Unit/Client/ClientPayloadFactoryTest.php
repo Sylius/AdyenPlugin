@@ -113,7 +113,6 @@ final class ClientPayloadFactoryTest extends TestCase
         self::assertSame($expected, $payload);
     }
 
-
     public function testItAddsEsdForCardPaymentsInSubmitPayment(): void
     {
         $options = new ArrayObject([

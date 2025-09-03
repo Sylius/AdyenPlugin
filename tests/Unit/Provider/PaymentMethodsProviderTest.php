@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Sylius Adyen Plugin package.
+ *
+ * (c) Sylius Sp. z o.o.
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Provider;
@@ -23,10 +32,15 @@ use Sylius\Component\Core\Model\PaymentMethodInterface;
 final class PaymentMethodsProviderTest extends TestCase
 {
     private AdyenClientProviderInterface $adyenClientProvider;
+
     private PaymentMethodRepositoryInterface $paymentMethodRepository;
+
     private PaymentMethodsFilterInterface $paymentMethodsFilter;
+
     private StoredPaymentMethodsFilterInterface $storedPaymentMethodsFilter;
+
     private PaymentMethodsMapperInterface $paymentMethodsMapper;
+
     private ShopperReferenceResolverInterface $shopperReferenceResolver;
 
     private PaymentMethodsProvider $paymentMethodsProvider;
@@ -210,8 +224,7 @@ final class PaymentMethodsProviderTest extends TestCase
         array $rawStored,
         array $mappedStored,
         array $filteredStoredAgainst,
-    ): void
-    {
+    ): void {
         $this->paymentMethodsMapper
             ->expects(self::once())
             ->method('mapAvailable')
