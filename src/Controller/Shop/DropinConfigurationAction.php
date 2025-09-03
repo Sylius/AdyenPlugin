@@ -76,7 +76,7 @@ class DropinConfigurationAction
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],
-            'canBeStored' => $config['canBeStored'],
+            'enableStoreDetails' => $config['enableStoreDetails'],
             'amount' => [
                 'currency' => $order->getCurrencyCode(),
                 'value' => $order->getTotal(),
