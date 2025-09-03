@@ -8,6 +8,11 @@
     <services>
         <defaults public="true"/>
 
+        <service id="sylius_adyen.provider.current_shop_user" class="Sylius\AdyenPlugin\Provider\CurrentShopUserProvider">
+            <argument type="service" id="security.token_storage" />
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface" alias="sylius_adyen.provider.current_shop_user" />
+
         <service
             id="sylius_adyen.provider.esd_type"
             class="Sylius\AdyenPlugin\Provider\EsdTypeProvider"
