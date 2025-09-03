@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Exception;
 
-class PaypalNoShippingMethodsAvailableException extends \InvalidArgumentException
+class NoShippingMethodsAvailableException extends \InvalidArgumentException
 {
     public function __construct(string $message = 'No shipping methods available for the order.')
     {

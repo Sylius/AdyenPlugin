@@ -43,7 +43,17 @@ export class GooglePayHandler {
             const data = await response.json();
 
             if (data.error) {
-                throw new Error(data.message);
+                if (data.reason) {
+                    paymentDataRequestUpdate.error = {
+                        reason: data.reason,
+                        message: data.message,
+                        intent: data.intent,
+                    };
+
+                    return paymentDataRequestUpdate;
+                } else {
+                    throw new Error(data.message);
+                }
             }
 
             if (shippingOptionData) {
@@ -59,7 +69,7 @@ export class GooglePayHandler {
 
     handleAuthorized = async (paymentData, actions) => {
         try {
-            const { email, shippingAddress, shippingOptionData } = paymentData.authorizedEvent;
+            const { email, shippingAddress } = paymentData.authorizedEvent;
 
             const response = await fetch(
                 createUrlWithToken(this.configuration.googlePay.path.checkout, this.orderToken),

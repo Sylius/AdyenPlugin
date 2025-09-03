@@ -17,7 +17,7 @@ use Adyen\Model\Checkout\Amount;
 use Adyen\Model\Checkout\DeliveryMethod;
 use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Adyen\Model\Checkout\TaxTotal;
-use Sylius\AdyenPlugin\Exception\PaypalNoShippingMethodsAvailableException;
+use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
 use Sylius\Component\Shipping\Calculator\CalculatorInterface;
@@ -56,7 +56,7 @@ final class PaypalUpdateOrderRequestFactory implements PaypalUpdateOrderRequestF
             $shippingMethods = $this->shippingMethodsResolver->getSupportedMethods($shipment);
 
             if (0 === count($shippingMethods)) {
-                throw new PaypalNoShippingMethodsAvailableException();
+                throw new NoShippingMethodsAvailableException();
             }
 
             $deliveryMethods = [];
