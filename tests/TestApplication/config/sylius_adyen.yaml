@@ -1,0 +1,34 @@
+sylius_adyen:
+    payment_methods:
+        allowed_types:
+            - 'ach'               # ACH Direct Debit
+            - 'alipay'            # Alipay
+            - 'alipay_hk'         # Alipay HK
+            - 'alma'              # Alma
+            - 'scheme'            # Cards (Visa, Mastercard, AmEx, Maestro, Diners, Discover, UnionPay, Cartes Bancaires)
+            - 'bcmc'              # Bancontact (own component / via card)
+            - 'bcmc_mobile'       # Bancontact mobile
+            - 'blik'              # BLIK
+            - 'googlepay'         # Google Pay
+            - 'ideal'             # iDEAL
+            - 'klarna'            # Klarna - Pay later
+            - 'klarna_account'    # Klarna - Pay over time
+            - 'klarna_paynow'     # Klarna - Pay now
+            - 'paypal'            # PayPal
+            - 'onlineBanking_PL'  # Polish online banking (P24)
+            - 'twint'             # Twint
+            - 'wechatpayWeb'      # WeChat Pay (web)
+
+            # TODO: Need to fix
+            # - 'directEbanking'      # Klarna - Sofort
+            # - 'applepay'            # Apple Pay
+            # - 'bizum'               # Bizum
+            # - 'dotpay'              # Dotpay
+            # - 'benefit'             # Benefit
+            # - 'knet'                # KNET
+            # - 'naps'                # NAPS
+            # - 'omannet'             # OmanNet
+            # - 'directdebit_GB'      # UK Direct Debit
+            # - 'ratepay_directdebit' # RatePay Direct Debit
+            # - 'wechatpaySDK'        # WeChat Pay (SDK)
+            # - 'wechatpayQR'         # WeChat Pay (QR)
