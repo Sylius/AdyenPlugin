@@ -15,7 +15,6 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
-use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
 use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
 use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\AdyenPlugin\Entity\PaymentLink;
@@ -30,15 +29,12 @@ use Symfony\Component\Mime\Email;
 
 final class PaymentLinkProcessTest extends AdyenTestCase
 {
-    private ProcessNotificationsAction $processNotificationsAction;
-
     private GeneratePayLinkAction $generatePayLinkAction;
 
     private RepositoryInterface $adyenPaymentDetailRepository;
 
     protected function initializeServices($container): void
     {
-        $this->processNotificationsAction = $this->getProcessNotificationsAction();
         $this->generatePayLinkAction = $this->getGeneratePayLinkAction();
         $this->adyenPaymentDetailRepository = $container->get('sylius_adyen.repository.adyen_payment_detail');
     }
@@ -240,17 +236,15 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         $adyenReferences = $this->adyenReferenceRepository->findBy(['payment' => $payment]);
         self::assertCount(0, $adyenReferences);
 
-        $webhookData = $this->createWebhookData(
+        $response = $this->simulateWebhookViaHttpWithResponse(
+            $payment,
             'AUTHORISATION',
-            'AUTH_PSP_REF_789',
-            $this->testOrder->getNumber(),
-            [],
             true,
+            [],
+            'AUTH_PSP_REF_789',
+            null,
             $paymentLinkId,
         );
-
-        $request = $this->createWebhookRequest($webhookData);
-        $response = ($this->processNotificationsAction)(self::PAYMENT_METHOD_CODE, $request);
 
         self::assertEquals('[accepted]', $response->getContent());
 
@@ -310,17 +304,15 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         $adyenReferences = $this->adyenReferenceRepository->findBy(['payment' => $payment]);
         self::assertCount(0, $adyenReferences);
 
-        $webhookData = $this->createWebhookData(
+        $response = $this->simulateWebhookViaHttpWithResponse(
+            $payment,
             'AUTHORISATION',
-            'AUTH_PSP_REF_789',
-            $this->testOrder->getNumber(),
-            [],
             true,
+            [],
+            'AUTH_PSP_REF_789',
+            null,
             $paymentLinkId,
         );
-
-        $request = $this->createWebhookRequest($webhookData);
-        $response = ($this->processNotificationsAction)(self::PAYMENT_METHOD_CODE, $request);
 
         self::assertEquals('[accepted]', $response->getContent());
 

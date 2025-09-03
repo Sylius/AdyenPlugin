@@ -21,9 +21,12 @@ use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
+use Sylius\AdyenPlugin\Resolver\Notification\Struct\Amount;
+use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
@@ -209,7 +212,7 @@ abstract class AdyenTestCase extends WebTestCase
         bool $success = true,
         ?string $paymentLinkId = null,
     ): array {
-        $webhookData = [
+        return [
             'live' => 'false',
             'notificationItems' => [[
                 'NotificationRequestItem' => [
@@ -232,8 +235,6 @@ abstract class AdyenTestCase extends WebTestCase
                 ],
             ]],
         ];
-
-        return $webhookData;
     }
 
     protected function setCaptureMode(string $captureMode): void
@@ -277,5 +278,174 @@ abstract class AdyenTestCase extends WebTestCase
     {
         $testCartContext = self::getContainer()->get('sylius_adyen.test.cart_context');
         $testCartContext->setOrder($this->testOrder);
+    }
+
+    /**
+     * Simulates a webhook using the HTTP endpoint approach (via ProcessNotificationsAction).
+     * This is the most common approach used in checkout and capture tests.
+     */
+    protected function simulateWebhookViaHttp(
+        PaymentInterface $payment,
+        string $eventCode,
+        bool $success = true,
+        array $additionalData = [],
+        ?string $pspReference = null,
+        ?string $merchantReference = null,
+        ?string $paymentLinkId = null,
+    ): void {
+        $webhookData = $this->createWebhookData(
+            $eventCode,
+            $pspReference ?? $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF',
+            $merchantReference ?? $payment->getOrder()?->getNumber() ?? 'TEST_ORDER',
+            $additionalData,
+            $success,
+            $paymentLinkId,
+        );
+
+        $request = $this->createWebhookRequest($webhookData);
+        ($this->getProcessNotificationsAction())(self::PAYMENT_METHOD_CODE, $request);
+    }
+
+    /**
+     * Simulates a webhook via HTTP and returns the response.
+     * Useful when you need to check the response content.
+     */
+    protected function simulateWebhookViaHttpWithResponse(
+        PaymentInterface $payment,
+        string $eventCode,
+        bool $success = true,
+        array $additionalData = [],
+        ?string $pspReference = null,
+        ?string $merchantReference = null,
+        ?string $paymentLinkId = null,
+    ) {
+        $webhookData = $this->createWebhookData(
+            $eventCode,
+            $pspReference ?? $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF',
+            $merchantReference ?? $payment->getOrder()?->getNumber() ?? 'TEST_ORDER',
+            $additionalData,
+            $success,
+            $paymentLinkId,
+        );
+
+        $request = $this->createWebhookRequest($webhookData);
+
+        return ($this->getProcessNotificationsAction())(self::PAYMENT_METHOD_CODE, $request);
+    }
+
+    /**
+     * Simulates a webhook using the direct command dispatch approach.
+     * This approach is used in payment reversal tests for more complex scenarios.
+     */
+    protected function simulateWebhookViaCommand(
+        PaymentInterface $payment,
+        string $eventCode,
+        bool $success = true,
+        ?string $pspReference = null,
+        ?string $originalReference = null,
+    ): void {
+        $paymentCommandFactory = self::getContainer()->get('sylius_adyen.bus.payment_command_factory');
+        $messageBus = self::getContainer()->get('sylius.command_bus');
+
+        $notificationData = new NotificationItemData();
+        $notificationData->eventCode = $eventCode;
+        $notificationData->success = $success;
+        $notificationData->merchantReference = $payment->getOrder()?->getNumber() ?? 'TEST_ORDER';
+        $notificationData->paymentMethod = 'scheme';
+
+        if ($eventCode === 'refund') {
+            $notificationData->pspReference = $pspReference ?? 'REFUND_PSP_REF_456';
+            $notificationData->originalReference = $originalReference ?? $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF';
+
+            $amountData = new Amount();
+            $amountData->value = $payment->getAmount();
+            $amountData->currency = $payment->getCurrencyCode();
+            $notificationData->amount = $amountData;
+        } else {
+            $notificationData->pspReference = $pspReference ?? $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF';
+        }
+
+        $command = $paymentCommandFactory->createForEvent(
+            $eventCode,
+            $payment,
+            $notificationData,
+        );
+
+        $messageBus->dispatch($command);
+    }
+
+    /**
+     * Convenience method that automatically chooses the appropriate webhook simulation method.
+     * Uses HTTP approach by default, but uses command approach for refund events.
+     */
+    protected function simulateWebhook(
+        PaymentInterface $payment,
+        string $eventCode,
+        bool $success = true,
+        array $additionalData = [],
+        ?string $pspReference = null,
+        ?string $merchantReference = null,
+        ?string $paymentLinkId = null,
+    ): void {
+        // For refund events, use the command approach for better handling of complex refund logic
+        if ($eventCode === 'refund') {
+            $this->simulateWebhookViaCommand($payment, $eventCode, $success, $pspReference);
+        } else {
+            $this->simulateWebhookViaHttp($payment, $eventCode, $success, $additionalData, $pspReference, $merchantReference, $paymentLinkId);
+        }
+    }
+
+    protected function setupOrderWithAdyenPayment(
+        string $captureMode = PaymentCaptureMode::AUTOMATIC,
+        ?array $paymentMethodData = null,
+        string $expectedResultCode = 'Authorised',
+        string $expectedPspReference = 'TEST_PSP_REF_123',
+        ?string $merchantReference = null,
+    ): void {
+        $paymentMethodData ??= [
+            'type' => 'scheme',
+            'encryptedCardNumber' => 'test_encrypted_number',
+            'encryptedExpiryMonth' => 'test_encrypted_month',
+            'encryptedExpiryYear' => 'test_encrypted_year',
+            'encryptedSecurityCode' => 'test_encrypted_cvv',
+        ];
+
+        $merchantReference ??= $this->testOrder->getNumber();
+
+        // Update the payment method's capture mode for this test
+        $gatewayConfig = self::$sharedPaymentMethod->getGatewayConfig();
+        $config = $gatewayConfig->getConfig();
+        $config['captureMode'] = $captureMode;
+        $gatewayConfig->setConfig($config);
+
+        $this->getEntityManager()->flush();
+
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => $expectedResultCode,
+            'pspReference' => $expectedPspReference,
+            'merchantReference' => $merchantReference,
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => $paymentMethodData,
+        ]);
+
+        $response = ($this->getPaymentsAction())($request);
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseData = json_decode((string) $response->getContent(), true);
+        self::assertArrayHasKey('resultCode', $responseData);
+        self::assertEquals($expectedResultCode, $responseData['resultCode']);
+        self::assertArrayHasKey('pspReference', $responseData);
+        self::assertEquals($expectedPspReference, $responseData['pspReference']);
+        self::assertArrayHasKey('redirect', $responseData);
+
+        $payment = $this->testOrder->getLastPayment();
+        $this->simulateWebhook($payment, 'authorisation');
+
+        $this->testOrder->setCheckoutState(OrderCheckoutStates::STATE_COMPLETED);
+        $this->testOrder->setState(OrderInterface::STATE_NEW);
+
+        $this->getEntityManager()->flush();
     }
 }
