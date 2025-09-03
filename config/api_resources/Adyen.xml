@@ -15,7 +15,7 @@
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="https://api-platform.com/schema/metadata https://api-platform.com/schema/metadata/metadata-2.0.xsd"
 >
-    <resource class="%sylius_adyen.model.adyen_token.class%" shortName="Adyen">
+    <resource class="%sylius_adyen.model.shopper_reference.class%" shortName="Adyen">
         <attribute name="validation_groups">sylius</attribute>
 
         <collectionOperations>
@@ -205,7 +205,7 @@
                                             <attribute name="environment">
                                                 <attribute name="type">string</attribute>
                                             </attribute>
-                                            <attribute name="canBeStored">
+                                            <attribute name="enableStoreDetails">
                                                 <attribute name="type">boolean</attribute>
                                             </attribute>
                                             <attribute name="amount">
