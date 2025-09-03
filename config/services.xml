@@ -44,7 +44,6 @@
             class="Sylius\AdyenPlugin\Provider\PaymentMethodsProvider"
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
-            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
             <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius_adyen.resolver.shopper_reference"/>
             <argument type="service" id="sylius_adyen.filter.configured_payment_methods"/>

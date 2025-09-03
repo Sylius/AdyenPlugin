@@ -13,17 +13,10 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
-use Sylius\AdyenPlugin\Model\AvailablePaymentMethod;
-use Sylius\AdyenPlugin\Model\StoredPaymentMethod;
+use Sylius\AdyenPlugin\Model\PaymentMethodData;
 use Sylius\Component\Core\Model\OrderInterface;
 
 interface PaymentMethodsProviderInterface
 {
-    /**
-     * @return array{
-     *   paymentMethods: AvailablePaymentMethod[],
-     *   storedPaymentMethods: StoredPaymentMethod[]
-     * }
-     */
-    public function provideForOrder(string $paymentMethodCode, OrderInterface $order): array;
+    public function provideForOrder(string $paymentMethodCode, OrderInterface $order): PaymentMethodData;
 }

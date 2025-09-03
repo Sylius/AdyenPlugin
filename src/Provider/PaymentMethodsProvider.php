@@ -14,12 +14,12 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Provider;
 
 use Sylius\AdyenPlugin\Bus\Query\GetToken;
-use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
 use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
+use Sylius\AdyenPlugin\Model\PaymentMethodData;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -35,7 +35,6 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
-        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
         private readonly StoredPaymentMethodsFilterInterface $storedPaymentMethodsFilter,
@@ -45,15 +44,11 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $this->messageBus = $messageBus;
     }
 
-    public function provideForOrder(string $paymentMethodCode, OrderInterface $order): array
+    public function provideForOrder(string $paymentMethodCode, OrderInterface $order): PaymentMethodData
     {
         $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($paymentMethodCode);
         if ($paymentMethod === null) {
             throw new AdyenNotFoundException(sprintf('Payment method "%s" not found.', $paymentMethodCode));
-        }
-
-        if (!$this->adyenPaymentMethodChecker->isAdyenPaymentMethod($paymentMethod)) {
-            return ['paymentMethods' => [], 'storedPaymentMethods' => []];
         }
 
         $token = $this->getToken($paymentMethod, $order);
@@ -65,10 +60,10 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $available = $this->paymentMethodsFilter->filter($available);
         $stored = $this->paymentMethodsMapper->mapStored($response->getStoredPaymentMethods());
 
-        return [
-            'paymentMethods' => $available,
-            'storedPaymentMethods' => $this->storedPaymentMethodsFilter->filterAgainstAvailable($stored, $available),
-        ];
+        return new PaymentMethodData(
+            paymentMethods: $available,
+            storedPaymentMethods: $this->storedPaymentMethodsFilter->filterAgainstAvailable($stored, $available),
+        );
     }
 
     private function getToken(PaymentMethodInterface $paymentMethod, OrderInterface $order): ?AdyenTokenInterface

@@ -47,7 +47,7 @@ final class PaymentTypeExtension extends AbstractTypeExtension
 
             $adyen->add((string) $paymentMethod->getCode(), PaymentMethodChoiceType::class, [
                 'environment' => $paymentMethod->getGatewayConfig()->getConfig()['environment'],
-                'payment_methods' => $paymentMethodsData['paymentMethods'],
+                'payment_methods' => $paymentMethodsData->paymentMethods,
             ]);
         }
 
