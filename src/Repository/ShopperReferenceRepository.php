@@ -13,15 +13,22 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Repository;
 
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
+use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
-use Sylius\Component\Resource\Repository\RepositoryInterface;
 
-interface AdyenTokenRepositoryInterface extends RepositoryInterface
+final class ShopperReferenceRepository extends EntityRepository implements ShopperReferenceRepositoryInterface
 {
     public function findOneByPaymentMethodAndCustomer(
         PaymentMethodInterface $paymentMethod,
         CustomerInterface $customer,
-    ): ?AdyenTokenInterface;
+    ): ?ShopperReferenceInterface {
+        $result = $this->findOneBy([
+            'paymentMethod' => $paymentMethod,
+            'customer' => $customer,
+        ]);
+
+        return $result instanceof ShopperReferenceInterface ? $result : null;
+    }
 }

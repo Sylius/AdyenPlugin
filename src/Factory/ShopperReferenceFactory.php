@@ -13,18 +13,18 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Factory;
 
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
-final class AdyenTokenFactory implements AdyenTokenFactoryInterface
+final class ShopperReferenceFactory implements ShopperReferenceFactoryInterface
 {
     public function __construct(private readonly FactoryInterface $baseFactory)
     {
     }
 
-    public function create(PaymentMethodInterface $paymentMethod, CustomerInterface $customer): AdyenTokenInterface
+    public function create(PaymentMethodInterface $paymentMethod, CustomerInterface $customer): ShopperReferenceInterface
     {
         $result = $this->createNew();
         $result->setIdentifier(
@@ -36,10 +36,10 @@ final class AdyenTokenFactory implements AdyenTokenFactoryInterface
         return $result;
     }
 
-    public function createNew(): AdyenTokenInterface
+    public function createNew(): ShopperReferenceInterface
     {
         /**
-         * @var AdyenTokenInterface $result
+         * @var ShopperReferenceInterface $result
          */
         $result = $this->baseFactory->createNew();
 

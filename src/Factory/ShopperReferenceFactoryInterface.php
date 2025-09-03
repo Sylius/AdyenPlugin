@@ -13,12 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Factory;
 
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Resource\Factory\FactoryInterface;
 
-interface AdyenTokenFactoryInterface extends FactoryInterface
+interface ShopperReferenceFactoryInterface extends FactoryInterface
 {
-    public function create(PaymentMethodInterface $paymentMethod, CustomerInterface $customer): AdyenTokenInterface;
+    public function create(PaymentMethodInterface $paymentMethod, CustomerInterface $customer): ShopperReferenceInterface;
 }

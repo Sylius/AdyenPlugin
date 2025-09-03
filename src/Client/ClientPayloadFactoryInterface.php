@@ -18,7 +18,7 @@ use Adyen\Model\Checkout\PaymentReversalRequest;
 use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
@@ -30,17 +30,17 @@ interface ClientPayloadFactoryInterface
     public function createForAvailablePaymentMethods(
         ArrayObject $options,
         OrderInterface $order,
-        ?AdyenTokenInterface $adyenToken = null,
+        ?ShopperReferenceInterface $shopperReference = null,
     ): array;
 
-    public function createForPaymentDetails(array $receivedPayload, ?AdyenTokenInterface $adyenToken = null): array;
+    public function createForPaymentDetails(array $receivedPayload, ?ShopperReferenceInterface $shopperReference = null): array;
 
     public function createForSubmitPayment(
         ArrayObject $options,
         string $url,
         array $receivedPayload,
         OrderInterface $order,
-        ?AdyenTokenInterface $adyenToken = null,
+        ?ShopperReferenceInterface $shopperReference = null,
     ): array;
 
     public function createForCapture(ArrayObject $options, PaymentInterface $payment): array;
@@ -50,7 +50,7 @@ interface ClientPayloadFactoryInterface
     public function createForTokenRemove(
         ArrayObject $options,
         string $paymentReference,
-        AdyenTokenInterface $adyenToken,
+        ShopperReferenceInterface $shopperReference,
     ): array;
 
     public function createForRefund(

@@ -6,9 +6,9 @@
         <defaults public="true"/>
 
         <service
-            id="sylius_adyen.custom_factory.adyen_token"
-            class="Sylius\AdyenPlugin\Factory\AdyenTokenFactory"
-            decorates="sylius_adyen.factory.adyen_token"
+            id="sylius_adyen.custom_factory.shopper_reference"
+            class="Sylius\AdyenPlugin\Factory\ShopperReferenceFactory"
+            decorates="sylius_adyen.factory.shopper_reference"
         >
             <argument type="service" id=".inner"/>
         </service>

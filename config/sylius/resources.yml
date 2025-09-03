@@ -1,9 +1,9 @@
 sylius_resource:
     resources:
-        sylius_adyen.adyen_token:
+        sylius_adyen.shopper_reference:
             classes:
-                model: Sylius\AdyenPlugin\Entity\AdyenToken
-                repository: Sylius\AdyenPlugin\Repository\AdyenTokenRepository
+                model: Sylius\AdyenPlugin\Entity\ShopperReference
+                repository: Sylius\AdyenPlugin\Repository\ShopperReferenceRepository
 
         sylius_adyen.adyen_reference:
             classes:
