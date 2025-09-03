@@ -6,6 +6,15 @@
         <defaults public="true"/>
 
         <service
+                id="sylius_adyen.resolver.shopper_reference"
+                class="Sylius\AdyenPlugin\Resolver\ShopperReferenceResolver"
+        >
+            <argument type="service" id="sylius_adyen.repository.shopper_reference"/>
+            <argument type="service" id="sylius_adyen.factory.shopper_reference"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface" alias="sylius_adyen.resolver.shopper_reference"/>
+
+        <service
                 class="Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolver"
                 id="sylius_adyen.resolver.order.payment_checkout_order"
         >
