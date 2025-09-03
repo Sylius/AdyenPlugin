@@ -204,47 +204,6 @@ abstract class AdyenTestCase extends WebTestCase
         return $request;
     }
 
-    protected function createWebhookData(
-        string $eventCode,
-        string $pspReference,
-        string $merchantReference,
-        array $additionalData = [],
-        bool $success = true,
-        ?string $paymentLinkId = null,
-    ): array {
-        $notificationItem = [
-            'eventCode' => strtoupper($eventCode),
-            'success' => $success ? 'true' : 'false',
-            'eventDate' => '2024-01-01T00:00:00+00:00',
-            'merchantAccountCode' => 'test_merchant',
-            'pspReference' => $pspReference,
-            'merchantReference' => $merchantReference,
-            'amount' => [
-                'value' => 10000,
-                'currency' => 'USD',
-            ],
-            'paymentMethod' => 'scheme',
-            'additionalData' => array_merge(
-                ['hmacSignature' => self::TEST_HMAC_SIGNATURE],
-                $paymentLinkId ? ['paymentLinkId' => $paymentLinkId] : [],
-                $additionalData,
-            ),
-        ];
-
-        // Add originalReference if provided in additionalData
-        if (isset($additionalData['originalReference'])) {
-            $notificationItem['originalReference'] = $additionalData['originalReference'];
-            unset($notificationItem['additionalData']['originalReference']); // Remove from additionalData
-        }
-
-        return [
-            'live' => 'false',
-            'notificationItems' => [[
-                'NotificationRequestItem' => $notificationItem,
-            ]],
-        ];
-    }
-
     protected function setCaptureMode(string $captureMode): void
     {
         $config = self::$sharedPaymentMethod->getGatewayConfig()->getConfig();
@@ -296,6 +255,7 @@ abstract class AdyenTestCase extends WebTestCase
         ?string $pspReference = null,
         ?string $merchantReference = null,
         ?string $paymentLinkId = null,
+        ?string $originalReference = null,
     ): Response {
         $webhookData = $this->createWebhookData(
             $eventCode,
@@ -304,11 +264,53 @@ abstract class AdyenTestCase extends WebTestCase
             $additionalData,
             $success,
             $paymentLinkId,
+            $originalReference,
         );
 
         $request = $this->createWebhookRequest($webhookData);
 
         return ($this->getProcessNotificationsAction())(self::PAYMENT_METHOD_CODE, $request);
+    }
+
+    protected function createWebhookData(
+        string $eventCode,
+        string $pspReference,
+        string $merchantReference,
+        array $additionalData = [],
+        bool $success = true,
+        ?string $paymentLinkId = null,
+        ?string $originalReference = null,
+    ): array {
+        $notificationItem = [
+            'eventCode' => strtoupper($eventCode),
+            'success' => $success ? 'true' : 'false',
+            'eventDate' => '2024-01-01T00:00:00+00:00',
+            'merchantAccountCode' => 'test_merchant',
+            'pspReference' => $pspReference,
+            'merchantReference' => $merchantReference,
+            'amount' => [
+                'value' => 10000,
+                'currency' => 'USD',
+            ],
+            'paymentMethod' => 'scheme',
+            'additionalData' => array_merge(
+                ['hmacSignature' => self::TEST_HMAC_SIGNATURE],
+                $paymentLinkId ? ['paymentLinkId' => $paymentLinkId] : [],
+                $additionalData,
+            ),
+        ];
+
+        // Add originalReference if provided as parameter
+        if ($originalReference !== null) {
+            $notificationItem['originalReference'] = $originalReference;
+        }
+
+        return [
+            'live' => 'false',
+            'notificationItems' => [[
+                'NotificationRequestItem' => $notificationItem,
+            ]],
+        ];
     }
 
     protected function setupOrderWithAdyenPayment(

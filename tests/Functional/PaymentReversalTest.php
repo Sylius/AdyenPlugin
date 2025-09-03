@@ -211,10 +211,16 @@ final class PaymentReversalTest extends AdyenTestCase
         self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
 
         $originalPspRef = $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF_123';
-        $this->simulateWebhook($payment, EventCodeResolverInterface::EVENT_CANCEL_OR_REFUND, true, [
-            'modification.action' => EventCodeResolverInterface::MODIFICATION_REFUND,
-            'originalReference' => $originalPspRef
-        ], 'REFUND_PSP_REF_456');
+        $this->simulateWebhook(
+            $payment,
+            EventCodeResolverInterface::EVENT_CANCEL_OR_REFUND,
+            true,
+            ['modification.action' => EventCodeResolverInterface::MODIFICATION_REFUND],
+            'REFUND_PSP_REF_456',
+            null,
+            null,
+            $originalPspRef,
+        );
         $entityManager->flush();
 
         self::assertEquals(OrderInterface::STATE_NEW, $this->testOrder->getState());
@@ -329,10 +335,16 @@ final class PaymentReversalTest extends AdyenTestCase
         self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
 
         $originalPspRef = $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF_123';
-        $this->simulateWebhook($payment, EventCodeResolverInterface::EVENT_CANCEL_OR_REFUND, true, [
-            'modification.action' => EventCodeResolverInterface::MODIFICATION_REFUND,
-            'originalReference' => $originalPspRef
-        ], 'REFUND_PSP_REF_456');
+        $this->simulateWebhook(
+            $payment,
+            EventCodeResolverInterface::EVENT_CANCEL_OR_REFUND,
+            true,
+            ['modification.action' => EventCodeResolverInterface::MODIFICATION_REFUND],
+            'REFUND_PSP_REF_456',
+            null,
+            null,
+            $originalPspRef,
+        );
         $entityManager->flush();
 
         self::assertEquals(OrderInterface::STATE_FULFILLED, $this->testOrder->getState());
