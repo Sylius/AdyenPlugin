@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
 use Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
+use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Mailer\Sender\SenderInterface;
@@ -94,7 +95,7 @@ final class ManualCaptureTest extends AdyenTestCase
         self::assertCount(1, $captureCommands, 'Expected exactly one RequestCapture command to be dispatched');
         self::assertEquals(PaymentInterface::STATE_PROCESSING, $payment->getState());
 
-        $this->simulateWebhook($payment, 'capture', true);
+        $this->simulateWebhook($payment, EventCodeResolverInterface::EVENT_CAPTURE, true);
 
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
         self::assertEquals(OrderPaymentStates::STATE_PAID, $order->getPaymentState());

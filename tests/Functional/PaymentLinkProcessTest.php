@@ -236,7 +236,7 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         $adyenReferences = $this->adyenReferenceRepository->findBy(['payment' => $payment]);
         self::assertCount(0, $adyenReferences);
 
-        $response = $this->simulateWebhookViaHttpWithResponse(
+        $response = $this->simulateWebhook(
             $payment,
             'AUTHORISATION',
             true,
@@ -304,7 +304,7 @@ final class PaymentLinkProcessTest extends AdyenTestCase
         $adyenReferences = $this->adyenReferenceRepository->findBy(['payment' => $payment]);
         self::assertCount(0, $adyenReferences);
 
-        $response = $this->simulateWebhookViaHttpWithResponse(
+        $response = $this->simulateWebhook(
             $payment,
             'AUTHORISATION',
             true,

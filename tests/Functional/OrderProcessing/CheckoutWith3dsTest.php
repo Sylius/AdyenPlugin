@@ -16,6 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
+use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use Tests\Sylius\AdyenPlugin\Functional\AdyenTestCase;
@@ -170,7 +171,7 @@ final class CheckoutWith3dsTest extends AdyenTestCase
         self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
         self::assertEquals('RedirectShopper', $payment->getDetails()['resultCode']);
 
-        $this->simulateWebhook($payment, 'authorisation', true);
+        $this->simulateWebhook($payment, EventCodeResolverInterface::EVENT_AUTHORIZATION, true);
 
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
     }
