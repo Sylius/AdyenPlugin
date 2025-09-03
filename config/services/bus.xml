@@ -99,17 +99,6 @@
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Bus\Handler\GetTokenHandler"
-            id="sylius_adyen.bus.handler.get_token"
-        >
-            <argument type="service" id="sylius_adyen.repository.adyen_token"/>
-            <argument type="service" id="security.token_storage"/>
-            <argument type="service" id="sylius.command_bus" />
-
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
-        </service>
-
-        <service
             class="Sylius\AdyenPlugin\Bus\Handler\CreateReferenceForPaymentHandler"
             id="sylius_adyen.bus.handler.create_reference_for_payment"
         >
