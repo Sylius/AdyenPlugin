@@ -63,7 +63,7 @@ final class AdyenClient implements AdyenClientInterface
     ): PaymentMethodsResponse {
         return $this->getPaymentsApi()->paymentMethods(
             new PaymentMethodsRequest(
-                $this->clientPayloadFactory->createForAvailablePaymentMethods($this->options, $order, $adyenToken),
+                $this->clientPayloadFactory->createForAvailablePaymentMethods($this->options, $order, $shopperReference),
             ),
         );
     }

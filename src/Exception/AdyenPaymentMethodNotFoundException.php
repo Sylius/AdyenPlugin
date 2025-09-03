@@ -13,10 +13,10 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Exception;
 
-class AdyenNotFoundException extends \InvalidArgumentException
+class AdyenPaymentMethodNotFoundException extends \RuntimeException
 {
-    public function __construct(string $message = 'Adyen not found')
+    public function __construct(string $paymentMethodCode)
     {
-        parent::__construct($message);
+        parent::__construct(sprintf('Adyen payment method with code "%s" has not been found.', $paymentMethodCode));
     }
 }

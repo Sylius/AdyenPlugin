@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
-use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
+use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
@@ -45,7 +45,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($paymentMethodCode);
 
         if ($paymentMethod === null) {
-            throw new AdyenNotFoundException(sprintf('Payment method "%s" not found.', $paymentMethodCode));
+            throw new AdyenPaymentMethodNotFoundException($paymentMethodCode);
         }
 
         /** @var CustomerInterface $customer */
