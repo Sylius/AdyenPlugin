@@ -28,7 +28,7 @@ use Webmozart\Assert\Assert;
 
 final class ShippingOptionsAction
 {
-    const SHIPPING_OPTION_UNSELECTED = 'shipping_option_unselected';
+    public const SHIPPING_OPTION_UNSELECTED = 'shipping_option_unselected';
 
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
