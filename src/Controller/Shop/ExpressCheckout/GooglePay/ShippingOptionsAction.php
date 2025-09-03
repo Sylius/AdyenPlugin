@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay;
 
 use Doctrine\Persistence\ObjectManager;
+use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifierInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProviderInterface;
@@ -27,6 +28,8 @@ use Webmozart\Assert\Assert;
 
 final class ShippingOptionsAction
 {
+    const SHIPPING_OPTION_UNSELECTED = 'shipping_option_unselected';
+
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly ObjectManager $orderManager,
@@ -59,7 +62,7 @@ final class ShippingOptionsAction
             $this->orderAddressModifier->modifyTemporaryAddress($order, $newAddress);
             $this->orderProcessor->process($order);
 
-            if ($order->isShippingRequired() && $shippingOptionId !== 'shipping_option_unselected') {
+            if ($order->isShippingRequired() && $shippingOptionId !== self::SHIPPING_OPTION_UNSELECTED) {
                 $shipment = $order->getShipments()->first();
                 $shippingMethod = $this->shippingMethodsRepository->findOneBy(['code' => $shippingOptionId]);
                 Assert::notNull($shippingMethod);
@@ -74,6 +77,13 @@ final class ShippingOptionsAction
                 'shippingOptionParameters' => $this->shippingOptionParametersProvider->provide($order),
                 'transactionInfo' => $this->transactionInfoProvider->provide($order),
             ]);
+        } catch (NoShippingMethodsAvailableException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'reason' => 'SHIPPING_ADDRESS_UNSERVICEABLE',
+                'message' => $exception->getMessage(),
+                'intent' => 'SHIPPING_ADDRESS',
+            ], 400);
         } catch (\Exception $exception) {
             return new JsonResponse([
                 'error' => true,

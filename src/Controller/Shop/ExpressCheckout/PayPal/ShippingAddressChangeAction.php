@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 
 use Doctrine\Persistence\ObjectManager;
 use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
-use Sylius\AdyenPlugin\Exception\PaypalNoShippingMethodsAvailableException;
+use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifierInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
@@ -71,7 +71,7 @@ final class ShippingAddressChangeAction
             );
 
             return new JsonResponse($paypalUpdateOrderResponse->toArray());
-        } catch (PaypalNoShippingMethodsAvailableException) {
+        } catch (NoShippingMethodsAvailableException) {
             return new JsonResponse([
                 'error' => true,
                 'code' => 'NO_SHIPPING_OPTION',

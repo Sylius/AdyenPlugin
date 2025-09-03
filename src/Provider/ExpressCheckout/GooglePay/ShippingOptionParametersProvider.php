@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay;
 
+use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
 use Sylius\Bundle\MoneyBundle\Formatter\MoneyFormatterInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
@@ -36,6 +37,10 @@ final class ShippingOptionParametersProvider implements ShippingOptionParameters
 
         $shipment = $order->getShipments()->first();
         $shippingMethods = $this->shippingMethodsResolver->getSupportedMethods($shipment);
+
+        if (0 === count($shippingMethods)) {
+            throw new NoShippingMethodsAvailableException();
+        }
 
         $shippingOptions = [];
 
