@@ -140,16 +140,6 @@
         </service>
 
         <service
-            class="Sylius\AdyenPlugin\Bus\Handler\CreateTokenHandler"
-            id="sylius_adyen.bus.handler.create_token"
-        >
-            <argument type="service" id="sylius_adyen.custom_factory.adyen_token"/>
-            <argument type="service" id="sylius_adyen.repository.adyen_token"/>
-
-            <tag name="messenger.message_handler" bus="sylius.command_bus" />
-        </service>
-
-        <service
             class="Sylius\AdyenPlugin\Bus\Handler\ReversePaymentHandler"
             id="sylius_adyen.bus.handler.reverse_payment"
         >
