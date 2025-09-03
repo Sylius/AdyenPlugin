@@ -34,7 +34,7 @@
             <argument type="service" id="router"/>
             <argument type="service" id="sylius.repository.order"/>
             <argument type="service" id="translator"/>
-            <argument type="service" id="sylius_adyen.repository.adyen_token"/>
+            <argument type="service" id="sylius_adyen.repository.shopper_reference"/>
 
             <tag name="controller.service_arguments"/>
         </service>
@@ -45,10 +45,10 @@
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
             <argument type="service" id="sylius.repository.payment_method"/>
-            <argument type="service" id="sylius_adyen.resolver.shopper_reference"/>
             <argument type="service" id="sylius_adyen.filter.configured_payment_methods"/>
             <argument type="service" id="sylius_adyen.filter.stored_payment_methods"/>
             <argument type="service" id="sylius_adyen.mapper.payment_methods"/>
+            <argument type="service" id="sylius_adyen.resolver.shopper_reference"/>
         </service>
         <service id="Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface" alias="sylius_adyen.provider.payment_methods" />
 
