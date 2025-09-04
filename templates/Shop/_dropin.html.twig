@@ -1,11 +1,7 @@
-{% set path_parameters = {code: order.payments.last.method.code} %}
+{% set path_parameters = {code: adyen_method_code} %}
 
 {% if order.tokenValue is not empty %}
     {% set path_parameters = path_parameters|merge({orderToken: order.tokenValue}) %}
 {% endif %}
 
-<div
-    class="dropin-container"
-    data-config-url="{{ path('sylius_adyen_shop_config', path_parameters) }}"
-></div>
-
+<div class="dropin-container" data-config-url="{{ path('sylius_adyen_shop_config', path_parameters) }}"></div>

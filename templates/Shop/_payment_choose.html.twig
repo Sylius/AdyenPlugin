@@ -18,7 +18,7 @@
         {% endif %}
 
         {% if payment_configuration is not defined and order.tokenValue is not empty %}
-            {% include '@SyliusAdyenPlugin/Shop/_dropin.html.twig' %}
+            {% include '@SyliusAdyenPlugin/Shop/_dropin.html.twig' with { 'adyen_method_code': method.code } %}
         {% else %}
             <div class="adyen-method-grid">
             {% for method in available_methods.vars.payment_methods -%}
