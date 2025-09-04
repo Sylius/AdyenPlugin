@@ -66,7 +66,7 @@ interface ClientPayloadFactoryInterface
 
     public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest;
 
-    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array;
+    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, bool $manualCapture = false, string $returnUrl = ''): array;
 
     public function createPaypalUpdateOrderRequest(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderRequest;
 }
