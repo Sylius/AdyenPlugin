@@ -2,7 +2,6 @@ imports:
     - { resource: "@SyliusRefundPlugin/Resources/config/app/config.yml" }
     - { resource: "@SyliusAdyenPlugin/config/config.yaml" }
     - { resource: "services_test.php" }
-    - { resource: "sylius_adyen.yaml" }
 
 parameters:
     sylius_adyen_api_platform_mapping_path: '%kernel.project_dir%/../../../config/api_resources/'
