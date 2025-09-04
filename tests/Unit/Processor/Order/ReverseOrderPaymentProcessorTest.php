@@ -18,6 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\ReversePayment;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\Processor\Order\ReverseOrderPaymentProcessor;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -64,7 +65,7 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
         $this->processor->process(null);
     }
 
-    public function testDispatchesReversePaymentCommandForCompletedAdyenPayment(): void
+    public function testDispatchesReversePaymentCommandForCompletedAdyenPaymentWithAutomaticCapture(): void
     {
         $completedPayment = $this->createMock(PaymentInterface::class);
         $order = $this->createMock(OrderInterface::class);
@@ -80,6 +81,12 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
             ->with($completedPayment)
             ->willReturn(true);
 
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($completedPayment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(true);
+
         $this->commandBus
             ->expects($this->once())
             ->method('dispatch')
@@ -93,6 +100,52 @@ final class ReverseOrderPaymentProcessorTest extends TestCase
         $this->stateMachine
             ->expects($this->never())
             ->method('apply');
+
+        $this->processor->process($order);
+    }
+
+    public function testDoesNotDispatchReversePaymentForCompletedAdyenPaymentWithManualCapture(): void
+    {
+        $completedPayment = $this->createMock(PaymentInterface::class);
+        $lastPayment = $this->createMock(PaymentInterface::class);
+        $order = $this->createMock(OrderInterface::class);
+        $order
+            ->expects($this->exactly(2))
+            ->method('getLastPayment')
+            ->willReturnCallback(function ($state = null) use ($completedPayment, $lastPayment) {
+                if ($state === PaymentInterface::STATE_COMPLETED) {
+                    return $completedPayment;
+                }
+
+                return $lastPayment;
+            });
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($completedPayment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker
+            ->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($completedPayment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(false);
+
+        $this->commandBus
+            ->expects($this->never())
+            ->method('dispatch');
+
+        $this->stateMachine
+            ->expects($this->once())
+            ->method('can')
+            ->with($lastPayment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_CANCEL)
+            ->willReturn(true);
+
+        $this->stateMachine
+            ->expects($this->once())
+            ->method('apply')
+            ->with($lastPayment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_CANCEL);
 
         $this->processor->process($order);
     }

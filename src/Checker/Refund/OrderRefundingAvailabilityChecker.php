@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Checker\Refund;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
@@ -37,21 +38,41 @@ final class OrderRefundingAvailabilityChecker implements OrderRefundingAvailabil
         Assert::notNull($order);
 
         $payment = $order->getLastPayment();
-        if (null !== $payment && $this->paymentCannotBeRefunded($payment)) {
+        if (null !== $payment && !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
+            return $this->decoratedChecker->__invoke($orderNumber);
+        }
+
+        if (
+            null === $payment ||
+            $this->automaticPaymentCannotBeRefunded($payment) ||
+            $this->manualPaymentCannotBeRefunded($payment)
+        ) {
             return false;
         }
 
         return $this->decoratedChecker->__invoke($orderNumber);
     }
 
-    private function paymentCannotBeRefunded(PaymentInterface $payment): bool
+    private function automaticPaymentCannotBeRefunded(PaymentInterface $payment): bool
     {
-        return $this->adyenPaymentMethodChecker->isAdyenPayment($payment) && (
+        return
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) &&
             in_array($payment->getState(), [
                 PaymentGraph::STATE_PROCESSING_REVERSAL,
                 PaymentInterface::STATE_COMPLETED,
                 PaymentInterface::STATE_REFUNDED,
             ], true)
-        );
+        ;
+    }
+
+    private function manualPaymentCannotBeRefunded(PaymentInterface $payment): bool
+    {
+        return
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL) &&
+            !in_array($payment->getState(), [
+                PaymentInterface::STATE_COMPLETED,
+                PaymentInterface::STATE_REFUNDED,
+            ], true)
+        ;
     }
 }

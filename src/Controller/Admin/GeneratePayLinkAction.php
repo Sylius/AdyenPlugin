@@ -22,20 +22,22 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Webmozart\Assert\Assert;
 
 final class GeneratePayLinkAction
 {
+    use FlashHelperTrait;
+
     public function __construct(
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly PaymentLinkGeneratorInterface $paymentLinkGenerator,
         private readonly PaymentLinkEmailSenderInterface $paymentLinkEmailSender,
         private readonly UrlGeneratorInterface $urlGenerator,
-        private readonly RequestStack $requestStack,
+        RequestStack $requestStack,
     ) {
+        $this->requestStack = $requestStack;
     }
 
     public function __invoke(string $id, Request $request): Response
@@ -64,15 +66,5 @@ final class GeneratePayLinkAction
                 'id' => $payment->getOrder()->getId(),
             ]),
         );
-    }
-
-    private function addFlash(string $type, string $message, array $parameters = []): void
-    {
-        /** @var FlashBagInterface $flashBag */
-        $flashBag = $this->requestStack->getSession()->getBag('flashes');
-        $flashBag->add($type, [
-            'message' => $message,
-            'parameters' => $parameters,
-        ]);
     }
 }

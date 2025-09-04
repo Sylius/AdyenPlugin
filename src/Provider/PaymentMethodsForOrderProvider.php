@@ -43,6 +43,12 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
     public function provideConfiguration(OrderInterface $order, ?string $code = null): ?array
     {
         $paymentMethod = $this->getPaymentMethod($order, $code);
+        if (
+            null === $paymentMethod ||
+            !$this->adyenPaymentMethodChecker->isAdyenPaymentMethod($paymentMethod)
+        ) {
+            return null;
+        }
 
         /** @var CustomerInterface $customer */
         $customer = $order->getCustomer();
@@ -50,10 +56,6 @@ final class PaymentMethodsForOrderProvider implements PaymentMethodsForOrderProv
         $shopperReference = $customer !== null && $customer->hasUser() === true
             ? $this->shopperReferenceResolver->resolve($paymentMethod, $customer)
             : null;
-
-        if (!$this->adyenPaymentMethodChecker->isAdyenPaymentMethod($paymentMethod)) {
-            return null;
-        }
 
         $result = $this->filterKeys(
             $this->getGatewayConfig($paymentMethod)->getConfig(),

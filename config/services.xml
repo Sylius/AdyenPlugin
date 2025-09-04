@@ -10,11 +10,12 @@
         <defaults public="true"/>
 
         <service
-            class="Sylius\AdyenPlugin\Callback\RequestCancelCallback"
             id="sylius_adyen.callback.request_cancel"
+            class="Sylius\AdyenPlugin\Callback\RequestCancelCallback"
         >
-            <argument type="service" id="sylius_abstraction.state_machine"/>
-            <argument type="service" id="sylius.command_bus"/>
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius.command_bus" />
         </service>
 
         <service
@@ -74,6 +75,15 @@
             class="Sylius\AdyenPlugin\Twig\Extension\AdyenPaymentCheckerExtension"
         >
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+
+            <tag name="twig.extension" />
+        </service>
+
+        <service
+            id="sylius_adyen.twig.extension.payment_link_generation_checker"
+            class="Sylius\AdyenPlugin\Twig\Extension\PaymentLinkGenerationCheckerExtension"
+        >
+            <argument type="service" id="sylius_adyen.checker.payment_pay_by_link_availability" />
 
             <tag name="twig.extension" />
         </service>

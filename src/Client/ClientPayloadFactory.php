@@ -122,6 +122,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         string $url,
         array $receivedPayload,
         OrderInterface $order,
+        bool $manualCapture = false,
         ?ShopperReferenceInterface $shopperReference = null,
     ): array {
         $billingAddress = $order->getBillingAddress();
@@ -159,6 +160,8 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
         $payload = $payload + $this->getOrderDataForPayment($order);
+
+        $payload = $this->addManualCaptureIfApplicable($payload, $manualCapture);
         $payload = $this->addEsdIfApplicable($payload, $options, $order);
 
         return $payload;
@@ -421,6 +424,19 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         }
 
         $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], $esd);
+
+        return $payload;
+    }
+
+    private function addManualCaptureIfApplicable(array $payload, bool $manualCapture): array
+    {
+        if (false === $manualCapture) {
+            return $payload;
+        }
+
+        $payload['additionalData'] = array_merge($payload['additionalData'] ?? [], [
+            'manualCapture' => 'true',
+        ]);
 
         return $payload;
     }

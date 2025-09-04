@@ -17,6 +17,8 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 final class CancelPayment implements AlterPaymentCommand
 {
+    public const PROCESSING_CANCELLATION = 'processing_cancellation';
+
     public function __construct(private readonly OrderInterface $order)
     {
     }

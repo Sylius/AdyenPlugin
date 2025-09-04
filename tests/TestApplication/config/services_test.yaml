@@ -19,3 +19,12 @@ services:
             - '@sylius.context.cart.new'
         tags:
             - { name: sylius.context.cart, priority: 100 }
+
+    # Message bus spy for capturing dispatched messages
+    sylius_adyen.test.message_bus_spy:
+        class: Tests\Sylius\AdyenPlugin\Functional\Stub\MessageBusSpy
+        decorates: sylius.command_bus
+        decoration_priority: 100
+        arguments:
+            - '@.inner'
+        public: true

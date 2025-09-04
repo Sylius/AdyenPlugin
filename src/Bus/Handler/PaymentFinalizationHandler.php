@@ -14,6 +14,8 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Bus\Handler;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
+use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -37,6 +39,12 @@ final class PaymentFinalizationHandler
         }
 
         $this->updatePaymentState($payment, $command->getPaymentTransition());
+
+        if (is_a($command, PaymentCancelledCommand::class, true)) {
+            $details = $payment->getDetails();
+            unset($details[CancelPayment::PROCESSING_CANCELLATION]);
+            $payment->setDetails($details);
+        }
     }
 
     private function updatePaymentState(PaymentInterface $payment, string $transition): void
@@ -50,7 +58,11 @@ final class PaymentFinalizationHandler
     {
         return
             OrderPaymentStates::STATE_PAID !== $payment->getOrder()?->getPaymentState() ||
-            $payment->getState() === PaymentGraph::STATE_PROCESSING_REVERSAL
+            $payment->getState() === PaymentGraph::STATE_PROCESSING_REVERSAL ||
+            (
+                $payment->getState() === PaymentInterface::STATE_PROCESSING &&
+                ($payment->getDetails()[CancelPayment::PROCESSING_CANCELLATION] ?? false)
+            )
         ;
     }
 }

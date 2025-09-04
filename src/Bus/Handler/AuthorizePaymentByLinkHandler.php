@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Doctrine\ORM\EntityManagerInterface;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePaymentByLink;
+use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -40,6 +41,7 @@ final class AuthorizePaymentByLinkHandler
         $payment->setDetails($normalizedData);
 
         $this->commandBus->dispatch(new CreateReferenceForPayment($payment));
+        $this->commandBus->dispatch(new CreatePaymentDetailForPayment($payment));
         $this->commandBus->dispatch(new AuthorizePayment($payment));
 
         $this->paymentLinkRepository->removeByLinkId($notificationItemData->additionalData['paymentLinkId']);

@@ -14,6 +14,9 @@ sylius_adyen:
         ayden_gateway_label: Adyen
         auth_user: Webhook authentication username
         auth_password: Webhook authentication password
+        capture_mode: Capture mode
+        capture_mode_automatic: Automatic
+        capture_mode_manual: Manual
         client_key: Client key
         esd: Enhanced Scheme Data
         esd_enabled: Enable Enhanced Scheme Data

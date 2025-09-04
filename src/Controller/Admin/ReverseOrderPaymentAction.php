@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Admin;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Processor\Order\ReverseOrderPaymentProcessor;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
@@ -21,19 +22,22 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\Flash\FlashBagInterface;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class ReverseOrderPaymentAction
 {
+    use FlashHelperTrait;
+
     public function __construct(
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly ReverseOrderPaymentProcessor $reverseOrderPaymentProcessor,
-        private readonly RequestStack $requestStack,
+        RequestStack $requestStack,
         private readonly UrlGeneratorInterface $urlGenerator,
     ) {
+        $this->requestStack = $requestStack;
     }
 
     public function __invoke(mixed $id, mixed $paymentId, Request $request): Response
@@ -50,27 +54,20 @@ final class ReverseOrderPaymentAction
         }
 
         if (!$this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
-            throw new NotFoundHttpException(sprintf('Payment with ID %s is not an Adyen payment.', $id));
+            throw new BadRequestHttpException(sprintf('Payment with ID %s is not an Adyen payment.', $id));
+        }
+        if (!$this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
+            throw new BadRequestHttpException(sprintf('Payment with ID %s is not an Adyen payment with automatic capture mode.', $id));
         }
 
         $this->reverseOrderPaymentProcessor->process($order);
 
-        $this->addSuccessFlash();
+        $this->addFlash('success', 'sylius.resource.update', ['%resource%' => 'Order']);
 
         return new RedirectResponse(
             $this->urlGenerator->generate('sylius_admin_order_show', [
                 'id' => $order->getId(),
             ]),
         );
-    }
-
-    private function addSuccessFlash(): void
-    {
-        /** @var FlashBagInterface $flashBag */
-        $flashBag = $this->requestStack->getSession()->getBag('flashes');
-        $flashBag->add('success', [
-            'message' => 'sylius.resource.update',
-            'parameters' => ['%resource%' => 'Order'],
-        ]);
     }
 }

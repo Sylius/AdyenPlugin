@@ -15,13 +15,17 @@ namespace Tests\Sylius\AdyenPlugin\Functional;
 
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
 use Doctrine\ORM\EntityManagerInterface;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentDetailsAction;
 use Sylius\AdyenPlugin\Controller\Shop\PaymentsAction;
 use Sylius\AdyenPlugin\Controller\Shop\ProcessNotificationsAction;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
+use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
@@ -32,6 +36,7 @@ use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
 abstract class AdyenTestCase extends WebTestCase
@@ -43,6 +48,8 @@ abstract class AdyenTestCase extends WebTestCase
     protected PaymentLinkRepositoryInterface $paymentLinkRepository;
 
     protected AdyenReferenceRepositoryInterface $adyenReferenceRepository;
+
+    protected StateMachineInterface $stateMachine;
 
     protected static PaymentMethod $sharedPaymentMethod;
 
@@ -101,6 +108,10 @@ abstract class AdyenTestCase extends WebTestCase
         $this->adyenClientStub = $container->get('sylius_adyen.test.adyen_client_stub');
         $this->paymentLinkRepository = $container->get('sylius_adyen.repository.payment_link');
         $this->adyenReferenceRepository = $container->get('sylius_adyen.repository.adyen_reference');
+
+        /** @var StateMachineInterface $stateMachine */
+        $stateMachine = $container->get('sylius_abstraction.state_machine');
+        $this->stateMachine = $stateMachine;
 
         $this->initializeServices($container);
     }
@@ -193,39 +204,11 @@ abstract class AdyenTestCase extends WebTestCase
         return $request;
     }
 
-    protected function createWebhookData(
-        string $eventCode,
-        string $pspReference,
-        string $merchantReference,
-        array $additionalData = [],
-        bool $success = true,
-        ?string $paymentLinkId = null,
-    ): array {
-        $webhookData = [
-            'live' => 'false',
-            'notificationItems' => [[
-                'NotificationRequestItem' => [
-                    'eventCode' => strtoupper($eventCode),
-                    'success' => $success ? 'true' : 'false',
-                    'eventDate' => '2024-01-01T00:00:00+00:00',
-                    'merchantAccountCode' => 'test_merchant',
-                    'pspReference' => $pspReference,
-                    'merchantReference' => $merchantReference,
-                    'amount' => [
-                        'value' => 10000,
-                        'currency' => 'USD',
-                    ],
-                    'paymentMethod' => 'scheme',
-                    'additionalData' => array_merge(
-                        ['hmacSignature' => self::TEST_HMAC_SIGNATURE],
-                        $paymentLinkId ? ['paymentLinkId' => $paymentLinkId] : [],
-                        $additionalData,
-                    ),
-                ],
-            ]],
-        ];
-
-        return $webhookData;
+    protected function setCaptureMode(string $captureMode): void
+    {
+        $config = self::$sharedPaymentMethod->getGatewayConfig()->getConfig();
+        $config['captureMode'] = $captureMode;
+        self::$sharedPaymentMethod->getGatewayConfig()->setConfig($config);
     }
 
     protected function getEntityManager(): EntityManagerInterface
@@ -248,6 +231,11 @@ abstract class AdyenTestCase extends WebTestCase
         return self::getContainer()->get('sylius_adyen.controller.shop.process_notifications');
     }
 
+    protected function getCaptureOrderPaymentAction(): CaptureOrderPaymentAction
+    {
+        return self::getContainer()->get('sylius_adyen.controller.admin.order_payment.capture');
+    }
+
     protected function getGeneratePayLinkAction(): GeneratePayLinkAction
     {
         return self::getContainer()->get('sylius_adyen.controller.admin.payment.generate_pay_link');
@@ -257,5 +245,125 @@ abstract class AdyenTestCase extends WebTestCase
     {
         $testCartContext = self::getContainer()->get('sylius_adyen.test.cart_context');
         $testCartContext->setOrder($this->testOrder);
+    }
+
+    protected function simulateWebhook(
+        PaymentInterface $payment,
+        string $eventCode,
+        bool $success = true,
+        array $additionalData = [],
+        ?string $pspReference = null,
+        ?string $merchantReference = null,
+        ?string $paymentLinkId = null,
+        ?string $originalReference = null,
+    ): Response {
+        $webhookData = $this->createWebhookData(
+            $eventCode,
+            $pspReference ?? $payment->getDetails()['pspReference'] ?? 'TEST_PSP_REF',
+            $merchantReference ?? $payment->getOrder()?->getNumber() ?? 'TEST_ORDER',
+            $additionalData,
+            $success,
+            $paymentLinkId,
+            $originalReference,
+        );
+
+        $request = $this->createWebhookRequest($webhookData);
+
+        return ($this->getProcessNotificationsAction())(self::PAYMENT_METHOD_CODE, $request);
+    }
+
+    protected function createWebhookData(
+        string $eventCode,
+        string $pspReference,
+        string $merchantReference,
+        array $additionalData = [],
+        bool $success = true,
+        ?string $paymentLinkId = null,
+        ?string $originalReference = null,
+    ): array {
+        $notificationItem = [
+            'eventCode' => strtoupper($eventCode),
+            'success' => $success ? 'true' : 'false',
+            'eventDate' => '2024-01-01T00:00:00+00:00',
+            'merchantAccountCode' => 'test_merchant',
+            'pspReference' => $pspReference,
+            'merchantReference' => $merchantReference,
+            'amount' => [
+                'value' => 10000,
+                'currency' => 'USD',
+            ],
+            'paymentMethod' => 'scheme',
+            'additionalData' => array_merge(
+                ['hmacSignature' => self::TEST_HMAC_SIGNATURE],
+                $paymentLinkId ? ['paymentLinkId' => $paymentLinkId] : [],
+                $additionalData,
+            ),
+        ];
+
+        // Add originalReference if provided as parameter
+        if ($originalReference !== null) {
+            $notificationItem['originalReference'] = $originalReference;
+        }
+
+        return [
+            'live' => 'false',
+            'notificationItems' => [[
+                'NotificationRequestItem' => $notificationItem,
+            ]],
+        ];
+    }
+
+    protected function setupOrderWithAdyenPayment(
+        string $captureMode = PaymentCaptureMode::AUTOMATIC,
+        ?array $paymentMethodData = null,
+        string $expectedResultCode = 'Authorised',
+        string $expectedPspReference = 'TEST_PSP_REF_123',
+        ?string $merchantReference = null,
+    ): void {
+        $paymentMethodData ??= [
+            'type' => 'scheme',
+            'encryptedCardNumber' => 'test_encrypted_number',
+            'encryptedExpiryMonth' => 'test_encrypted_month',
+            'encryptedExpiryYear' => 'test_encrypted_year',
+            'encryptedSecurityCode' => 'test_encrypted_cvv',
+        ];
+
+        $merchantReference ??= $this->testOrder->getNumber();
+
+        // Update the payment method's capture mode for this test
+        $gatewayConfig = self::$sharedPaymentMethod->getGatewayConfig();
+        $config = $gatewayConfig->getConfig();
+        $config['captureMode'] = $captureMode;
+        $gatewayConfig->setConfig($config);
+
+        $this->getEntityManager()->flush();
+
+        $this->adyenClientStub->setSubmitPaymentResponse([
+            'resultCode' => $expectedResultCode,
+            'pspReference' => $expectedPspReference,
+            'merchantReference' => $merchantReference,
+        ]);
+
+        $request = $this->createRequest([
+            'paymentMethod' => $paymentMethodData,
+        ]);
+
+        $response = ($this->getPaymentsAction())($request);
+        self::assertEquals(200, $response->getStatusCode());
+
+        $responseData = json_decode((string) $response->getContent(), true);
+        self::assertArrayHasKey('resultCode', $responseData);
+        self::assertEquals($expectedResultCode, $responseData['resultCode']);
+        self::assertArrayHasKey('pspReference', $responseData);
+        self::assertEquals($expectedPspReference, $responseData['pspReference']);
+        self::assertArrayHasKey('redirect', $responseData);
+
+        $payment = $this->testOrder->getLastPayment();
+        $this->simulateWebhook($payment, EventCodeResolverInterface::EVENT_AUTHORIZATION);
+
+        $this->testOrder->setCheckoutState(OrderCheckoutStates::STATE_COMPLETED);
+        $this->testOrder->setState(OrderInterface::STATE_NEW);
+
+        $this->getEntityManager()->flush();
     }
 }

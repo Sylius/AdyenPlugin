@@ -5,6 +5,13 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
 >
+    <parameters>
+        <parameter key="sylius_adyen.allowed_payment_states.generate_payment_link" type="collection">
+            <parameter>new</parameter>
+            <parameter>processing</parameter>
+        </parameter>
+    </parameters>
+
     <services>
         <defaults public="true"/>
 
@@ -23,12 +30,22 @@
         <service
             id="sylius_adyen.checker.adyen_payment_method"
             class="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker"
-        />
-
+        >
+            <argument type="service" id="sylius_adyen.repository.adyen_payment_detail" />
+        </service>
         <service
             id="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface"
             alias="sylius_adyen.checker.adyen_payment_method"
         />
+
+        <service
+            id="sylius_adyen.checker.payment_pay_by_link_availability"
+            class="Sylius\AdyenPlugin\Checker\PaymentPayByLinkAvailabilityChecker"
+        >
+            <argument type="service" id="sylius_adyen.repository.payment_link" />
+            <argument type="service" id="sylius_adyen.repository.adyen_reference" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
 
         <service
             id="sylius_adyen.checker.refund.order_refunds_list_availability"
@@ -38,6 +55,7 @@
             <argument type="service" id=".inner" />
             <argument type="service" id="sylius.repository.order" />
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument>%sylius_adyen.allowed_payment_states.generate_payment_link%</argument>
         </service>
 
         <service

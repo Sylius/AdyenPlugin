@@ -74,7 +74,7 @@ class PaymentStatusReceivedHandlerTest extends TestCase
         ;
 
         $this->commandBus
-            ->expects($this->exactly($shouldPass ? 2 : 3))
+            ->expects($this->exactly(3))
             ->method('dispatch')
             ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
         ;

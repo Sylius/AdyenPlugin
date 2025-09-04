@@ -18,6 +18,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePaymentByLink;
+use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
 use Sylius\AdyenPlugin\Bus\Handler\AuthorizePaymentByLinkHandler;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
@@ -82,7 +83,7 @@ class AuthorizePaymentByLinkHandlerTest extends TestCase
 
         $dispatchedCommands = [];
         $this->commandBus
-            ->expects($this->exactly(2))
+            ->expects($this->exactly(3))
             ->method('dispatch')
             ->willReturnCallback(function ($command) use (&$dispatchedCommands) {
                 $dispatchedCommands[] = $command;
@@ -106,51 +107,10 @@ class AuthorizePaymentByLinkHandlerTest extends TestCase
 
         self::assertEquals($normalizedData, $payment->getDetails());
         self::assertInstanceOf(CreateReferenceForPayment::class, $dispatchedCommands[0]);
-        self::assertInstanceOf(AuthorizePayment::class, $dispatchedCommands[1]);
+        self::assertInstanceOf(CreatePaymentDetailForPayment::class, $dispatchedCommands[1]);
+        self::assertInstanceOf(AuthorizePayment::class, $dispatchedCommands[2]);
         self::assertSame($payment, $dispatchedCommands[0]->getPayment());
-        self::assertSame($payment, $dispatchedCommands[1]->getPayment());
-    }
-
-    public function testInvokeWithDifferentPaymentLinkId(): void
-    {
-        $payment = new Payment();
-        $notificationItemData = new NotificationItemData();
-        $notificationItemData->additionalData = ['paymentLinkId' => 'another-link-id'];
-        $notificationItemData->pspReference = 'test-psp-reference-2';
-
-        $normalizedData = [
-            'pspReference' => 'test-psp-reference-2',
-            'additionalData' => ['paymentLinkId' => 'another-link-id'],
-        ];
-
-        $command = new AuthorizePaymentByLink($payment, $notificationItemData);
-
-        $this->normalizer
-            ->expects($this->once())
-            ->method('normalize')
-            ->with($notificationItemData, 'array')
-            ->willReturn($normalizedData)
-        ;
-
-        $this->commandBus
-            ->expects($this->exactly(2))
-            ->method('dispatch')
-            ->willReturn(Envelope::wrap(new \stdClass(), [new HandledStamp(true, static::class)]))
-        ;
-
-        $this->paymentLinkRepository
-            ->expects($this->once())
-            ->method('removeByLinkId')
-            ->with('another-link-id')
-        ;
-
-        $this->entityManager
-            ->expects($this->once())
-            ->method('flush')
-        ;
-
-        ($this->handler)($command);
-
-        self::assertEquals($normalizedData, $payment->getDetails());
+        self::assertSame($payment, $dispatchedCommands[1]->payment);
+        self::assertSame($payment, $dispatchedCommands[2]->getPayment());
     }
 }

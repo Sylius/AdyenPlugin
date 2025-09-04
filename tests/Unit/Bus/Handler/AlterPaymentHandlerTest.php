@@ -17,6 +17,7 @@ use Payum\Core\Model\GatewayConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\AlterPaymentCommand;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
@@ -29,6 +30,7 @@ use Sylius\Component\Core\Model\OrderItemUnit;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Core\OrderPaymentStates;
 
 class AlterPaymentHandlerTest extends TestCase
 {
@@ -44,11 +46,19 @@ class AlterPaymentHandlerTest extends TestCase
 
     private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
 
+    private MockObject|StateMachineInterface $stateMachine;
+
     protected function setUp(): void
     {
         $this->setupAdyenClientMocks();
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
-        $this->handler = new AlterPaymentHandler($this->adyenClientProvider, $this->adyenPaymentMethodChecker);
+        $this->stateMachine = $this->createMock(StateMachineInterface::class);
+
+        $this->handler = new AlterPaymentHandler(
+            $this->adyenClientProvider,
+            $this->adyenPaymentMethodChecker,
+            $this->stateMachine,
+        );
     }
 
     #[DataProvider('provideForTestForNonApplicablePayment')]
@@ -79,9 +89,13 @@ class AlterPaymentHandlerTest extends TestCase
                 ->method('isAdyenPayment')
                 ->with($payment)
                 ->willReturn(false);
+            $this->adyenPaymentMethodChecker->expects($this->never())
+                ->method('isCaptureMode');
         } else {
             $this->adyenPaymentMethodChecker->expects($this->never())
                 ->method('isAdyenPayment');
+            $this->adyenPaymentMethodChecker->expects($this->never())
+                ->method('isCaptureMode');
         }
 
         $command = $this->createMock(AlterPaymentCommand::class);
@@ -115,7 +129,6 @@ class AlterPaymentHandlerTest extends TestCase
             AdyenClientProvider::FACTORY_NAME => 1,
         ]);
 
-        // Create a non-Adyen authorized payment that should trigger the checker
         $authorizedNonAdyenPayment = new Payment();
         $authorizedNonAdyenPayment->setState(PaymentInterface::STATE_AUTHORIZED);
         $authorizedNonAdyenPayment->setMethod($nonAdyenPaymentMethod);
@@ -125,7 +138,81 @@ class AlterPaymentHandlerTest extends TestCase
             'payment without method' => [$paymentWithoutMethod],
             'payment method without configuration' => [$paymentWithEmptyConfig],
             'completed order' => [$paymentWithoutAdyenConfiguration, PaymentInterface::STATE_COMPLETED],
-            'authorized non-Adyen payment' => [$authorizedNonAdyenPayment],
+            'authorized non-Adyen payment' => [$authorizedNonAdyenPayment, OrderPaymentStates::STATE_AUTHORIZED],
+        ];
+    }
+
+    public function testAdyenPaymentWithAutomaticCaptureMode(): void
+    {
+        $config = new GatewayConfig();
+        $config->setFactoryName(AdyenClientProvider::FACTORY_NAME);
+        $config->setConfig([
+            AdyenClientProvider::FACTORY_NAME => 1,
+        ]);
+
+        $paymentMethod = new PaymentMethod();
+        $paymentMethod->setGatewayConfig($config);
+
+        $payment = new Payment();
+        $payment->setState(PaymentInterface::STATE_AUTHORIZED);
+        $payment->setMethod($paymentMethod);
+
+        $order = new Order();
+        $order->addPayment($payment);
+        $order->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        // Payment has automatic capture mode, so it should not be processed
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, 'manual')
+            ->willReturn(false);
+
+        $this->adyenClientProvider->expects($this->never())
+            ->method('getForPaymentMethod');
+        $this->stateMachine->expects($this->never())
+            ->method('apply');
+
+        $command = $this->createMock(AlterPaymentCommand::class);
+        $command->method('getOrder')->willReturn($order);
+
+        ($this->handler)($command);
+    }
+
+    #[DataProvider('provideNonAuthorizedOrderStates')]
+    public function testOrderNotInAuthorizedState(string $orderState): void
+    {
+        $order = new Order();
+        $order->setPaymentState($orderState);
+
+        $this->adyenPaymentMethodChecker->expects($this->never())
+            ->method('isAdyenPayment');
+        $this->adyenPaymentMethodChecker->expects($this->never())
+            ->method('isCaptureMode');
+        $this->adyenClientProvider->expects($this->never())
+            ->method('getForPaymentMethod');
+        $this->stateMachine->expects($this->never())
+            ->method('apply');
+
+        $command = $this->createMock(AlterPaymentCommand::class);
+        $command->method('getOrder')->willReturn($order);
+
+        ($this->handler)($command);
+    }
+
+    public static function provideNonAuthorizedOrderStates(): array
+    {
+        return [
+            'new order' => [OrderPaymentStates::STATE_AWAITING_PAYMENT],
+            'paid order' => [OrderPaymentStates::STATE_PAID],
+            'partially paid order' => [OrderPaymentStates::STATE_PARTIALLY_PAID],
+            'cancelled order' => [OrderPaymentStates::STATE_CANCELLED],
+            'refunded order' => [OrderPaymentStates::STATE_REFUNDED],
+            'partially refunded order' => [OrderPaymentStates::STATE_PARTIALLY_REFUNDED],
         ];
     }
 
@@ -149,6 +236,7 @@ class AlterPaymentHandlerTest extends TestCase
         $order = new Order();
         $order->addPayment($payment);
         $order->setCurrencyCode(self::ORDER_CURRENCY_CODE);
+        $order->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
 
         $item = new OrderItem();
         $item->setUnitPrice(self::ORDER_AMOUNT);
@@ -159,6 +247,15 @@ class AlterPaymentHandlerTest extends TestCase
             ->method('isAdyenPayment')
             ->with($payment)
             ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, 'manual')
+            ->willReturn(true);
+
+        $this->stateMachine->expects($this->once())
+            ->method('apply')
+            ->with($payment, 'sylius_payment', 'process');
 
         $setupMocker->bindTo($this)();
 
@@ -200,5 +297,54 @@ class AlterPaymentHandlerTest extends TestCase
                 },
             ],
         ];
+    }
+
+    public function testCancelPaymentSetsProcessingCancellationFlag(): void
+    {
+        $config = new GatewayConfig();
+        $config->setFactoryName(AdyenClientProvider::FACTORY_NAME);
+        $config->setConfig([
+            AdyenClientProvider::FACTORY_NAME => 1,
+        ]);
+
+        $paymentMethod = new PaymentMethod();
+        $paymentMethod->setGatewayConfig($config);
+
+        $payment = new Payment();
+        $payment->setState(PaymentInterface::STATE_AUTHORIZED);
+        $payment->setMethod($paymentMethod);
+        $payment->setDetails(['pspReference' => self::PSP_REFERENCE]);
+
+        $order = new Order();
+        $order->addPayment($payment);
+        $order->setCurrencyCode(self::ORDER_CURRENCY_CODE);
+        $order->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, 'manual')
+            ->willReturn(true);
+
+        $this->adyenClient
+            ->expects($this->once())
+            ->method('requestCancellation')
+            ->with($payment);
+
+        $this->stateMachine->expects($this->once())
+            ->method('apply')
+            ->with($payment, 'sylius_payment', 'process');
+
+        $command = new CancelPayment($order);
+
+        ($this->handler)($command);
+
+        // Verify that PROCESSING_CANCELLATION flag is set in payment details
+        $details = $payment->getDetails();
+        self::assertTrue($details[CancelPayment::PROCESSING_CANCELLATION]);
     }
 }

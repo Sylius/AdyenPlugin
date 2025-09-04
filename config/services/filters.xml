@@ -13,21 +13,5 @@
             <argument type="service" id="monolog.logger.adyen"/>
             <tag name="kernel.event_subscriber"/>
         </service>
-
-        <service
-            class="Sylius\AdyenPlugin\EventSubscriber\RoutePaymentCompleteTransitionSubscriber"
-            id="sylius_adyen.event_subscriber.filter_payment_complete_transition_subscriber"
-        >
-            <argument type="service" id="sylius.command_bus"/>
-            <tag name="kernel.event_subscriber"/>
-        </service>
-
-        <service
-            class="Sylius\AdyenPlugin\EventSubscriber\FilterManualRefundConfirmationSubscriber"
-            id="sylius_adyen.event_subscriber.filter_manual_refund_confirmation_subscriber"
-        >
-            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
-            <tag name="kernel.event_subscriber"/>
-        </service>
     </services>
 </container>

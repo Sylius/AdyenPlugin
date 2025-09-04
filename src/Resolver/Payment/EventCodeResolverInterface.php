@@ -33,13 +33,5 @@ interface EventCodeResolverInterface
 
     public const MODIFICATION_CANCEL = 'cancel';
 
-    public const PAYMENT_METHOD_TYPES = [
-        'amazonpay' => self::EVENT_AUTHORIZATION,
-        'applepay' => self::EVENT_AUTHORIZATION,
-        'klarna' => self::EVENT_AUTHORIZATION,
-        'paywithgoogle' => self::EVENT_AUTHORIZATION,
-        'twint' => self::EVENT_AUTHORIZATION,
-    ];
-
     public function resolve(NotificationItemData $notificationData): string;
 }

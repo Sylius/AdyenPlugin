@@ -34,6 +34,7 @@ class ConfigurationResolver
             'esdEnabled' => false,
             'esdType' => 'level3',
             'merchantCategoryCode' => '',
+            'captureMode' => '',
         ]);
         $resolver->setRequired($resolver->getDefinedOptions());
 

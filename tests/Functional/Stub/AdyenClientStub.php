@@ -85,6 +85,7 @@ final class AdyenClientStub implements AdyenClientInterface
         string $redirectUrl,
         array $receivedPayload,
         OrderInterface $order,
+        bool $manualCapture = false,
         ?ShopperReferenceInterface $customerIdentifier = null,
     ): array {
         if ($this->exception !== null) {

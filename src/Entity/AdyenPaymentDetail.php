@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Entity;
 
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 use Sylius\Component\Resource\Model\TimestampableInterface;
@@ -25,6 +26,8 @@ class AdyenPaymentDetail implements ResourceInterface, TimestampableInterface, A
     protected ?int $id;
 
     protected int $amount;
+
+    protected string $captureMode = PaymentCaptureMode::AUTOMATIC;
 
     protected PaymentInterface $payment;
 
@@ -41,6 +44,16 @@ class AdyenPaymentDetail implements ResourceInterface, TimestampableInterface, A
     public function setAmount(int $amount): void
     {
         $this->amount = $amount;
+    }
+
+    public function getCaptureMode(): string
+    {
+        return $this->captureMode;
+    }
+
+    public function setCaptureMode(string $captureMode): void
+    {
+        $this->captureMode = $captureMode;
     }
 
     public function getPayment(): ?PaymentInterface

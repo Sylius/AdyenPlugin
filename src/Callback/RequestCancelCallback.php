@@ -15,13 +15,16 @@ namespace Sylius\AdyenPlugin\Callback;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
+use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\OrderPaymentTransitions;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 final class RequestCancelCallback
 {
     public function __construct(
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly StateMachineInterface $stateMachine,
         private readonly MessageBusInterface $messageBus,
     ) {
@@ -29,8 +32,20 @@ final class RequestCancelCallback
 
     public function __invoke(OrderInterface $order): void
     {
+        $payment = $order->getLastPayment();
         if (
-            $this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
+            null === $payment ||
+            !$this->adyenPaymentMethodChecker->isAdyenPayment($payment)
+        ) {
+            return;
+        }
+        if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
+            return;
+        }
+
+        if (
+            $this->stateMachine->can($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_PROCESS) &&
+            !isset($payment->getDetails()[CancelPayment::PROCESSING_CANCELLATION])
         ) {
             $this->messageBus->dispatch(new CancelPayment($order));
         }

@@ -8,3 +8,13 @@ winzou_state_machine:
                     do: [ "@sylius_adyen.processor.order.reverse_payment", "process" ]
                     args: [ "object" ]
                     priority: -600
+                cancel_authorized_payment:
+                    on: ["cancel"]
+                    do: [ "@sylius_adyen.callback.request_cancel", "__invoke" ]
+                    args: [ "object" ]
+                    priority: -500
+            guard:
+                cancel_with_processing_payment:
+                    on: ["cancel"]
+                    do: ["@sylius_adyen.state_machine.guard.order", "canBeCancelled"]
+                    args: ["object"]

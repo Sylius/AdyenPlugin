@@ -19,7 +19,6 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\CapturePayment;
-use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
 use Sylius\AdyenPlugin\Bus\Handler\PaymentFinalizationHandler;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\Order;
@@ -50,9 +49,6 @@ class PaymentFinalizationHandlerTest extends TestCase
         $payment = new Payment();
         $payment->setOrder($order);
 
-        /**
-         * @var PaymentFinalizationCommand $command
-         */
         $command = new $command($payment);
 
         $this->stateMachine
