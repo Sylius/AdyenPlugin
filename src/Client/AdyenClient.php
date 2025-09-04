@@ -166,12 +166,13 @@ final class AdyenClient implements AdyenClientInterface
         return $response->toArray();
     }
 
-    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
+    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, bool $manualCapture = false, string $returnUrl = ''): array
     {
         $payload = $this->clientPayloadFactory->createForPaypalPayments(
             $this->options,
             $receivedPayload,
             $order,
+            $manualCapture,
             $returnUrl,
         );
 

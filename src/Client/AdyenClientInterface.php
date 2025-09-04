@@ -77,7 +77,7 @@ interface AdyenClientInterface
 
     public function requestCapture(PaymentInterface $payment): array;
 
-    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array;
+    public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, bool $manualCapture = false, string $returnUrl = ''): array;
 
     public function updatesOrderForPaypalExpressCheckout(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderResponse;
 }

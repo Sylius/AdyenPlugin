@@ -16,6 +16,8 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 use Adyen\AdyenException;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
@@ -35,6 +37,7 @@ final class InitializeAction
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
 
@@ -58,6 +61,7 @@ final class InitializeAction
             $result = $client->submitPaypalPayments(
                 $data,
                 $order,
+                $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL),
             );
             $payment->setDetails($result);
             $this->messageBus->dispatch(new PaymentStatusReceived($payment));

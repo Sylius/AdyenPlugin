@@ -102,6 +102,7 @@
             <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius.repository.payment"/>
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method"/>
         </service>
 
         <service

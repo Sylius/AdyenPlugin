@@ -290,7 +290,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         return $request;
     }
 
-    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
+    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, bool $manualCapture = false, string $returnUrl = ''): array
     {
         $payload = [
             'merchantAccount' => $options['merchantAccount'],
@@ -303,6 +303,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ];
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
+        $payload = $this->addManualCaptureIfApplicable($payload, $manualCapture );
 
         return array_merge($payload, $receivedPayload);
     }
