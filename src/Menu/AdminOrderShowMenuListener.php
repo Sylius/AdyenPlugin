@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Menu;
 
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Bundle\AdminBundle\Event\OrderShowMenuBuilderEvent;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -40,6 +41,7 @@ final class AdminOrderShowMenuListener
         if (
             null === $payment ||
             !$this->adyenPaymentMethodChecker->isAdyenPayment($payment) ||
+            !$this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) ||
             !$this->stateMachine->can($payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_REVERSE)
         ) {
             return;

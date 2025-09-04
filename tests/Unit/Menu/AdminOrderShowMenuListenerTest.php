@@ -20,6 +20,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Menu\AdminOrderShowMenuListener;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Bundle\AdminBundle\Event\OrderShowMenuBuilderEvent;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -131,11 +132,45 @@ final class AdminOrderShowMenuListenerTest extends TestCase
             ->with($this->payment)
             ->willReturn(true);
 
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($this->payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(true);
+
         $this->stateMachine->expects($this->once())
             ->method('can')
             ->with($this->payment, PaymentGraph::GRAPH, PaymentGraph::TRANSITION_REVERSE)
             ->willReturn(false);
 
+        $this->menu->expects($this->never())->method('addChild');
+
+        $this->listener->addRefundButton($this->event);
+    }
+
+    public function testDoesNotAddRefundButtonWhenPaymentIsNotInAutomaticCaptureMode(): void
+    {
+        $this->event->expects($this->once())->method('getMenu')->willReturn($this->menu);
+        $this->event->expects($this->once())->method('getOrder')->willReturn($this->order);
+
+        $this->order->expects($this->once())
+            ->method('getState')
+            ->willReturn(OrderInterface::STATE_FULFILLED);
+
+        $this->order->expects($this->once())
+            ->method('getLastPayment')
+            ->willReturn($this->payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($this->payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($this->payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(false);
+
+        $this->stateMachine->expects($this->never())->method('can');
         $this->menu->expects($this->never())->method('addChild');
 
         $this->listener->addRefundButton($this->event);
@@ -169,6 +204,11 @@ final class AdminOrderShowMenuListenerTest extends TestCase
         $this->adyenPaymentMethodChecker->expects($this->once())
             ->method('isAdyenPayment')
             ->with($this->payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($this->payment, PaymentCaptureMode::AUTOMATIC)
             ->willReturn(true);
 
         $this->stateMachine->expects($this->once())
