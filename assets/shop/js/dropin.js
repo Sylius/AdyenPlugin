@@ -189,7 +189,7 @@
                 card: {
                     hasHolderName: true,
                     holderNameRequired: true,
-                    enableStoreDetails: configuration.canBeStored,
+                    enableStoreDetails: configuration.enableStoreDetails,
                 },
                 paypal: {
                     environment: configuration.environment,

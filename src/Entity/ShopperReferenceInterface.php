@@ -17,7 +17,7 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Resource\Model\ResourceInterface;
 
-interface AdyenTokenInterface extends ResourceInterface
+interface ShopperReferenceInterface extends ResourceInterface
 {
     public function setCustomer(?CustomerInterface $customer): void;
 

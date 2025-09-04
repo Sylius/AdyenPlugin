@@ -16,7 +16,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional\Stub;
 use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Client\ResponseStatus;
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
@@ -85,7 +85,7 @@ final class AdyenClientStub implements AdyenClientInterface
         string $redirectUrl,
         array $receivedPayload,
         OrderInterface $order,
-        ?AdyenTokenInterface $customerIdentifier = null,
+        ?ShopperReferenceInterface $customerIdentifier = null,
     ): array {
         if ($this->exception !== null) {
             throw $this->exception;
@@ -96,7 +96,7 @@ final class AdyenClientStub implements AdyenClientInterface
 
     public function getAvailablePaymentMethods(
         OrderInterface $order,
-        ?AdyenTokenInterface $adyenToken = null,
+        ?ShopperReferenceInterface $shopperReference = null,
     ): array {
         return [
             'paymentMethods' => [
@@ -115,7 +115,7 @@ final class AdyenClientStub implements AdyenClientInterface
 
     public function paymentDetails(
         array $receivedPayload,
-        ?AdyenTokenInterface $adyenToken = null,
+        ?ShopperReferenceInterface $shopperReference = null,
     ): array {
         $base = [
             'pspReference' => 'DETAILS_PSP_REF',
@@ -176,7 +176,7 @@ final class AdyenClientStub implements AdyenClientInterface
 
     public function removeStoredToken(
         string $paymentReference,
-        AdyenTokenInterface $adyenToken,
+        ShopperReferenceInterface $shopperReference,
     ): array {
         return [];
     }

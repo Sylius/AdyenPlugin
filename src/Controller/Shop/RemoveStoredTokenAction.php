@@ -15,8 +15,8 @@ namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Sylius\AdyenPlugin\Exception\TokenRemovalFailureException;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Repository\AdyenTokenRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\ShopperReferenceRepositoryInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\ShopUserInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -27,7 +27,7 @@ class RemoveStoredTokenAction
 {
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
-        private readonly AdyenTokenRepositoryInterface $adyenTokenRepository,
+        private readonly ShopperReferenceRepositoryInterface $shopperReferenceRepository,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
     ) {
@@ -63,7 +63,7 @@ class RemoveStoredTokenAction
 
         $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
 
-        $token = $this->adyenTokenRepository->findOneByPaymentMethodAndCustomer($paymentMethod, $customer);
+        $token = $this->shopperReferenceRepository->findOneByPaymentMethodAndCustomer($paymentMethod, $customer);
         if (null === $token) {
             throw TokenRemovalFailureException::forNonExistingToken();
         }

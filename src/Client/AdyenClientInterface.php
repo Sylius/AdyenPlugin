@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
-use Sylius\AdyenPlugin\Entity\AdyenTokenInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
@@ -39,7 +39,7 @@ interface AdyenClientInterface
 
     public function getAvailablePaymentMethods(
         OrderInterface $order,
-        ?AdyenTokenInterface $adyenToken = null,
+        ?ShopperReferenceInterface $shopperReference = null,
     ): array;
 
     public function getEnvironment(): string;
@@ -48,12 +48,12 @@ interface AdyenClientInterface
         string $redirectUrl,
         array $receivedPayload,
         OrderInterface $order,
-        ?AdyenTokenInterface $customerIdentifier = null,
+        ?ShopperReferenceInterface $customerIdentifier = null,
     ): array;
 
     public function paymentDetails(
         array $receivedPayload,
-        ?AdyenTokenInterface $adyenToken = null,
+        ?ShopperReferenceInterface $shopperReference = null,
     ): array;
 
     public function requestRefund(
@@ -69,7 +69,7 @@ interface AdyenClientInterface
 
     public function removeStoredToken(
         string $paymentReference,
-        AdyenTokenInterface $adyenToken,
+        ShopperReferenceInterface $shopperReference,
     ): array;
 
     public function requestCancellation(PaymentInterface $payment): array;
