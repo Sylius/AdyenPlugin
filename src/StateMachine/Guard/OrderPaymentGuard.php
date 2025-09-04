@@ -39,7 +39,7 @@ final class OrderPaymentGuard
         if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
             return $payment->getState() !== PaymentGraph::STATE_PROCESSING_REVERSAL;
         }
-        if ($payment->getState() === PaymentInterface::STATE_PROCESSING) {
+        if (in_array($payment->getState(), [PaymentInterface::STATE_PROCESSING, PaymentInterface::STATE_COMPLETED], true)) {
             return false;
         }
 

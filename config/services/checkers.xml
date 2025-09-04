@@ -32,6 +32,7 @@
             class="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodChecker"
         >
             <argument type="service" id="sylius_adyen.repository.adyen_payment_detail" />
+            <argument type="service" id="sylius_adyen.repository.payment_link" />
         </service>
         <service
             id="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface"
