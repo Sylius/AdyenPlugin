@@ -19,29 +19,31 @@ const initExpressCheckout = async ($container) => {
         countryCode: configuration.allowedCountryCodes[0],
     });
 
-    const googlePayHandler = new GooglePayHandler(configuration);
-    const googlePay = new GooglePay(checkout, googlePayHandler.getConfig());
+    try {
+        const googlePayHandler = new GooglePayHandler(configuration);
+        const googlePay = new GooglePay(checkout, googlePayHandler.getConfig());
 
-    googlePay
-        .isAvailable()
-        .then(() => {
-            googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
-        })
-        .catch(e => {
-            console.error('Google Pay is not available:', e);
-        });
+        googlePay
+            .isAvailable()
+            .then(() => {
+                googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
+            });
+    } catch (e) {
+        console.error('Google Pay is not available');
+    }
 
-    const paypalHandler = new PayPalHandler(configuration);
-    const payPal = new PayPal(checkout, paypalHandler.getConfig());
+    try {
+        const paypalHandler = new PayPalHandler(configuration);
+        const payPal = new PayPal(checkout, paypalHandler.getConfig());
 
-    payPal
-        .isAvailable()
-        .then(() => {
-            payPal.mount(SELECTORS.PAYPAL_MOUNT);
-        })
-        .catch(e => {
-            console.error('PayPal is not available:', e);
-        });
+        payPal
+            .isAvailable()
+            .then(() => {
+                payPal.mount(SELECTORS.PAYPAL_MOUNT);
+            });
+    } catch (e) {
+        console.error('PayPal is not available');
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
