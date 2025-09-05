@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart;
 
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -32,7 +31,7 @@ final class GooglePayConfigurationProvider implements ConfigurationProviderInter
             'path' => [
                 'shippingOptions' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_google_pay_shipping_options'),
                 'checkout' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_google_pay_checkout'),
-                'payments' => $this->urlGenerator->generate('sylius_adyen_shop_payments', ['code' => AdyenClientProviderInterface::FACTORY_NAME]),
+                'payments' => $this->urlGenerator->generate('sylius_adyen_shop_payments'),
             ],
             'transactionInfo' => $this->transactionInfoProvider->provide($order),
         ];

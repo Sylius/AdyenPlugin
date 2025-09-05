@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart;
 
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -36,7 +35,7 @@ final class PaypalConfigurationProvider implements ConfigurationProviderInterfac
                 'addressChange' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_paypal_shipping_address_change'),
                 'optionsChange' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_paypal_shipping_options_change'),
                 'checkout' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_paypal_checkout'),
-                'paymentDetails' => $this->urlGenerator->generate('sylius_adyen_shop_payment_details', ['code' => AdyenClientProviderInterface::FACTORY_NAME]),
+                'paymentDetails' => $this->urlGenerator->generate('sylius_adyen_shop_payment_details'),
             ],
         ];
     }
