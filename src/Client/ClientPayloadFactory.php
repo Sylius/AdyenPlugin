@@ -143,6 +143,10 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             'channel' => 'web',
             'origin' => $this->getOrigin($url),
             'countryCode' => $countryCode,
+            'shopperName' => [
+                'firstName' => $billingAddress?->getFirstName() ?? '',
+                'lastName' => $billingAddress?->getLastName() ?? '',
+            ]
         ];
 
         $payload = $this->add3DSecureFlags($receivedPayload, $payload);
