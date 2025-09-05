@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
+use Sylius\AdyenPlugin\Model\PaymentMethodData;
 use Sylius\Component\Core\Model\OrderInterface;
 
-interface PaymentMethodsForOrderProviderInterface
+interface PaymentMethodsProviderInterface
 {
-    public function provideConfiguration(OrderInterface $order, ?string $code = null): ?array;
+    public function provideForOrder(string $paymentMethodCode, OrderInterface $order): PaymentMethodData;
 }

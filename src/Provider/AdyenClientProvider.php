@@ -17,7 +17,6 @@ use Sylius\AdyenPlugin\Client\AdyenClient;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Client\AdyenTransportFactory;
 use Sylius\AdyenPlugin\Client\ClientPayloadFactoryInterface;
-use Sylius\AdyenPlugin\Client\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Exception\NonAdyenPaymentMethodException;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
@@ -35,7 +34,6 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
         private readonly ChannelContextInterface $channelContext,
         private readonly AdyenTransportFactory $adyenTransportFactory,
         private readonly ClientPayloadFactoryInterface $clientPayloadFactory,
-        private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
     ) {
     }
 
@@ -55,7 +53,6 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
             $config,
             $this->adyenTransportFactory,
             $this->clientPayloadFactory,
-            $this->paymentMethodsFilter,
         );
     }
 
@@ -71,7 +68,6 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
             $gatewayConfig->getConfig(),
             $this->adyenTransportFactory,
             $this->clientPayloadFactory,
-            $this->paymentMethodsFilter,
         );
     }
 

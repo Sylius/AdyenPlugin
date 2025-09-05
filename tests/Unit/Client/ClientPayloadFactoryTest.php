@@ -85,6 +85,34 @@ final class ClientPayloadFactoryTest extends TestCase
         ;
     }
 
+    public function testCreatesPayloadForAvailablePaymentMethods(): void
+    {
+        $options = new ArrayObject([
+            'merchantAccount' => 'TestMerchant',
+        ]);
+
+        $billingAddress = $this->createMock(AddressInterface::class);
+        $billingAddress->method('getCountryCode')->willReturn('US');
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getTotal')->willReturn(10000);
+        $order->method('getCurrencyCode')->willReturn('USD');
+        $order->method('getLocaleCode')->willReturn('en_US');
+        $order->method('getBillingAddress')->willReturn($billingAddress);
+
+        $payload = $this->factory->createForAvailablePaymentMethods($options, $order);
+
+        $expected = [
+            'amount' => ['value' => 10000, 'currency' => 'USD'],
+            'merchantAccount' => 'TestMerchant',
+            'countryCode' => 'US',
+            'shopperLocale' => '',
+            'channel' => 'Web',
+        ];
+
+        self::assertSame($expected, $payload);
+    }
+
     public function testItAddsEsdForCardPaymentsInSubmitPayment(): void
     {
         $options = new ArrayObject([

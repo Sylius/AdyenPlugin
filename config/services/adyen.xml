@@ -13,7 +13,6 @@
             <argument type="service" id="sylius.context.shopper"/>
             <argument type="service" id="sylius_adyen.client.adyen_transport_factory"/>
             <argument type="service" id="sylius_adyen.client.client_payload_factory"/>
-            <argument type="service" id="sylius_adyen.client.payment_methods_filter"/>
         </service>
 
         <service
@@ -52,13 +51,6 @@
                 id="sylius_adyen.provider.signature_validator"
         >
             <argument type="service" id="sylius.repository.payment_method"/>
-        </service>
-
-        <service
-            class="Sylius\AdyenPlugin\Client\PaymentMethodsFilter"
-            id="sylius_adyen.client.payment_methods_filter"
-        >
-            <argument>%sylius_adyen.supported_payment_methods%</argument>
         </service>
 
         <service
