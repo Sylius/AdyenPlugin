@@ -36,7 +36,7 @@ final class PaypalConfigurationProvider implements ConfigurationProviderInterfac
                 'addressChange' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_paypal_shipping_address_change'),
                 'optionsChange' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_paypal_shipping_options_change'),
                 'checkout' => $this->urlGenerator->generate('sylius_adyen_shop_express_checkout_paypal_checkout'),
-                'paymentDetails' => $this->urlGenerator->generate('sylius_adyen_shop_payment_details', ['code' => AdyenClientProviderInterface::FACTORY_NAME]),
+                'paymentDetails' => $this->urlGenerator->generate('sylius_adyen_shop_payment_details'),
             ],
         ];
     }
