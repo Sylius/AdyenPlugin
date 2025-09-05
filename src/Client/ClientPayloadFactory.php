@@ -146,7 +146,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             'shopperName' => [
                 'firstName' => $billingAddress?->getFirstName() ?? '',
                 'lastName' => $billingAddress?->getLastName() ?? '',
-            ]
+            ],
         ];
 
         $payload = $this->add3DSecureFlags($receivedPayload, $payload);

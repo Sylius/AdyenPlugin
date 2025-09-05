@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart;
 
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
