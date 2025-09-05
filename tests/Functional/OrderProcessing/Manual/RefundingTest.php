@@ -16,12 +16,15 @@ namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing\Manual;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\OrderItemUnitInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Mailer\Sender\SenderInterface;
+use Sylius\RefundPlugin\Command\RefundUnits;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
-use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
 use Sylius\RefundPlugin\Event\UnitRefunded;
+use Sylius\RefundPlugin\Model\OrderItemUnitRefund;
+use Symfony\Component\Messenger\MessageBusInterface;
 use Tests\Sylius\AdyenPlugin\Functional\AdyenTestCase;
 use Webmozart\Assert\Assert;
 
@@ -35,7 +38,7 @@ final class RefundingTest extends AdyenTestCase
         $container->set('sylius.email_sender', $this->createMock(SenderInterface::class));
     }
 
-    public function testRefundingManualCapturePaymentCreatesRefundPaymentEntity(): void
+    public function testPartialRefund(): void
     {
         $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
 
@@ -47,18 +50,17 @@ final class RefundingTest extends AdyenTestCase
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
         self::assertEquals(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
 
-        $this->triggerFullRefund($payment, $order);
+        $partialRefundAmount = (int) ($payment->getAmount() * 0.5);
+        self::assertLessThan($payment->getAmount(), $partialRefundAmount);
+
+        $refundPayment = $this->createRefundPayment($payment, $order, $partialRefundAmount);
 
         $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
         $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
 
         self::assertCount(1, $refundPayments);
-
-        /** @var RefundPaymentInterface $refundPayment */
-        $refundPayment = $refundPayments[0];
-
         self::assertEquals(RefundPaymentInterface::STATE_NEW, $refundPayment->getState());
-        self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
+        self::assertEquals($partialRefundAmount, $refundPayment->getAmount());
         self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
 
         $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
@@ -66,11 +68,11 @@ final class RefundingTest extends AdyenTestCase
         self::assertCount(1, $adyenReferences);
         self::assertEquals($payment, $adyenReferences[0]->getPayment());
 
-        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
+        self::assertEquals(OrderPaymentStates::STATE_PARTIALLY_REFUNDED, $order->getPaymentState());
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
     }
 
-    public function testFullRefundWithWebhookCompletesRefundPayment(): void
+    public function testPartialRefundWithWebhook(): void
     {
         $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
 
@@ -79,68 +81,19 @@ final class RefundingTest extends AdyenTestCase
 
         $this->capturePaymentAndCompleteOrder($payment, $order);
 
-        $this->triggerFullRefund($payment, $order);
+        $partialRefundAmount = (int) ($payment->getAmount() * 0.5);
+        self::assertLessThan($payment->getAmount(), $partialRefundAmount);
 
-        $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
-        $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
-
-        self::assertCount(1, $refundPayments);
-
-        /** @var RefundPaymentInterface $refundPayment */
-        $refundPayment = $refundPayments[0];
-
-        $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
-        $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
-
-        self::assertCount(1, $adyenReferences);
-        $adyenReference = $adyenReferences[0];
-
-        $this->simulateWebhook(
-            $payment,
-            EventCodeResolverInterface::EVENT_REFUND,
-            true,
-            [],
-            $adyenReference->getPspReference(),
-            $order->getNumber(),
-            null,
-            $payment->getDetails()['pspReference'],
-        );
+        $refundPayment = $this->createRefundPayment($payment, $order, $partialRefundAmount);
+        $this->simulateRefundWebhook($payment, $order, $refundPayment);
 
         $this->getEntityManager()->refresh($refundPayment);
         $this->getEntityManager()->refresh($order);
 
-        self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
-
-        $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
-        $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
-        self::assertCount(1, $adyenReferences);
-        self::assertEquals($payment, $adyenReferences[0]->getPayment());
-
-        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
-        self::assertEquals(PaymentInterface::STATE_REFUNDED, $payment->getState());
-    }
-
-    public function testPartialRefundCreatesRefundPaymentEntity(): void
-    {
-        $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
-
-        $order = $this->testOrder;
-        $payment = $order->getLastPayment();
-
-        $this->capturePaymentAndCompleteOrder($payment, $order);
-
-        $partialRefundAmount = $payment->getAmount() - 1000;
-        self::assertLessThan($payment->getAmount(), $partialRefundAmount);
-        $this->triggerPartialRefund($payment, $order, $partialRefundAmount);
-
         $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
         $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
 
         self::assertCount(1, $refundPayments);
-
-        /** @var RefundPaymentInterface $refundPayment */
-        $refundPayment = $refundPayments[0];
-
         self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
         self::assertEquals($partialRefundAmount, $refundPayment->getAmount());
         self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
@@ -154,7 +107,7 @@ final class RefundingTest extends AdyenTestCase
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
     }
 
-    public function testMultiplePartialRefundsReachingOrderTotal(): void
+    public function testFullRefund(): void
     {
         $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
 
@@ -163,158 +116,113 @@ final class RefundingTest extends AdyenTestCase
 
         $this->capturePaymentAndCompleteOrder($payment, $order);
 
-        $firstRefundAmount = (int) ($payment->getAmount() * 0.3);
-        $this->triggerPartialRefund($payment, $order, $firstRefundAmount);
-
-        $secondRefundAmount = $payment->getAmount() - $firstRefundAmount;
-        $this->triggerPartialRefund($payment, $order, $secondRefundAmount);
+        $refundPayment = $this->createRefundPayment($payment, $order, $payment->getAmount());
 
         $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
         $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
 
-        self::assertCount(2, $refundPayments);
-
-        $totalRefundAmount = array_sum(array_map(fn ($refund) => $refund->getAmount(), $refundPayments));
-        self::assertEquals($payment->getAmount(), $totalRefundAmount);
-
-        $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
-        foreach ($refundPayments as $refundPayment) {
-            self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
-            self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
-
-            $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
-            self::assertCount(1, $adyenReferences);
-            self::assertEquals($payment, $adyenReferences[0]->getPayment());
-        }
-
-        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
-        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
-    }
-
-    public function testThreeUnequalPartialRefundsReachingOrderTotal(): void
-    {
-        $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
-
-        $order = $this->testOrder;
-        $payment = $order->getLastPayment();
-
-        $this->capturePaymentAndCompleteOrder($payment, $order);
-
-        $firstRefundAmount = (int) ($payment->getAmount() * 0.25);
-        $this->triggerPartialRefund($payment, $order, $firstRefundAmount);
-
-        $secondRefundAmount = (int) ($payment->getAmount() * 0.35);
-        $this->triggerPartialRefund($payment, $order, $secondRefundAmount);
-
-        $thirdRefundAmount = $payment->getAmount() - $firstRefundAmount - $secondRefundAmount;
-        $this->triggerPartialRefund($payment, $order, $thirdRefundAmount);
-
-        $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
-        $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
-
-        self::assertCount(3, $refundPayments);
-
-        $totalRefundAmount = array_sum(array_map(fn ($refund) => $refund->getAmount(), $refundPayments));
-        self::assertEquals($payment->getAmount(), $totalRefundAmount);
+        self::assertCount(1, $refundPayments);
+        self::assertEquals(RefundPaymentInterface::STATE_NEW, $refundPayment->getState());
+        self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
+        self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
 
         $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
-        foreach ($refundPayments as $refundPayment) {
-            self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
-            self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
-
-            $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
-            self::assertCount(1, $adyenReferences);
-            self::assertEquals($payment, $adyenReferences[0]->getPayment());
-        }
-
-        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
-        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
-    }
-
-    public function testFiveSmallPartialRefundsReachingOrderTotal(): void
-    {
-        $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
-
-        $order = $this->testOrder;
-        $payment = $order->getLastPayment();
-
-        $this->capturePaymentAndCompleteOrder($payment, $order);
-
-        $refundTotal = $payment->getAmount();
-
-        $refundAmounts = [
-            (int) ($refundTotal * 0.15),
-            (int) ($refundTotal * 0.25),
-            (int) ($refundTotal * 0.20),
-            (int) ($refundTotal * 0.30),
-        ];
-
-        $refundAmounts[] = $refundTotal - array_sum($refundAmounts);
-        $expectedRefundCount = count($refundAmounts);
-
-        foreach ($refundAmounts as $refundAmount) {
-            self::assertGreaterThan(0, $refundAmount);
-            $this->triggerPartialRefund($payment, $order, $refundAmount);
-        }
-
-        $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
-        $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
-
-        self::assertCount($expectedRefundCount, $refundPayments);
-
-        $totalRefundAmount = array_sum(array_map(fn ($refund) => $refund->getAmount(), $refundPayments));
-        self::assertEquals($payment->getAmount(), $totalRefundAmount);
-
-        $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
-        foreach ($refundPayments as $refundPayment) {
-            self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
-            self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
-            self::assertGreaterThan(0, $refundPayment->getAmount());
-
-            $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
-            self::assertCount(1, $adyenReferences);
-            self::assertEquals($payment, $adyenReferences[0]->getPayment());
-        }
-
-        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
-        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
-    }
-
-    public function testPartialRefundThenFullRefund(): void
-    {
-        $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
-
-        $order = $this->testOrder;
-        $payment = $order->getLastPayment();
-
-        $this->capturePaymentAndCompleteOrder($payment, $order);
-
-        $partialRefundAmount = (int) ($payment->getAmount() * 0.3);
-        self::assertLessThan($payment->getAmount(), $partialRefundAmount);
-        $this->triggerPartialRefund($payment, $order, $partialRefundAmount);
+        $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
+        self::assertCount(1, $adyenReferences);
+        self::assertEquals($payment, $adyenReferences[0]->getPayment());
 
         self::assertEquals(OrderPaymentStates::STATE_PARTIALLY_REFUNDED, $order->getPaymentState());
+        self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
+    }
 
-        $remainingAmount = $payment->getAmount() - $partialRefundAmount;
-        $this->triggerPartialRefund($payment, $order, $remainingAmount);
+    public function testFullRefundWithWebhook(): void
+    {
+        $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
+
+        $order = $this->testOrder;
+        $payment = $order->getLastPayment();
+
+        $this->capturePaymentAndCompleteOrder($payment, $order);
+
+        $refundPayment = $this->createRefundPayment($payment, $order, $payment->getAmount());
+        $this->simulateRefundWebhook($payment, $order, $refundPayment);
+
+        $this->getEntityManager()->refresh($refundPayment);
+        $this->getEntityManager()->refresh($order);
+        $this->getEntityManager()->refresh($payment);
 
         $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
         $refundPayments = $refundPaymentRepository->findBy(['order' => $order]);
 
-        self::assertCount(2, $refundPayments);
-
-        $totalRefundAmount = array_sum(array_map(fn ($refund) => $refund->getAmount(), $refundPayments));
-        self::assertEquals($payment->getAmount(), $totalRefundAmount);
+        self::assertCount(1, $refundPayments);
+        self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
+        self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
+        self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
 
         $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
-        foreach ($refundPayments as $refundPayment) {
+        $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
+        self::assertCount(1, $adyenReferences);
+        self::assertEquals($payment, $adyenReferences[0]->getPayment());
+
+        self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
+        self::assertEquals(PaymentInterface::STATE_REFUNDED, $payment->getState());
+    }
+
+    public function testMultiplePartialRefundsWithWebhookReachingOrderTotal(): void
+    {
+        $this->setupOrderWithAdyenPayment(PaymentCaptureMode::MANUAL);
+
+        $order = $this->testOrder;
+        $payment = $order->getLastPayment();
+
+        $this->capturePaymentAndCompleteOrder($payment, $order);
+
+        $totalAmount = $payment->getAmount();
+
+        $refundAmounts = [
+            (int) ($totalAmount * 0.25),  // 25%
+            (int) ($totalAmount * 0.35),  // 35%
+            (int) ($totalAmount * 0.15),  // 15%
+        ];
+        $refundAmounts[] = $totalAmount - array_sum($refundAmounts);
+
+        foreach ($refundAmounts as $index => $refundAmount) {
+            $refundPayment = $this->createRefundPayment($payment, $order, $refundAmount);
+            $this->simulateRefundWebhook($payment, $order, $refundPayment);
+
+            $this->getEntityManager()->refresh($refundPayment);
+            $this->getEntityManager()->refresh($order);
+
+            if ($index < count($refundAmounts) - 1) {
+                self::assertEquals(
+                    OrderPaymentStates::STATE_PARTIALLY_REFUNDED,
+                    $order->getPaymentState(),
+                    sprintf('Order should be partially_refunded after refund %d of %d', $index + 1, count($refundAmounts)),
+                );
+            }
+        }
+
+        $this->getEntityManager()->refresh($order);
+        $this->getEntityManager()->refresh($payment);
+
+        $refundPaymentRepository = self::getContainer()->get('sylius_refund.repository.refund_payment');
+        $allRefundPayments = $refundPaymentRepository->findBy(['order' => $order]);
+
+        self::assertCount(4, $allRefundPayments);
+
+        $totalRefundedAmount = 0;
+        foreach ($allRefundPayments as $refundPayment) {
             self::assertEquals(RefundPaymentInterface::STATE_COMPLETED, $refundPayment->getState());
             self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
+            $totalRefundedAmount += $refundPayment->getAmount();
 
+            $adyenReferenceRepository = self::getContainer()->get('sylius_adyen.repository.adyen_reference');
             $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
             self::assertCount(1, $adyenReferences);
             self::assertEquals($payment, $adyenReferences[0]->getPayment());
         }
+
+        self::assertEquals($totalAmount, $totalRefundedAmount);
 
         self::assertEquals(OrderPaymentStates::STATE_REFUNDED, $order->getPaymentState());
         self::assertEquals(PaymentInterface::STATE_COMPLETED, $payment->getState());
@@ -339,67 +247,69 @@ final class RefundingTest extends AdyenTestCase
         self::assertEquals(OrderPaymentStates::STATE_PAID, $order->getPaymentState());
     }
 
-    private function triggerFullRefund(PaymentInterface $payment, OrderInterface $order): void
-    {
+    private function createRefundPayment(
+        PaymentInterface $payment,
+        OrderInterface $order,
+        int $refundAmount,
+    ): RefundPaymentInterface {
         $container = self::getContainer();
-        $entityManager = $this->getEntityManager();
 
-        $refundPaymentFactory = $container->get('sylius_refund.factory.refund_payment');
-        $refundPayment = $refundPaymentFactory->createWithData(
-            $order,
-            $payment->getAmount(),
-            $order->getCurrencyCode(),
-            RefundPaymentInterface::STATE_NEW,
-            $payment->getMethod(),
-        );
+        // Get order item units to refund
+        $unitsToRefund = [];
+        $remainingAmount = $refundAmount;
 
-        $entityManager->persist($refundPayment);
-        $entityManager->flush();
+        /** @var OrderItemUnitInterface[] $units */
+        $units = [];
+        foreach ($order->getItems() as $item) {
+            foreach ($item->getUnits() as $unit) {
+                $units[] = $unit;
+            }
+        }
 
-        $refundPaymentGeneratedEvent = new RefundPaymentGenerated(
-            $refundPayment->getId(),
+        // Calculate how much to refund from each unit
+        foreach ($units as $unit) {
+            if ($remainingAmount <= 0) {
+                break;
+            }
+
+            $unitTotal = $unit->getTotal();
+            $refundForThisUnit = min($unitTotal, $remainingAmount);
+
+            if ($refundForThisUnit > 0) {
+                $unitsToRefund[] = new OrderItemUnitRefund($unit->getId(), $refundForThisUnit);
+                $remainingAmount -= $refundForThisUnit;
+            }
+        }
+
+        // Dispatch RefundUnits command
+        /** @var MessageBusInterface $commandBus */
+        $commandBus = $container->get('messenger.default_bus');
+
+        $command = new RefundUnits(
             $order->getNumber(),
-            $payment->getAmount(),
-            $order->getCurrencyCode(),
+            $unitsToRefund,
             $payment->getMethod()->getId(),
-            $payment->getId(),
+            'Test refund',
         );
 
-        $eventBus = $container->get('sylius.event_bus');
-        $eventBus->dispatch($refundPaymentGeneratedEvent);
+        $commandBus->dispatch($command);
 
-        $order->setPaymentState(OrderPaymentStates::STATE_REFUNDED);
-        $entityManager->flush();
+        // Get the created refund payment
+        $refundPaymentRepository = $container->get('sylius_refund.repository.refund_payment');
+        $refundPayments = $refundPaymentRepository->findBy(['order' => $order], ['id' => 'DESC']);
+
+        Assert::notEmpty($refundPayments, 'Expected refund payment to be created');
+
+        return $refundPayments[0];
     }
 
-    private function triggerPartialRefund(PaymentInterface $payment, OrderInterface $order, int $refundAmount): void
-    {
+    private function simulateRefundWebhook(
+        PaymentInterface $payment,
+        OrderInterface $order,
+        RefundPaymentInterface $refundPayment,
+    ): void {
         $container = self::getContainer();
         $entityManager = $this->getEntityManager();
-
-        $refundPaymentFactory = $container->get('sylius_refund.factory.refund_payment');
-        $refundPayment = $refundPaymentFactory->createWithData(
-            $order,
-            $refundAmount,
-            $order->getCurrencyCode(),
-            RefundPaymentInterface::STATE_NEW,
-            $payment->getMethod(),
-        );
-
-        $entityManager->persist($refundPayment);
-        $entityManager->flush();
-
-        $refundPaymentGeneratedEvent = new RefundPaymentGenerated(
-            $refundPayment->getId(),
-            $order->getNumber(),
-            $refundAmount,
-            $order->getCurrencyCode(),
-            $payment->getMethod()->getId(),
-            $payment->getId(),
-        );
-
-        $eventBus = $container->get('sylius.event_bus');
-        $eventBus->dispatch($refundPaymentGeneratedEvent);
 
         $adyenReferenceRepository = $container->get('sylius_adyen.repository.adyen_reference');
         $adyenReferences = $adyenReferenceRepository->findByRefundPayment($refundPayment);
@@ -432,9 +342,10 @@ final class RefundingTest extends AdyenTestCase
             $unitRefundedEvent = new UnitRefunded(
                 $order->getNumber(),
                 999,
-                $refundAmount,
+                $refundPayment->getAmount(),
             );
 
+            $eventBus = $container->get('sylius.event_bus');
             $eventBus->dispatch($unitRefundedEvent);
         }
     }
