@@ -23,12 +23,10 @@ use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Symfony\Component\Messenger\HandleTrait;
 
 final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 {
     use GatewayConfigFromPaymentTrait;
-    use HandleTrait;
 
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
@@ -48,10 +46,9 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
             throw new AdyenPaymentMethodNotFoundException($paymentMethodCode);
         }
 
-        /** @var CustomerInterface $customer */
         $customer = $order->getCustomer();
 
-        $shopperReference = $customer !== null && $customer->hasUser() === true
+        $shopperReference = $customer instanceof CustomerInterface && $customer->hasUser() === true
             ? $this->shopperReferenceResolver->resolve($paymentMethod, $customer)
             : null;
 
@@ -60,12 +57,12 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $response = $client->getPaymentMethodsResponse($order, $shopperReference);
 
         $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods());
-        $available = $this->paymentMethodsFilter->filter($available);
+        $availableFiltered = $this->paymentMethodsFilter->filter($available);
         $stored = $this->paymentMethodsMapper->mapStored($response->getStoredPaymentMethods());
 
         return new PaymentMethodData(
-            paymentMethods: $available,
-            storedPaymentMethods: $this->storedPaymentMethodsFilter->filterAgainstAvailable($stored, $available),
+            paymentMethods: $availableFiltered,
+            storedPaymentMethods: $this->storedPaymentMethodsFilter->filterAgainstAvailable($stored, $availableFiltered),
         );
     }
 }
