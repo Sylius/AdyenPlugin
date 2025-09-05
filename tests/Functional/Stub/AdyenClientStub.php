@@ -154,7 +154,7 @@ final class AdyenClientStub implements AdyenClientInterface
     ): array {
         return [
             'status' => ResponseStatus::RECEIVED,
-            'pspReference' => 'REFUND_PSP_REF',
+            'pspReference' => 'REFUND_PSP_REF_' . $refund->id(),
         ];
     }
 

@@ -260,12 +260,13 @@ final class CheckoutTest extends AdyenTestCase
         $responseData = json_decode((string) $response->getContent(), true);
         self::assertEquals('Refused', $responseData['resultCode']);
 
-        $payment = $this->testOrder->getLastPayment();
-        self::assertEquals(PaymentInterface::STATE_FAILED, $payment->getState());
-        self::assertEquals('Refused', $payment->getDetails()['resultCode']);
-        self::assertEquals('REFUSED_PSP_REF', $payment->getDetails()['pspReference']);
-        self::assertArrayHasKey('refusalReason', $payment->getDetails());
-        self::assertEquals('Insufficient funds', $payment->getDetails()['refusalReason']);
+        $failedPayment = $this->testOrder->getLastPayment(PaymentInterface::STATE_FAILED);
+        self::assertNotNull($failedPayment);
+        self::assertEquals(PaymentInterface::STATE_FAILED, $failedPayment->getState());
+        self::assertEquals('Refused', $failedPayment->getDetails()['resultCode']);
+        self::assertEquals('REFUSED_PSP_REF', $failedPayment->getDetails()['pspReference']);
+        self::assertArrayHasKey('refusalReason', $failedPayment->getDetails());
+        self::assertEquals('Insufficient funds', $failedPayment->getDetails()['refusalReason']);
     }
 
     public function testOrderPaymentStateAndAmount(): void

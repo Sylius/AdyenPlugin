@@ -9,6 +9,10 @@ parameters:
         - offline
         - adyen
 
+sylius_refund:
+    pdf_generator:
+        enabled: false
+
 sylius_adyen:
     supported_types: ~
 

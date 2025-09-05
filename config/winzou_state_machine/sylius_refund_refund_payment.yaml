@@ -13,3 +13,7 @@ winzou_state_machine:
                     do: ["@sylius_adyen.processor.refund.refund_payment_state", "process"]
                     args: ["object"]
                     priority: 100
+                resolve_order_payment_state:
+                    on: ["complete", "confirm"]
+                    do: ["@sylius_refund.state_resolver.order_fully_refunded", "resolve"]
+                    args: ["object.getOrder().getNumber()"]

@@ -40,9 +40,9 @@ final class PaymentReversalTest extends AdyenTestCase
         $this->reverseOrderPaymentAction = $container->get('sylius_adyen.controller.admin.order_payment.reverse');
     }
 
-    protected function createTestOrder(): OrderInterface
+    protected function createTestOrder(bool $setup = true): OrderInterface
     {
-        $order = parent::createTestOrder();
+        $order = parent::createTestOrder($setup);
         $order->setState(OrderInterface::STATE_NEW);
         $order->setCheckoutState(OrderCheckoutStates::STATE_COMPLETED);
 
@@ -67,7 +67,7 @@ final class PaymentReversalTest extends AdyenTestCase
         $paymentMethodRepository = self::getContainer()->get('sylius.repository.payment_method');
         $paymentMethodRepository->add($nonAdyenPaymentMethod);
 
-        $order = $this->createTestOrder();
+        $order = $this->createTestOrder(false);
         $order->setState(OrderInterface::STATE_NEW);
         $order->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
         $payment = $order->getLastPayment();

@@ -27,16 +27,24 @@ use Sylius\AdyenPlugin\Repository\AdyenReferenceRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
+use Sylius\Component\Core\Model\Address;
+use Sylius\Component\Core\Model\Channel;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\OrderItem;
+use Sylius\Component\Core\Model\OrderItemUnit;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
+use Sylius\Component\Core\Model\Product;
 use Sylius\Component\Core\OrderCheckoutStates;
+use Sylius\Component\Currency\Model\Currency;
+use Sylius\Component\Locale\Model\Locale;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Tests\Sylius\AdyenPlugin\Entity\ProductVariant;
 use Tests\Sylius\AdyenPlugin\Functional\Stub\AdyenClientStub;
 
 abstract class AdyenTestCase extends WebTestCase
@@ -139,7 +147,7 @@ abstract class AdyenTestCase extends WebTestCase
         $entityManager->clear();
     }
 
-    protected function createTestOrder(): OrderInterface
+    protected function createTestOrder(bool $setup = true): OrderInterface
     {
         $order = new Order();
 
@@ -150,6 +158,66 @@ abstract class AdyenTestCase extends WebTestCase
         $property = $reflection->getProperty('id');
         $property->setAccessible(true);
         $property->setValue($order, $uniqueId);
+
+        if ($setup) {
+            $locale = new Locale();
+            $locale->setCode('en_US');
+            $this->getEntityManager()->persist($locale);
+
+            $currency = new Currency();
+            $currency->setCode('USD');
+            $this->getEntityManager()->persist($currency);
+
+            $channel = new Channel();
+            $channel->setCode('WEB_US');
+            $channel->setName('Web US');
+            $channel->setDefaultLocale($locale);
+            $channel->addLocale($locale);
+            $channel->setBaseCurrency($currency);
+            $channel->addCurrency($currency);
+            $channel->setTaxCalculationStrategy('order_items_based');
+            $this->getEntityManager()->persist($channel);
+
+            $order->setChannel($channel);
+
+            $billingAddress = new Address();
+            $billingAddress->setFirstName('John');
+            $billingAddress->setLastName('Doe');
+            $billingAddress->setStreet('123 Main St');
+            $billingAddress->setCity('Anytown');
+            $billingAddress->setPostcode('12345');
+            $billingAddress->setCountryCode('US');
+            $billingAddress->setProvinceCode('CA');
+            $billingAddress->setPhoneNumber('555-1234');
+
+            $order->setBillingAddress($billingAddress);
+
+            $product = new Product();
+            $product->setCode('TEST_PRODUCT_' . $uniqueId);
+            $product->setCurrentLocale('en_US');
+            $product->setName('test product name');
+            $product->setSlug('test product name');
+            $this->getEntityManager()->persist($product);
+
+            $variant = new ProductVariant();
+            $variant->setCode('TEST_VARIANT_' . $uniqueId);
+            $variant->setProduct($product);
+            $this->getEntityManager()->persist($variant);
+
+            $orderItem = new OrderItem();
+            $orderItem->setVariant($variant);
+            $orderItem->setUnitPrice(10000);
+
+            $orderItemUnit = new OrderItemUnit($orderItem);
+            $orderItem->addUnit($orderItemUnit);
+
+            $unitReflection = new \ReflectionClass($orderItemUnit);
+            $unitIdProperty = $unitReflection->getProperty('id');
+            $unitIdProperty->setAccessible(true);
+            $unitIdProperty->setValue($orderItemUnit, $uniqueId);
+
+            $order->addItem($orderItem);
+        }
 
         $order->setNumber($uniqueNumber);
         $order->setTokenValue('test_token_' . $uniqueId);
