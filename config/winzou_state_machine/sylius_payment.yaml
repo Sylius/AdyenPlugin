@@ -36,6 +36,10 @@ winzou_state_machine:
                     on: ["complete"]
                     do: ["@sylius_adyen.state_machine.guard.payment", "canBeCompleted"]
                     args: ["object"]
+                guard_manual_authorize:
+                    on: ["authorize"]
+                    do: ["@sylius_adyen.state_machine.guard.payment", "canBeAuthorized"]
+                    args: ["object"]
                 guard_manual_cancel:
                     on: ["cancel"]
                     do: ["@sylius_adyen.state_machine.guard.payment", "canBeCancelled"]

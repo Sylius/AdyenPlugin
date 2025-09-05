@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Checker;
 
 use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Payment\Model\PaymentInterface;
 use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
@@ -25,6 +26,7 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
     /** @param RepositoryInterface<AdyenPaymentDetailInterface> $adyenPaymentDetailRepository */
     public function __construct(
         private RepositoryInterface $adyenPaymentDetailRepository,
+        private PaymentLinkRepositoryInterface $paymentLinkRepository,
     ) {
     }
 
@@ -64,5 +66,14 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
         $gatewayConfig = $paymentMethod->getGatewayConfig();
 
         return $mode === ($gatewayConfig?->getConfig()['captureMode'] ?? null);
+    }
+
+    public function isPayByLink(PaymentInterface $payment): bool
+    {
+        if (!$this->isAdyenPayment($payment)) {
+            return false;
+        }
+
+        return 0 !== count($this->paymentLinkRepository->findBy(['payment' => $payment], limit: 1));
     }
 }

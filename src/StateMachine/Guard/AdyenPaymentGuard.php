@@ -52,4 +52,17 @@ final class AdyenPaymentGuard
 
         return false;
     }
+
+    public function canBeAuthorized(PaymentInterface $payment): bool
+    {
+        if (
+            !$this->adyenPaymentMethodChecker->isAdyenPayment($payment) ||
+            $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC) ||
+            $this->adyenPaymentMethodChecker->isPayByLink($payment)
+        ) {
+            return true;
+        }
+
+        return PaymentInterface::STATE_NEW === $payment->getState();
+    }
 }

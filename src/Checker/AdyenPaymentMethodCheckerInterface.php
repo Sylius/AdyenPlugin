@@ -23,4 +23,6 @@ interface AdyenPaymentMethodCheckerInterface
     public function isAdyenPaymentMethod(PaymentMethodInterface $paymentMethod): bool;
 
     public function isCaptureMode(PaymentInterface $payment, string $mode): bool;
+
+    public function isPayByLink(PaymentInterface $payment): bool;
 }
