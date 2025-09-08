@@ -238,7 +238,7 @@ class PaymentStatusReceivedHandlerTest extends TestCase
             ],
         ];
 
-        foreach (PaymentStatusReceivedHandler::ALLOWED_EVENT_NAMES as $eventName) {
+        foreach (PaymentStatusReceivedHandler::ALLOWED_RESPONSE_STATUSES as $eventName) {
             $result[sprintf('valid result code: %s', $eventName)] = [
                 $eventName, true,
             ];
