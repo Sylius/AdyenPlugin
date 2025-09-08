@@ -1,0 +1,23 @@
+sylius_adyen:
+    payment_methods:
+        allowed_types:
+            - 'scheme'           # Cards (American Express, Bancontact card, Cartes Bancaires, China Union Pay, Diners, Discover, Maestro, Mastercard, Visa)
+            - 'ach'              # ACH Direct Debit       https://docs.adyen.com/payment-methods/ach-direct-debit/
+            - 'alipay'           # Alipay                 https://docs.adyen.com/payment-methods/alipay/
+            - 'alipay_hk'        # Alipay HK              https://docs.adyen.com/payment-methods/alipayhk/
+            - 'alma'             # Alma                   https://docs.adyen.com/payment-methods/alma/
+            - 'directdebit_GB'   # BACS Direct Debit      https://docs.adyen.com/payment-methods/bacs/
+            - 'bcmc_mobile'      # Bancontact mobile      https://docs.adyen.com/payment-methods/bancontact/bancontact-mobile/
+            - 'klarna_b2b'       # Brillie via Klarna     https://docs.adyen.com/payment-methods/klarna/billie/
+            - 'blik'             # BLIK                   https://docs.adyen.com/payment-methods/blik/
+            - 'googlepay'        # Google Pay             https://docs.adyen.com/payment-methods/google-pay/
+            - 'ideal'            # iDEAL                  https://docs.adyen.com/payment-methods/ideal/
+            - 'klarna_paynow'    # Klarna - Pay now       https://docs.adyen.com/payment-methods/klarna/
+            - 'klarna'           # Klarna - Pay later     https://docs.adyen.com/payment-methods/klarna/
+            - 'klarna_account'   # Klarna - Pay over time https://docs.adyen.com/payment-methods/klarna/
+            - 'scalapay_3x'      # Scalapay               https://docs.adyen.com/payment-methods/scalapay/
+            - 'paypal'           # PayPal                 https://docs.adyen.com/payment-methods/paypal/
+            - 'onlineBanking_PL' # Online Banking Poland  https://docs.adyen.com/payment-methods/online-banking-poland/
+            - 'twint'            # TWINT                  https://docs.adyen.com/payment-methods/twint/
+            - 'wechatpayWeb'     # WeChat Pay             https://docs.adyen.com/payment-methods/wechat-pay/
+            - 'wechatpayQR'      # WeChat Pay             https://docs.adyen.com/payment-methods/wechat-pay/

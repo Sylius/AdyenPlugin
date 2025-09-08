@@ -13,9 +13,10 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
+use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ConfigurationProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
-use Sylius\AdyenPlugin\Provider\PaymentMethodsForOrderProvider;
+use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -33,7 +34,7 @@ abstract class AbstractConfigurationAction
         iterable $configurationProviders,
         private readonly CartContextInterface $cartContext,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
-        private readonly PaymentMethodsForOrderProvider $paymentMethodsForOrderProvider,
+        private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         private readonly CountryProviderInterface $countryProvider,
     ) {
         Assert::allIsInstanceOf(
@@ -49,14 +50,14 @@ abstract class AbstractConfigurationAction
         /** @var OrderInterface $order */
         $order = $this->cartContext->getCart();
 
+        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder(AdyenClientProviderInterface::FACTORY_NAME, $order);
+
         $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
-
-        $config = $this->paymentMethodsForOrderProvider->provideConfiguration($order, $paymentMethod->getCode());
-        Assert::isArray($config);
+        $config = $paymentMethod->getGatewayConfig()->getConfig();
 
         $configuration = [
-            'paymentMethods' => $config['paymentMethods'],
+            'paymentMethods' => $paymentMethodsData,
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],

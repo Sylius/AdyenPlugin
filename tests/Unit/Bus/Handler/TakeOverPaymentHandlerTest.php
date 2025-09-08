@@ -19,7 +19,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Bus\Handler\TakeOverPaymentHandler;
 use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
-use Sylius\AdyenPlugin\Exception\AdyenNotFoundException;
+use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
@@ -78,7 +78,7 @@ class TakeOverPaymentHandlerTest extends TestCase
 
     public function testThrowsExceptionWhenPaymentMethodNotFound(): void
     {
-        $this->expectException(AdyenNotFoundException::class);
+        $this->expectException(AdyenPaymentMethodNotFoundException::class);
 
         $paymentMethod = new PaymentMethod();
         $paymentMethod->setCode(self::TEST_PAYMENT_CODE);
