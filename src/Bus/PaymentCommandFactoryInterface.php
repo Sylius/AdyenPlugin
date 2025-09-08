@@ -32,6 +32,7 @@ interface PaymentCommandFactoryInterface
         EventCodeResolverInterface::EVENT_AUTHORIZATION => AuthorizePayment::class,
         EventCodeResolverInterface::EVENT_CANCELLATION => PaymentCancelledCommand::class,
         EventCodeResolverInterface::EVENT_CAPTURE => CapturePayment::class,
+        EventCodeResolverInterface::EVENT_CAPTURE_FAILED => PaymentFailedCommand::class,
         EventCodeResolverInterface::EVENT_PAY_BY_LINK_AUTHORISATION => AuthorizePaymentByLink::class,
         EventCodeResolverInterface::EVENT_REFUND => PaymentRefunded::class,
         ResponseStatus::AUTHORISED => AuthorizePayment::class, // Special case for external page completion, sync
