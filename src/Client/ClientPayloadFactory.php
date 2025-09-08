@@ -154,11 +154,6 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        $order = $payment->getOrder();
-        if ($order instanceof OrderInterface) {
-            $payload = $this->addEsdIfApplicable($payload, $options, $order, $payment);
-        }
-
         return new PaymentCaptureRequest($payload);
     }
 

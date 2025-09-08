@@ -248,50 +248,6 @@ final class ClientPayloadFactoryTest extends TestCase
         self::assertArrayNotHasKey('enhancedSchemeData.customerReference', $result['additionalData'] ?? []);
     }
 
-    public function testItAddsEsdForCaptureRequests(): void
-    {
-        $options = new ArrayObject([
-            'merchantAccount' => 'TestMerchant',
-            'esdEnabled' => true,
-        ]);
-
-        $order = $this->createMock(OrderInterface::class);
-
-        $payment = $this->createMock(PaymentInterface::class);
-        $payment->expects($this->once())->method('getAmount')->willReturn(10000);
-        $payment->expects($this->once())->method('getCurrencyCode')->willReturn('USD');
-        $payment
-            ->expects($this->any())
-            ->method('getDetails')
-            ->willReturn([
-                'pspReference' => 'PSP123',
-                'paymentMethod' => ['brand' => 'mc'],
-            ])
-        ;
-        $payment->expects($this->once())->method('getOrder')->willReturn($order);
-
-        $customer = $this->createMock(CustomerInterface::class);
-        $customer->expects($this->any())->method('getId')->willReturn(456);
-
-        $order->expects($this->any())->method('getCurrencyCode')->willReturn('USD');
-        $order->expects($this->any())->method('getCustomer')->willReturn($customer);
-        $order->expects($this->any())->method('getTaxTotal')->willReturn(200);
-        $order->expects($this->any())->method('getShippingAddress')->willReturn(null);
-        $order->expects($this->any())->method('getItems')->willReturn(new ArrayCollection());
-        $order->expects($this->any())->method('getCreatedAt')->willReturn(new \DateTime('2023-01-01'));
-        $order->expects($this->any())->method('getShippingTotal')->willReturn(500);
-
-        $billingAddress = $this->createMock(AddressInterface::class);
-        $billingAddress->expects($this->any())->method('getCountryCode')->willReturn('US');
-        $order->expects($this->any())->method('getBillingAddress')->willReturn($billingAddress);
-
-        $result = $this->factory->createForCapture($options, $payment);
-
-        self::assertArrayHasKey('additionalData', $result);
-        self::assertEquals('456', $result['additionalData']['enhancedSchemeData.customerReference']);
-        self::assertEquals(200, $result['additionalData']['enhancedSchemeData.totalTaxAmount']);
-    }
-
     public function testItDoesNotAddEsdForNonVisaMastercardBrands(): void
     {
         // Create special collector that returns false for unsupported card brands
