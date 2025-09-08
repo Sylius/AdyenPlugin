@@ -13,9 +13,6 @@ sylius_refund:
     pdf_generator:
         enabled: false
 
-sylius_adyen:
-    supported_types: ~
-
 doctrine:
     orm:
         entity_managers:
