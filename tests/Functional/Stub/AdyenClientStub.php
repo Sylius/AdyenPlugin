@@ -15,7 +15,6 @@ namespace Tests\Sylius\AdyenPlugin\Functional\Stub;
 
 use Adyen\Model\Checkout\PaymentMethod as AdyenPaymentMethod;
 use Adyen\Model\Checkout\PaymentMethodsResponse;
-use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Adyen\Model\Checkout\StoredPaymentMethod as AdyenStoredPaymentMethod;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Client\ResponseStatus;
@@ -126,18 +125,9 @@ final class AdyenClientStub implements AdyenClientInterface
         $this->expiredPaymentLinkIds = [];
     }
 
-    public function submitPayment(
-        string $redirectUrl,
-        array $receivedPayload,
-        OrderInterface $order,
-        bool $manualCapture = false,
-        ?ShopperReferenceInterface $customerIdentifier = null,
-    ): array {
-        if ($this->exception !== null) {
-            throw $this->exception;
-        }
-
-        return $this->submitPaymentResponse;
+    public function getEnvironment(): string
+    {
+        return self::TEST_ENVIRONMENT;
     }
 
     public function getPaymentMethodsResponse(
@@ -152,11 +142,6 @@ final class AdyenClientStub implements AdyenClientInterface
             'paymentMethods' => [new AdyenPaymentMethod(['type' => 'scheme', 'name' => 'Cards'])],
             'storedPaymentMethods' => [],
         ]);
-    }
-
-    public function getEnvironment(): string
-    {
-        return self::TEST_ENVIRONMENT;
     }
 
     public function paymentDetails(
@@ -193,6 +178,20 @@ final class AdyenClientStub implements AdyenClientInterface
         return array_merge($base, $configured);
     }
 
+    public function submitPayment(
+        string $redirectUrl,
+        array $receivedPayload,
+        OrderInterface $order,
+        bool $manualCapture = false,
+        ?ShopperReferenceInterface $customerIdentifier = null,
+    ): array {
+        if ($this->exception !== null) {
+            throw $this->exception;
+        }
+
+        return $this->submitPaymentResponse;
+    }
+
     public function requestRefund(
         PaymentInterface $payment,
         RefundPaymentGenerated $refund,
@@ -221,10 +220,10 @@ final class AdyenClientStub implements AdyenClientInterface
     }
 
     public function removeStoredToken(
-        string $paymentReference,
+        string $storedPaymentMethodReference,
         ShopperReferenceInterface $shopperReference,
-    ): array {
-        return [];
+    ): void {
+        // No action needed for the stub
     }
 
     public function requestCancellation(PaymentInterface $payment): array
@@ -286,8 +285,8 @@ final class AdyenClientStub implements AdyenClientInterface
         return [];
     }
 
-    public function updatesOrderForPaypalExpressCheckout(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderResponse
+    public function updatesOrderForPaypalExpressCheckout(string $pspReference, string $paymentData, OrderInterface $order): array
     {
-        return new PaypalUpdateOrderResponse([]);
+        return [];
     }
 }
