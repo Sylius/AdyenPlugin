@@ -3,6 +3,9 @@ imports:
     - { resource: "@SyliusAdyenPlugin/config/config.yaml" }
     - { resource: "services_test.php" }
 
+sylius_state_machine_abstraction:
+    default_adapter: symfony_workflow
+
 parameters:
     sylius_adyen_api_platform_mapping_path: '%kernel.project_dir%/../../../config/api_resources/'
     sylius_refund.supported_gateways:
