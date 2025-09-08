@@ -56,9 +56,9 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 
         $response = $client->getPaymentMethodsResponse($order, $shopperReference);
 
-        $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods());
+        $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods() ?? []);
         $availableFiltered = $this->paymentMethodsFilter->filter($available);
-        $stored = $this->paymentMethodsMapper->mapStored($response->getStoredPaymentMethods());
+        $stored = $this->paymentMethodsMapper->mapStored($response->getStoredPaymentMethods() ?? []);
 
         return new PaymentMethodData(
             paymentMethods: $availableFiltered,

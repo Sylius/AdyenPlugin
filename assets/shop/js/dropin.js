@@ -184,6 +184,14 @@
         configuration = await _loadConfiguration($container.attributes['data-config-url'].value);
         checkout = await init();
 
+        const oneyConfiguration = {
+            visibility: {
+                personalDetails: 'hidden',
+                billingAddress: 'hidden',
+                deliveryAddress: 'hidden',
+            },
+        }
+
         const dropin = new Dropin(checkout, {
             paymentMethodsConfiguration: {
                 card: {
@@ -205,7 +213,12 @@
                         currency: configuration.amount.currency,
                         value: configuration.amount.value
                     }
-                }
+                },
+                facilypay_3x: oneyConfiguration,
+                facilypay_4x: oneyConfiguration,
+                facilypay_6x: oneyConfiguration,
+                facilypay_10x: oneyConfiguration,
+                facilypay_12x: oneyConfiguration,
             },
             showRemovePaymentMethodButton: true,
             onDisableStoredPaymentMethod: disableStoredPaymentMethodHandler

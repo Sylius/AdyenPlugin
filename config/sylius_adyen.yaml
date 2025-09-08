@@ -15,6 +15,11 @@ sylius_adyen:
             - 'klarna_paynow'    # Klarna - Pay now       https://docs.adyen.com/payment-methods/klarna/
             - 'klarna'           # Klarna - Pay later     https://docs.adyen.com/payment-methods/klarna/
             - 'klarna_account'   # Klarna - Pay over time https://docs.adyen.com/payment-methods/klarna/
+            - 'facilypay_3x'     # Oney                   https://docs.adyen.com/payment-methods/oney/
+            - 'facilypay_4x'     # Oney                   https://docs.adyen.com/payment-methods/oney/
+            - 'facilypay_6x'     # Oney                   https://docs.adyen.com/payment-methods/oney/
+            - 'facilypay_10x'    # Oney                   https://docs.adyen.com/payment-methods/oney/
+            - 'facilypay_12x'    # Oney                   https://docs.adyen.com/payment-methods/oney/
             - 'scalapay_3x'      # Scalapay               https://docs.adyen.com/payment-methods/scalapay/
             - 'paypal'           # PayPal                 https://docs.adyen.com/payment-methods/paypal/
             - 'onlineBanking_PL' # Online Banking Poland  https://docs.adyen.com/payment-methods/online-banking-poland/
