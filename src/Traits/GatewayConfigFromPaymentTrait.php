@@ -13,9 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Traits;
 
-use Payum\Core\Model\GatewayConfigInterface;
 use Sylius\AdyenPlugin\Exception\AdyenNotConfiguredException;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Payment\Model\GatewayConfigInterface;
 
 trait GatewayConfigFromPaymentTrait
 {
