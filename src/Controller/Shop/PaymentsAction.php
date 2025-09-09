@@ -18,7 +18,9 @@ use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityCheckerInterface;
 use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
+use Sylius\AdyenPlugin\Exception\CheckoutValidationException;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
@@ -30,6 +32,7 @@ use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\HandleTrait;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -50,6 +53,7 @@ final class PaymentsAction
         private readonly ShopperReferenceResolverInterface $shopperReferenceResolver,
         private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private readonly OrderCheckoutCompleteIntegrityCheckerInterface $orderCheckoutCompleteIntegrityChecker,
         MessageBusInterface $messageBus,
     ) {
         $this->messageBus = $messageBus;
@@ -58,6 +62,16 @@ final class PaymentsAction
     public function __invoke(Request $request, ?string $code = null): JsonResponse
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
+
+        try {
+            $this->orderCheckoutCompleteIntegrityChecker->check($order);
+        } catch (CheckoutValidationException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         $this->messageBus->dispatch(new PrepareOrderForPayment($order));
 
         if ($code !== null) {

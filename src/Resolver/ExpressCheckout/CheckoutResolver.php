@@ -15,6 +15,7 @@ namespace Sylius\AdyenPlugin\Resolver\ExpressCheckout;
 
 use Doctrine\Persistence\ObjectManager;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityCheckerInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -28,6 +29,7 @@ final class CheckoutResolver implements CheckoutResolverInterface
         private readonly ObjectManager $orderManager,
         private readonly StateMachineInterface $stateMachine,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly OrderCheckoutCompleteIntegrityCheckerInterface $orderCheckoutCompleteIntegrityChecker,
     ) {
     }
 
@@ -43,6 +45,8 @@ final class CheckoutResolver implements CheckoutResolverInterface
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
         $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
+
+        $this->orderCheckoutCompleteIntegrityChecker->check($order);
 
         $this->orderManager->flush();
     }

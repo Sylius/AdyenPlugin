@@ -53,6 +53,7 @@ sylius_adyen:
     runtime:
         invalid_signature: Invalid notification signature provided
         payment_failed_try_again: Payment failed, please try again
+        order_total_changed: Your order total has been changed, refresh the page and try again.
 
 sylius:
     ui:
