@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\CancelPayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
+use Sylius\AdyenPlugin\Bus\Command\PaymentFailedCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFinalizationCommand;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -33,10 +34,11 @@ final class PaymentFinalizationHandler
 
     public function __invoke(PaymentFinalizationCommand $command): void
     {
-        $payment = $command->getPayment();
-        if (!$this->isAccepted($payment)) {
+        if (!$this->isAccepted($command)) {
             return;
         }
+
+        $payment = $command->getPayment();
 
         $this->updatePaymentState($payment, $command->getPaymentTransition());
 
@@ -54,8 +56,13 @@ final class PaymentFinalizationHandler
         }
     }
 
-    private function isAccepted(PaymentInterface $payment): bool
+    private function isAccepted(PaymentFinalizationCommand $command): bool
     {
+        $payment = $command->getPayment();
+        if ($command instanceof PaymentFailedCommand && $payment->getState() !== PaymentInterface::STATE_FAILED) {
+            return true;
+        }
+
         return
             OrderPaymentStates::STATE_PAID !== $payment->getOrder()?->getPaymentState() ||
             $payment->getState() === PaymentGraph::STATE_PROCESSING_REVERSAL ||

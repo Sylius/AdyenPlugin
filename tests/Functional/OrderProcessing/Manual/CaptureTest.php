@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing;
+namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing\Manual;
 
 use Sylius\AdyenPlugin\Bus\Command\RequestCapture;
 use Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction;
@@ -22,7 +22,7 @@ use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Mailer\Sender\SenderInterface;
 use Tests\Sylius\AdyenPlugin\Functional\AdyenTestCase;
 
-final class ManualCaptureTest extends AdyenTestCase
+final class CaptureTest extends AdyenTestCase
 {
     private CaptureOrderPaymentAction $captureOrderPaymentAction;
 

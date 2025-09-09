@@ -105,5 +105,12 @@
         </service>
         <service id="Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface" alias="sylius_adyen.resolver.order.express_checkout.checkout"/>
 
+        <service
+            id="sylius_adyen.state_resolver.order_failed_payment"
+            class="Sylius\AdyenPlugin\Resolver\Order\FailedOrderPaymentStateResolver"
+        >
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
     </services>
 </container>
