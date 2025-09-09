@@ -13,7 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
+use Adyen\Model\Checkout\PaymentCancelRequest;
+use Adyen\Model\Checkout\PaymentCaptureRequest;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Model\Checkout\PaymentRefundRequest;
+use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
 use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
@@ -33,7 +38,10 @@ interface ClientPayloadFactoryInterface
         ?ShopperReferenceInterface $shopperReference = null,
     ): array;
 
-    public function createForPaymentDetails(array $receivedPayload, ?ShopperReferenceInterface $shopperReference = null): array;
+    public function createForPaymentDetails(
+        array $receivedPayload,
+        ?ShopperReferenceInterface $shopperReference = null,
+    ): PaymentDetailsRequest;
 
     public function createForSubmitPayment(
         ArrayObject $options,
@@ -42,11 +50,11 @@ interface ClientPayloadFactoryInterface
         OrderInterface $order,
         bool $manualCapture = false,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): array;
+    ): PaymentRequest;
 
-    public function createForCapture(ArrayObject $options, PaymentInterface $payment): array;
+    public function createForCapture(ArrayObject $options, PaymentInterface $payment): PaymentCaptureRequest;
 
-    public function createForCancel(ArrayObject $options, PaymentInterface $payment): array;
+    public function createForCancel(ArrayObject $options, PaymentInterface $payment): PaymentCancelRequest;
 
     public function createForTokenRemove(
         ArrayObject $options,
@@ -58,7 +66,7 @@ interface ClientPayloadFactoryInterface
         ArrayObject $options,
         PaymentInterface $payment,
         RefundPaymentGenerated $refund,
-    ): array;
+    ): PaymentRefundRequest;
 
     public function createForReversal(ArrayObject $options, PaymentInterface $payment): PaymentReversalRequest;
 
@@ -66,7 +74,12 @@ interface ClientPayloadFactoryInterface
 
     public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest;
 
-    public function createForPaypalPayments(ArrayObject $options, array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array;
+    public function createForPaypalPayments(
+        ArrayObject $options,
+        array $receivedPayload,
+        OrderInterface $order,
+        string $returnUrl = '',
+    ): PaymentRequest;
 
     public function createPaypalUpdateOrderRequest(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderRequest;
 }
