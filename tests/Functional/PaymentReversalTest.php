@@ -233,7 +233,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
         /** @var RefundPaymentInterface $refundPayment */
         $refundPayment = $refundPayments[0];
-        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrderNumber());
+        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrder()->getNumber());
         self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
         self::assertEquals($payment->getCurrencyCode(), $refundPayment->getCurrencyCode());
         self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
@@ -357,7 +357,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
         /** @var RefundPaymentInterface $refundPayment */
         $refundPayment = $refundPayments[0];
-        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrderNumber());
+        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrder()->getNumber());
         self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
         self::assertEquals($payment->getCurrencyCode(), $refundPayment->getCurrencyCode());
         self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());

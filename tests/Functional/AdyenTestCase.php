@@ -38,9 +38,12 @@ use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\Model\Product;
+use Sylius\Component\Core\Model\ProductTranslation;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Currency\Model\Currency;
 use Sylius\Component\Locale\Model\Locale;
+use Sylius\Component\Payment\Model\PaymentMethodTranslation;
+use Sylius\Component\Product\Model\ProductVariantTranslation;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -74,11 +77,15 @@ abstract class AdyenTestCase extends WebTestCase
     {
         parent::setUpBeforeClass();
 
+        $paymentMethodTranslation = new PaymentMethodTranslation();
+        $paymentMethodTranslation->setLocale('en_US');
+        $paymentMethodTranslation->setName(self::PAYMENT_METHOD_NAME);
+
         self::$sharedPaymentMethod = new PaymentMethod();
         self::$sharedPaymentMethod->setCode(self::PAYMENT_METHOD_CODE);
         self::$sharedPaymentMethod->setCurrentLocale('en_US');
         self::$sharedPaymentMethod->setFallbackLocale('en_US');
-        self::$sharedPaymentMethod->setName(self::PAYMENT_METHOD_NAME);
+        self::$sharedPaymentMethod->addTranslation($paymentMethodTranslation);
 
         $gatewayConfig = new GatewayConfig();
         $gatewayConfig->setFactoryName(AdyenClientProviderInterface::FACTORY_NAME);
@@ -193,16 +200,25 @@ abstract class AdyenTestCase extends WebTestCase
 
             $order->setBillingAddress($billingAddress);
 
+            $productTranslation = new ProductTranslation();
+            $productTranslation->setLocale('en_US');
+            $productTranslation->setName('Test Product');
+            $productTranslation->setSlug('test-product');
+
             $product = new Product();
             $product->setCode('TEST_PRODUCT_' . $uniqueId);
             $product->setCurrentLocale('en_US');
-            $product->setName('test product name');
-            $product->setSlug('test product name');
+            $product->addTranslation($productTranslation);
             $this->getEntityManager()->persist($product);
+
+            $variantTranslation = new ProductVariantTranslation();
+            $variantTranslation->setLocale('en_US');
 
             $variant = new ProductVariant();
             $variant->setCode('TEST_VARIANT_' . $uniqueId);
             $variant->setProduct($product);
+            $variant->setCurrentLocale('en_US');
+            $variant->addTranslation($variantTranslation);
             $this->getEntityManager()->persist($variant);
 
             $orderItem = new OrderItem();

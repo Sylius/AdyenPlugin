@@ -20,6 +20,9 @@ doctrine:
                         dir: '%kernel.project_dir%/../../../tests/TestApplication/src/Entity'
                         prefix: Tests\Sylius\AdyenPlugin
 
+sylius_state_machine_abstraction:
+    default_adapter: winzou_state_machine
+
 sylius_refund:
     pdf_generator:
         enabled: false

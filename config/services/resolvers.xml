@@ -105,5 +105,12 @@
         </service>
         <service id="Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface" alias="sylius_adyen.resolver.order.express_checkout.checkout"/>
 
+        <service
+            id="sylius_adyen.refund.state_resolver.order_fully_refunded"
+            class="Sylius\AdyenPlugin\Resolver\Order\OrderFullyRefundedStateResolver"
+        >
+            <!--    Wrapper to expose it for winzou callbacks    -->
+            <argument type="service" id="sylius_refund.state_resolver.order_fully_refunded" />
+        </service>
     </services>
 </container>
