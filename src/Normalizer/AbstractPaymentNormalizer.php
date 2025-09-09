@@ -26,4 +26,9 @@ abstract class AbstractPaymentNormalizer implements NormalizerInterface
     ): bool {
         return isset($context[self::NORMALIZER_ENABLED]);
     }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return ['*' => false];
+    }
 }
