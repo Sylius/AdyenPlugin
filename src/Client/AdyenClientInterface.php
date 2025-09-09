@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\Model\Checkout\PaymentMethodsResponse;
-use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -70,9 +69,9 @@ interface AdyenClientInterface
     public function expirePaymentLink(string $paymentLinkId): array;
 
     public function removeStoredToken(
-        string $paymentReference,
+        string $storedPaymentMethodReference,
         ShopperReferenceInterface $shopperReference,
-    ): array;
+    ): void;
 
     public function requestCancellation(PaymentInterface $payment): array;
 
@@ -80,5 +79,9 @@ interface AdyenClientInterface
 
     public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array;
 
-    public function updatesOrderForPaypalExpressCheckout(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderResponse;
+    public function updatesOrderForPaypalExpressCheckout(
+        string $pspReference,
+        string $paymentData,
+        OrderInterface $order,
+    ): array;
 }

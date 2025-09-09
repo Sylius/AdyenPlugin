@@ -17,14 +17,11 @@ use Adyen\AdyenException;
 use Adyen\Client;
 use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Model\Checkout\PaymentMethodsResponse;
-use Adyen\Model\Checkout\PaypalUpdateOrderResponse;
-use Adyen\Service\Checkout;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
+use Adyen\Service\Checkout\RecurringApi;
 use Adyen\Service\Checkout\UtilityApi;
-use Adyen\Service\Modification;
-use Adyen\Service\Recurring;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -72,12 +69,14 @@ final class AdyenClient implements AdyenClientInterface
         array $receivedPayload,
         ?ShopperReferenceInterface $shopperReference = null,
     ): array {
-        $payload = $this->clientPayloadFactory->createForPaymentDetails(
-            $receivedPayload,
-            $shopperReference,
+        $response = $this->getPaymentsApi()->paymentsDetails(
+            $this->clientPayloadFactory->createForPaymentDetails(
+                $receivedPayload,
+                $shopperReference,
+            ),
         );
 
-        return (array) $this->getCheckout()->paymentsDetails($payload);
+        return $response->toArray();
     }
 
     public function submitPayment(
@@ -91,50 +90,66 @@ final class AdyenClient implements AdyenClientInterface
             throw new \InvalidArgumentException();
         }
 
-        $payload = $this->clientPayloadFactory->createForSubmitPayment(
-            $this->options,
-            $redirectUrl,
-            $receivedPayload,
-            $order,
-            $manualCapture,
-            $customerIdentifier,
+        $response = $this->getPaymentsApi()->payments(
+            $this->clientPayloadFactory->createForSubmitPayment(
+                $this->options,
+                $redirectUrl,
+                $receivedPayload,
+                $order,
+                $manualCapture,
+                $customerIdentifier,
+            ),
         );
 
-        return (array) $this->getCheckout()->payments($payload);
+        return $response->toArray();
     }
 
     public function requestCapture(
         PaymentInterface $payment,
     ): array {
-        $params = $this->clientPayloadFactory->createForCapture($this->options, $payment);
+        $response = $this->getModificationsApi()->captureAuthorisedPayment(
+            $payment->getDetails()['pspReference'],
+            $this->clientPayloadFactory->createForCapture($this->options, $payment),
+        );
 
-        return (array) $this->getModification()->capture($params);
+        return $response->toArray();
     }
 
     public function requestCancellation(
         PaymentInterface $payment,
     ): array {
-        $params = $this->clientPayloadFactory->createForCancel($this->options, $payment);
+        $response = $this->getModificationsApi()->cancelAuthorisedPaymentByPspReference(
+            $payment->getDetails()['pspReference'],
+            $this->clientPayloadFactory->createForCancel($this->options, $payment),
+        );
 
-        return (array) $this->getModification()->cancel($params);
+        return $response->toArray();
     }
 
     public function removeStoredToken(
-        string $paymentReference,
+        string $storedPaymentMethodReference,
         ShopperReferenceInterface $shopperReference,
-    ): array {
-        $params = $this->clientPayloadFactory->createForTokenRemove($this->options, $paymentReference, $shopperReference);
-
-        return (array) $this->getRecurring()->disable($params);
+    ): void {
+        $this->getRecurringApi()->deleteTokenForStoredPaymentDetails(
+            $storedPaymentMethodReference,
+            $this->clientPayloadFactory->createForTokenRemove(
+                $this->options,
+                $storedPaymentMethodReference,
+                $shopperReference,
+            ),
+        );
     }
 
     public function requestRefund(
         PaymentInterface $payment,
         RefundPaymentGenerated $refund,
     ): array {
-        $params = $this->clientPayloadFactory->createForRefund($this->options, $payment, $refund);
+        $response = $this->getModificationsApi()->refundCapturedPayment(
+            $payment->getDetails()['pspReference'],
+            $this->clientPayloadFactory->createForRefund($this->options, $payment, $refund),
+        );
 
-        return (array) $this->getModification()->refund($params);
+        return $response->toArray();
     }
 
     public function requestReversal(PaymentInterface $payment): array
@@ -168,42 +183,37 @@ final class AdyenClient implements AdyenClientInterface
 
     public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
     {
-        $payload = $this->clientPayloadFactory->createForPaypalPayments(
-            $this->options,
-            $receivedPayload,
-            $order,
-            $returnUrl,
+        $response = $this->getPaymentsApi()->payments(
+            $this->clientPayloadFactory->createForPaypalPayments(
+                $this->options,
+                $receivedPayload,
+                $order,
+                $returnUrl,
+            ),
         );
 
-        return (array) $this->getCheckout()->payments($payload);
+        return $response->toArray();
     }
 
     public function updatesOrderForPaypalExpressCheckout(
         string $pspReference,
         string $paymentData,
         OrderInterface $order,
-    ): PaypalUpdateOrderResponse {
-        $payload = $this->clientPayloadFactory->createPaypalUpdateOrderRequest(
-            $pspReference,
-            $paymentData,
-            $order,
+    ): array {
+        $response = $this->getCheckoutUtilityApi()->updatesOrderForPaypalExpressCheckout(
+            $this->clientPayloadFactory->createPaypalUpdateOrderRequest(
+                $pspReference,
+                $paymentData,
+                $order,
+            ),
         );
 
-        return $this->getCheckoutUtilityApi()->updatesOrderForPaypalExpressCheckout(
-            $payload,
-        );
+        return $response->toArray();
     }
 
     public function getEnvironment(): string
     {
         return (string) $this->options['environment'];
-    }
-
-    private function getCheckout(): Checkout
-    {
-        return new Checkout(
-            $this->transport,
-        );
     }
 
     /** @throws AdyenException */
@@ -212,34 +222,27 @@ final class AdyenClient implements AdyenClientInterface
         return new PaymentsApi($this->transport);
     }
 
-    private function getPaymentLinksApi(): PaymentLinksApi
-    {
-        return new PaymentLinksApi($this->transport);
-    }
-
+    /** @throws AdyenException */
     private function getModificationsApi(): ModificationsApi
     {
         return new ModificationsApi($this->transport);
     }
 
-    private function getModification(): Modification
+    /** @throws AdyenException */
+    private function getRecurringApi(): RecurringApi
     {
-        return new Modification(
-            $this->transport,
-        );
+        return new RecurringApi($this->transport);
     }
 
-    private function getRecurring(): Recurring
-    {
-        return new Recurring(
-            $this->transport,
-        );
-    }
-
+    /** @throws AdyenException */
     private function getCheckoutUtilityApi(): UtilityApi
     {
-        return new UtilityApi(
-            $this->transport,
-        );
+        return new UtilityApi($this->transport);
+    }
+
+    /** @throws AdyenException */
+    private function getPaymentLinksApi(): PaymentLinksApi
+    {
+        return new PaymentLinksApi($this->transport);
     }
 }

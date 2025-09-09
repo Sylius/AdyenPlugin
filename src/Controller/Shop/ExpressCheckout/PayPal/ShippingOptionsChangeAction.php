@@ -67,13 +67,13 @@ final class ShippingOptionsChangeAction
             $this->messageBus->dispatch(new CreatePaymentDetailForPayment($order->getLastPayment()));
 
             $client = $this->adyenClientProvider->getDefaultClient();
-            $paypalUpdateOrderResponse = $client->updatesOrderForPaypalExpressCheckout(
+            $paypalUpdateOrderData = $client->updatesOrderForPaypalExpressCheckout(
                 $pspReference,
                 $paymentData,
                 $order,
             );
 
-            return new JsonResponse($paypalUpdateOrderResponse->toArray());
+            return new JsonResponse($paypalUpdateOrderData);
         } catch (\Exception $exception) {
             return new JsonResponse([
                 'error' => true,
