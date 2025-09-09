@@ -51,7 +51,7 @@
             <argument type="service" id="sylius.modifier.order_item_quantity" />
             <argument type="service" id="sylius.modifier.order" />
             <argument type="service" id="sylius.resource_controller.request_configuration_factory" />
-            <argument type="service" id="sylius.unique_id_based_order_token_assigner" />
+            <argument type="service" id="sylius.assigner.order_token.unique_id_based" />
         </service>
 
         <service

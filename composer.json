@@ -17,7 +17,8 @@
         "sylius/sylius": "^2.0 || ^2.1",
         "symfony/messenger": "^6.4 || ^7.2",
         "symfony/serializer": "^6.4 || ^7.2",
-        "symfony/webpack-encore-bundle": "^2.2"
+        "symfony/webpack-encore-bundle": "^2.2",
+        "winzou/state-machine-bundle": "^0.6.0"
     },
     "require-dev": {
         "behat/behat": "^3.6.1",
@@ -50,6 +51,7 @@
         "sort-packages": true,
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
+            "php-http/discovery": false,
             "phpstan/extension-installer": true,
             "symfony/flex": true,
             "symfony/runtime": true,
