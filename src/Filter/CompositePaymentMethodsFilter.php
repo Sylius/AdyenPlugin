@@ -13,21 +13,20 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Filter;
 
-final class ConfiguredPaymentMethodsFilter implements PaymentMethodsFilterInterface
+final class CompositePaymentMethodsFilter implements PaymentMethodsFilterInterface
 {
+    /** @param iterable<PaymentMethodsFilterInterface> $filters */
     public function __construct(
-        private readonly array $allowedTypes,
+        private iterable $filters,
     ) {
     }
 
     public function filter(array $paymentMethods, array $context = []): array
     {
-        if ($this->allowedTypes === []) {
-            return $paymentMethods;
+        foreach ($this->filters as $filter) {
+            $paymentMethods = $filter->filter($paymentMethods, $context);
         }
 
-        return array_values(array_filter($paymentMethods, function ($method): bool {
-            return in_array($method->type, $this->allowedTypes, true);
-        }));
+        return $paymentMethods;
     }
 }

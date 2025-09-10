@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
     <services>
         <defaults public="true"/>
 
         <service
-            id="sylius_adyen.filter.configured_payment_methods"
+            id="sylius_adyen.payment_methods_filter"
+            class="Sylius\AdyenPlugin\Filter\CompositePaymentMethodsFilter"
+        >
+            <argument type="tagged_iterator" tag="sylius_adyen.payment_methods_filter" />
+        </service>
+        <service id="Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface" alias="sylius_adyen.payment_methods_filter" />
+
+        <service
+            id="sylius_adyen.payment_methods_filter.configured"
             class="Sylius\AdyenPlugin\Filter\ConfiguredPaymentMethodsFilter"
         >
             <argument>%sylius_adyen.payment_methods.allowed_types%</argument>
+
+            <tag name="sylius_adyen.payment_methods_filter" />
         </service>
-        <service id="Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface" alias="sylius_adyen.filter.configured_payment_methods" />
 
         <service
             id="sylius_adyen.filter.stored_payment_methods"
