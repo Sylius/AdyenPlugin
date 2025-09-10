@@ -26,6 +26,15 @@
         </service>
 
         <service
+            id="sylius_adyen.payment_methods_filter.manual_capture"
+            class="Sylius\AdyenPlugin\Filter\ManualCapturePaymentMethodsFilter"
+        >
+            <argument>%sylius_adyen.payment_methods.manual_capture_supporting_types%</argument>
+
+            <tag name="sylius_adyen.payment_methods_filter" />
+        </service>
+
+        <service
             id="sylius_adyen.filter.stored_payment_methods"
             class="Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilter"
         />

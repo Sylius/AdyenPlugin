@@ -24,6 +24,8 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
 {
     public const SYLIUS_ADYEN_PAYMENT_METHODS_ALLOWED_TYPES = 'sylius_adyen.payment_methods.allowed_types';
 
+    public const SYLIUS_ADYEN_PAYMENT_METHODS_MANUAL_CAPTURE_SUPPORTING_TYPES = 'sylius_adyen.payment_methods.manual_capture_supporting_types';
+
     public function prepend(ContainerBuilder $container): void
     {
         $container->prependExtensionConfig('doctrine_migrations', [
@@ -48,8 +50,10 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
         $loader->load('services.xml');
 
         $allowedTypes = $mergedConfig['payment_methods']['allowed_types'];
+        $manualCaptureSupportingTypes = $mergedConfig['payment_methods']['manual_capture_supporting_types'];
 
         $container->setParameter(self::SYLIUS_ADYEN_PAYMENT_METHODS_ALLOWED_TYPES, $allowedTypes);
+        $container->setParameter(self::SYLIUS_ADYEN_PAYMENT_METHODS_MANUAL_CAPTURE_SUPPORTING_TYPES, $manualCaptureSupportingTypes);
         $container->setParameter('sylius_adyen.esd.supported_currencies', $mergedConfig['esd']['supported_currencies']);
         $container->setParameter('sylius_adyen.esd.supported_countries', $mergedConfig['esd']['supported_countries']);
         $container->setParameter('sylius_adyen.esd.supported_card_brands', $mergedConfig['esd']['supported_card_brands']);

@@ -57,10 +57,12 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $customer = $order->getCustomer();
         $shopperReference = $this->resolveShopperReference($paymentMethod, $customer);
 
+        $isManualCapture = $this->adyenPaymentMethodChecker->isCaptureMode($paymentMethod, PaymentCaptureMode::MANUAL);
+
         $response = $client->getPaymentMethodsResponse(
             $order,
             $shopperReference,
-            $this->adyenPaymentMethodChecker->isCaptureMode($paymentMethod, PaymentCaptureMode::MANUAL),
+            $isManualCapture,
         );
 
         $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods() ?? []);
@@ -69,6 +71,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $availableFiltered = $this->paymentMethodsFilter->filter($available, [
             'order' => $order,
             'payment_method' => $paymentMethod,
+            'manual_capture' => $isManualCapture,
         ]);
 
         return new PaymentMethodData(

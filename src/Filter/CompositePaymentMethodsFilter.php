@@ -27,6 +27,6 @@ final class CompositePaymentMethodsFilter implements PaymentMethodsFilterInterfa
             $paymentMethods = $filter->filter($paymentMethods, $context);
         }
 
-        return $paymentMethods;
+        return array_values($paymentMethods);
     }
 }
