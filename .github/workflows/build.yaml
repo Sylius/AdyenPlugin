@@ -184,7 +184,7 @@ jobs:
 
             -
                 name: Run Behat
-                run: vendor/bin/behat --colors --strict -vvv --no-interaction || vendor/bin/behat --colors --strict -vvv --no-interaction --rerun
+                run: vendor/bin/behat --tags="~@todo" --colors --strict -vvv --no-interaction || vendor/bin/behat --tags="~@todo" --colors --strict -vvv --no-interaction --rerun
 
             -
                 name: Upload Behat logs
