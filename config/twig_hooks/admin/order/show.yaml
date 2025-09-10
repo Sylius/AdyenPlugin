@@ -1,0 +1,6 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.order.show.content.sections.payments.refund_item.actions':
+            complete:
+                template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/complete.html.twig'
+                priority: 0
