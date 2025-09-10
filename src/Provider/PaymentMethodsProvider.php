@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
@@ -23,6 +24,7 @@ use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 {
@@ -35,6 +37,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         private readonly StoredPaymentMethodsFilterInterface $storedPaymentMethodsFilter,
         private readonly PaymentMethodsMapperInterface $paymentMethodsMapper,
         private readonly ShopperReferenceResolverInterface $shopperReferenceResolver,
+        private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
     ) {
     }
 
@@ -46,13 +49,11 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
             throw new AdyenPaymentMethodNotFoundException($paymentMethodCode);
         }
 
-        $customer = $order->getCustomer();
-
-        $shopperReference = $customer instanceof CustomerInterface && $customer->hasUser() === true
-            ? $this->shopperReferenceResolver->resolve($paymentMethod, $customer)
-            : null;
-
         $client = $this->adyenClientProvider->getClientForCode($paymentMethodCode);
+
+        /** @var CustomerInterface|null $customer */
+        $customer = $order->getCustomer();
+        $shopperReference = $this->resolveShopperReference($paymentMethod, $customer);
 
         $response = $client->getPaymentMethodsResponse($order, $shopperReference);
 
@@ -64,5 +65,17 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
             paymentMethods: $availableFiltered,
             storedPaymentMethods: $this->storedPaymentMethodsFilter->filterAgainstAvailable($stored, $availableFiltered),
         );
+    }
+
+    private function resolveShopperReference(
+        PaymentMethodInterface $paymentMethod,
+        ?CustomerInterface $orderCustomer,
+    ): ?ShopperReferenceInterface {
+        $orderUser = $orderCustomer?->getUser();
+        if ($orderUser === null || $orderUser !== $this->currentShopUserProvider->getShopUser()) {
+            return null;
+        }
+
+        return $this->shopperReferenceResolver->resolve($paymentMethod, $orderCustomer);
     }
 }
