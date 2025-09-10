@@ -17,6 +17,7 @@ use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Model\Checkout\PaymentRefundRequest;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
@@ -36,7 +37,8 @@ interface ClientPayloadFactoryInterface
         ArrayObject $options,
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): array;
+        bool $manualCapture = false,
+    ): PaymentMethodsRequest;
 
     public function createForPaymentDetails(
         array $receivedPayload,

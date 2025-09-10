@@ -13,12 +13,14 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
 use Sylius\AdyenPlugin\Model\PaymentMethodData;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
@@ -34,6 +36,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly StoredPaymentMethodsFilterInterface $storedPaymentMethodsFilter,
         private readonly PaymentMethodsMapperInterface $paymentMethodsMapper,
         private readonly ShopperReferenceResolverInterface $shopperReferenceResolver,
@@ -44,8 +47,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
     public function provideForOrder(string $paymentMethodCode, OrderInterface $order): PaymentMethodData
     {
         $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($paymentMethodCode);
-
-        if ($paymentMethod === null) {
+        if (null === $paymentMethod) {
             throw new AdyenPaymentMethodNotFoundException($paymentMethodCode);
         }
 
@@ -55,7 +57,11 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         $customer = $order->getCustomer();
         $shopperReference = $this->resolveShopperReference($paymentMethod, $customer);
 
-        $response = $client->getPaymentMethodsResponse($order, $shopperReference);
+        $response = $client->getPaymentMethodsResponse(
+            $order,
+            $shopperReference,
+            $this->adyenPaymentMethodChecker->isCaptureMode($paymentMethod, PaymentCaptureMode::MANUAL),
+        );
 
         $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods() ?? []);
         $availableFiltered = $this->paymentMethodsFilter->filter($available);

@@ -14,13 +14,16 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Provider;
 
 use Adyen\Model\Checkout\PaymentMethodsResponse;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProvider;
@@ -39,6 +42,8 @@ final class PaymentMethodsProviderTest extends TestCase
 
     private PaymentMethodsFilterInterface $paymentMethodsFilter;
 
+    private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker;
+
     private StoredPaymentMethodsFilterInterface $storedPaymentMethodsFilter;
 
     private PaymentMethodsMapperInterface $paymentMethodsMapper;
@@ -54,6 +59,7 @@ final class PaymentMethodsProviderTest extends TestCase
         $this->adyenClientProvider = $this->createMock(AdyenClientProviderInterface::class);
         $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
         $this->paymentMethodsFilter = $this->createMock(PaymentMethodsFilterInterface::class);
+        $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
         $this->storedPaymentMethodsFilter = $this->createMock(StoredPaymentMethodsFilterInterface::class);
         $this->paymentMethodsMapper = $this->createMock(PaymentMethodsMapperInterface::class);
         $this->shopperReferenceResolver = $this->createMock(ShopperReferenceResolverInterface::class);
@@ -63,6 +69,7 @@ final class PaymentMethodsProviderTest extends TestCase
             $this->adyenClientProvider,
             $this->paymentMethodRepository,
             $this->paymentMethodsFilter,
+            $this->adyenPaymentMethodChecker,
             $this->storedPaymentMethodsFilter,
             $this->paymentMethodsMapper,
             $this->shopperReferenceResolver,
@@ -84,7 +91,8 @@ final class PaymentMethodsProviderTest extends TestCase
         $this->paymentMethodsProvider->provideForOrder('missing', $order);
     }
 
-    public function testGuestWithoutCustomerDoesNotCallResolver(): void
+    #[DataProvider('getCaptureMode')]
+    public function testGuestWithoutCustomerDoesNotCallResolver(bool $isManual): void
     {
         $order = $this->createMock(OrderInterface::class);
         $paymentMethod = $this->createMock(PaymentMethodInterface::class);
@@ -104,10 +112,15 @@ final class PaymentMethodsProviderTest extends TestCase
             ->method('getClientForCode')
             ->willReturn($client);
 
+        $this->adyenPaymentMethodChecker
+            ->method('isCaptureMode')
+            ->with($paymentMethod, PaymentCaptureMode::MANUAL)
+            ->willReturn($isManual);
+
         $client
             ->expects(self::once())
             ->method('getPaymentMethodsResponse')
-            ->with($order, null)
+            ->with($order, null, $isManual)
             ->willReturn($this->paymentMethodsResponse(['raw_available'], ['raw_stored']));
 
         $this->expectMappingPipeline(
@@ -125,7 +138,8 @@ final class PaymentMethodsProviderTest extends TestCase
         self::assertSame(['S2'], $result->storedPaymentMethods);
     }
 
-    public function testGuestWithCustomerWithoutUserDoesNotCallResolver(): void
+    #[DataProvider('getCaptureMode')]
+    public function testGuestWithCustomerWithoutUserDoesNotCallResolver(bool $isManual): void
     {
         $order = $this->createMock(OrderInterface::class);
         $customer = $this->createMock(CustomerInterface::class);
@@ -147,10 +161,15 @@ final class PaymentMethodsProviderTest extends TestCase
             ->method('getClientForCode')
             ->willReturn($client);
 
+        $this->adyenPaymentMethodChecker
+            ->method('isCaptureMode')
+            ->with($paymentMethod, PaymentCaptureMode::MANUAL)
+            ->willReturn($isManual);
+
         $client
             ->expects(self::once())
             ->method('getPaymentMethodsResponse')
-            ->with($order, null)
+            ->with($order, null, $isManual)
             ->willReturn($this->paymentMethodsResponse(['raw_available'], ['raw_stored']));
 
         $this->expectMappingPipeline(
@@ -168,7 +187,8 @@ final class PaymentMethodsProviderTest extends TestCase
         self::assertSame(['Sf'], $result->storedPaymentMethods);
     }
 
-    public function testGuestWithCustomerAndUserDoesNotCallResolver(): void
+    #[DataProvider('getCaptureMode')]
+    public function testGuestWithCustomerAndUserDoesNotCallResolver(bool $isManual): void
     {
         $order = $this->createMock(OrderInterface::class);
         $customer = $this->createMock(CustomerInterface::class);
@@ -195,10 +215,15 @@ final class PaymentMethodsProviderTest extends TestCase
             ->method('getClientForCode')
             ->willReturn($client);
 
+        $this->adyenPaymentMethodChecker
+            ->method('isCaptureMode')
+            ->with($paymentMethod, PaymentCaptureMode::MANUAL)
+            ->willReturn($isManual);
+
         $client
             ->expects(self::once())
             ->method('getPaymentMethodsResponse')
-            ->with($order, null)
+            ->with($order, null, $isManual)
             ->willReturn($this->paymentMethodsResponse(['raw_available'], ['raw_stored']));
 
         $this->expectMappingPipeline(
@@ -216,7 +241,8 @@ final class PaymentMethodsProviderTest extends TestCase
         self::assertSame(['Sf'], $result->storedPaymentMethods);
     }
 
-    public function testLoggedInUserWithDifferentUserOrderDoesNotCallResolver(): void
+    #[DataProvider('getCaptureMode')]
+    public function testLoggedInUserWithDifferentUserOrderDoesNotCallResolver(bool $isManual): void
     {
         $order = $this->createMock(OrderInterface::class);
         $customer = $this->createMock(CustomerInterface::class);
@@ -244,10 +270,15 @@ final class PaymentMethodsProviderTest extends TestCase
             ->method('getClientForCode')
             ->willReturn($client);
 
+        $this->adyenPaymentMethodChecker
+            ->method('isCaptureMode')
+            ->with($paymentMethod, PaymentCaptureMode::MANUAL)
+            ->willReturn($isManual);
+
         $client
             ->expects(self::once())
             ->method('getPaymentMethodsResponse')
-            ->with($order, null)
+            ->with($order, null, $isManual)
             ->willReturn($this->paymentMethodsResponse(['raw_available'], ['raw_stored']));
 
         $this->expectMappingPipeline(
@@ -265,7 +296,8 @@ final class PaymentMethodsProviderTest extends TestCase
         self::assertSame(['Sf'], $result->storedPaymentMethods);
     }
 
-    public function testLoggedInUserResolvesShopperReferenceAndPassesItToClient(): void
+    #[DataProvider('getCaptureMode')]
+    public function testLoggedInUserResolvesShopperReferenceAndPassesItToClient(bool $isManual): void
     {
         $order = $this->createMock(OrderInterface::class);
         $customer = $this->createMock(CustomerInterface::class);
@@ -295,10 +327,15 @@ final class PaymentMethodsProviderTest extends TestCase
             ->method('getClientForCode')
             ->willReturn($client);
 
+        $this->adyenPaymentMethodChecker
+            ->method('isCaptureMode')
+            ->with($paymentMethod, PaymentCaptureMode::MANUAL)
+            ->willReturn($isManual);
+
         $client
             ->expects(self::once())
             ->method('getPaymentMethodsResponse')
-            ->with($order, $shopperReference)
+            ->with($order, $shopperReference, $isManual)
             ->willReturn($this->paymentMethodsResponse(['raw_av'], ['raw_st']));
 
         $this->expectMappingPipeline(
@@ -314,6 +351,12 @@ final class PaymentMethodsProviderTest extends TestCase
 
         self::assertSame(['Af'], $result->paymentMethods);
         self::assertSame(['Sf'], $result->storedPaymentMethods);
+    }
+
+    public static function getCaptureMode(): iterable
+    {
+        yield 'manual' => [true];
+        yield 'automatic' => [false];
     }
 
     private function paymentMethodsResponse(array $available, array $stored): PaymentMethodsResponse

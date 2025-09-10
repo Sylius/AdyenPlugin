@@ -53,17 +53,20 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
         return $factoryName === AdyenClientProviderInterface::FACTORY_NAME;
     }
 
-    public function isCaptureMode(PaymentInterface $payment, string $mode): bool
+    public function isCaptureMode(PaymentInterface|PaymentMethodInterface $paymentOrMethod, string $mode): bool
     {
-        $paymentDetail = $this->adyenPaymentDetailRepository->findOneBy(['payment' => $payment]);
-        if (null !== $paymentDetail) {
-            return $mode === $paymentDetail->getCaptureMode();
+        if ($paymentOrMethod instanceof PaymentInterface) {
+            $paymentDetail = $this->adyenPaymentDetailRepository->findOneBy(['payment' => $paymentOrMethod]);
+            if (null !== $paymentDetail) {
+                return $mode === $paymentDetail->getCaptureMode();
+            }
+
+            $paymentOrMethod = $paymentOrMethod->getMethod();
         }
 
-        $paymentMethod = $payment->getMethod();
-        Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
+        Assert::isInstanceOf($paymentOrMethod, PaymentMethodInterface::class);
 
-        $gatewayConfig = $paymentMethod->getGatewayConfig();
+        $gatewayConfig = $paymentOrMethod->getGatewayConfig();
 
         return $mode === ($gatewayConfig?->getConfig()['captureMode'] ?? null);
     }

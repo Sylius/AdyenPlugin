@@ -15,7 +15,6 @@ namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
-use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Model\Checkout\PaymentMethodsResponse;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
@@ -57,10 +56,14 @@ final class AdyenClient implements AdyenClientInterface
     public function getPaymentMethodsResponse(
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
+        bool $manualCapture = false,
     ): PaymentMethodsResponse {
         return $this->getPaymentsApi()->paymentMethods(
-            new PaymentMethodsRequest(
-                $this->clientPayloadFactory->createForAvailablePaymentMethods($this->options, $order, $shopperReference),
+            $this->clientPayloadFactory->createForAvailablePaymentMethods(
+                $this->options,
+                $order,
+                $shopperReference,
+                $manualCapture,
             ),
         );
     }
