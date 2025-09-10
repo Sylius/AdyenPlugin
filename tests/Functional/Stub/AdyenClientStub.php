@@ -133,6 +133,7 @@ final class AdyenClientStub implements AdyenClientInterface
     public function getPaymentMethodsResponse(
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
+        bool $manualCapture = false,
     ): PaymentMethodsResponse {
         if ($this->paymentMethodsResponse instanceof PaymentMethodsResponse) {
             return $this->paymentMethodsResponse;

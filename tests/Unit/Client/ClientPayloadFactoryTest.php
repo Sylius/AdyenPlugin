@@ -104,13 +104,13 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $expected = [
             'amount' => ['value' => 10000, 'currency' => 'USD'],
-            'merchantAccount' => 'TestMerchant',
-            'countryCode' => 'US',
-            'shopperLocale' => '',
             'channel' => 'Web',
+            'countryCode' => 'US',
+            'merchantAccount' => 'TestMerchant',
+            'shopperLocale' => '',
         ];
 
-        self::assertSame($expected, $payload);
+        self::assertSame($expected, $payload->toArray());
     }
 
     public function testItAddsEsdForCardPaymentsInSubmitPayment(): void

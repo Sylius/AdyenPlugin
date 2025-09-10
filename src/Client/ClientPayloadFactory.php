@@ -18,6 +18,7 @@ use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Model\Checkout\PaymentRefundRequest;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
@@ -50,7 +51,8 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ArrayObject $options,
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): array {
+        bool $manualCapture = false,
+    ): PaymentMethodsRequest {
         $address = $order->getBillingAddress();
         $countryCode = $address?->getCountryCode() ?? '';
         $request = $this->requestStack->getCurrentRequest();
@@ -69,9 +71,10 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->injectShopperReference($payload, $shopperReference);
         $payload = $this->enableOneOffPaymentIfApplicable($payload, $shopperReference);
+        $payload = $this->addManualCaptureIfApplicable($payload, $manualCapture);
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return $payload;
+        return new PaymentMethodsRequest($payload);
     }
 
     public function createForPaymentDetails(
