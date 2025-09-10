@@ -49,10 +49,14 @@ final class OrderMother
     public static function createOrderItem(): OrderItemInterface
     {
         $product = new Product();
-        $product->getTranslation(self::LOCALE)->setSlug(self::ITEM_PRODUCT_SLUG);
+        $product->setFallbackLocale(self::LOCALE);
+        $product->setCurrentLocale(self::LOCALE);
+        $product->setSlug(self::ITEM_PRODUCT_SLUG);
 
         $variant = new ProductVariant();
-        $variant->getTranslation(self::LOCALE)->setName(self::ITEM_VARIANT_NAME);
+        $variant->setFallbackLocale(self::LOCALE);
+        $variant->setCurrentLocale(self::LOCALE);
+        $variant->setName(self::ITEM_VARIANT_NAME);
         $variant->setProduct($product);
 
         $adjustment = new Adjustment();
@@ -78,10 +82,14 @@ final class OrderMother
     public static function createOrderItemWithTaxDetails(): OrderItemInterface
     {
         $product = new Product();
-        $product->getTranslation(self::LOCALE)->setSlug(self::ITEM_PRODUCT_SLUG);
+        $product->setFallbackLocale(self::LOCALE);
+        $product->setCurrentLocale(self::LOCALE);
+        $product->setSlug(self::ITEM_PRODUCT_SLUG);
 
         $variant = new ProductVariant();
-        $variant->getTranslation(self::LOCALE)->setName(self::ITEM_VARIANT_NAME);
+        $variant->setFallbackLocale(self::LOCALE);
+        $variant->setCurrentLocale(self::LOCALE);
+        $variant->setName(self::ITEM_VARIANT_NAME);
         $variant->setProduct($product);
 
         $item = new class() extends OrderItem {

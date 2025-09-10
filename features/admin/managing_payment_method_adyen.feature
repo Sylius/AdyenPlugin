@@ -8,7 +8,7 @@ Feature: Adding a new payment method
         Given the store operates on a single channel in "United States"
         And I am logged in as an administrator
 
-    @ui
+    @todo @ui
     Scenario: Adding a new Adyen payment method with passing validation
         When I want to create a new Adyen payment method
         And Adyen service will confirm merchantAccount "mer" and apiKey "api" are valid

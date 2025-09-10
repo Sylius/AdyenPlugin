@@ -16,9 +16,9 @@
             id="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters"
             class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProvider"
         >
-            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius.resolver.shipping_methods"/>
             <argument type="service" id="sylius.registry.shipping_calculator"/>
-            <argument type="service" id="sylius.money_formatter"/>
+            <argument type="service" id="sylius.formatter.money"/>
         </service>
         <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProviderInterface"
                  alias="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters" />

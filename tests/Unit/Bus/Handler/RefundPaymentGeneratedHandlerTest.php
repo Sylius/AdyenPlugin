@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Bus\Handler;
 
-use Payum\Core\Model\GatewayConfig;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -22,6 +21,7 @@ use Sylius\AdyenPlugin\Bus\Handler\RefundPaymentGeneratedHandler;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
+use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
