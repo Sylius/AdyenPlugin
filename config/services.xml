@@ -49,9 +49,9 @@
             <argument type="service" id="sylius_adyen.filter.stored_payment_methods"/>
             <argument type="service" id="sylius_adyen.mapper.payment_methods"/>
             <argument type="service" id="sylius_adyen.resolver.shopper_reference"/>
+            <argument type="service" id="sylius_adyen.provider.current_shop_user"/>
         </service>
         <service id="Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface" alias="sylius_adyen.provider.payment_methods" />
-
 
         <service
             id="sylius_adyen.clearer.payment_references"

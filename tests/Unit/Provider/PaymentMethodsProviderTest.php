@@ -22,12 +22,14 @@ use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProvider;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Model\ShopUserInterface;
 
 final class PaymentMethodsProviderTest extends TestCase
 {
@@ -43,6 +45,8 @@ final class PaymentMethodsProviderTest extends TestCase
 
     private ShopperReferenceResolverInterface $shopperReferenceResolver;
 
+    private CurrentShopUserProviderInterface $shopUserProvider;
+
     private PaymentMethodsProvider $paymentMethodsProvider;
 
     protected function setUp(): void
@@ -53,6 +57,7 @@ final class PaymentMethodsProviderTest extends TestCase
         $this->storedPaymentMethodsFilter = $this->createMock(StoredPaymentMethodsFilterInterface::class);
         $this->paymentMethodsMapper = $this->createMock(PaymentMethodsMapperInterface::class);
         $this->shopperReferenceResolver = $this->createMock(ShopperReferenceResolverInterface::class);
+        $this->shopUserProvider = $this->createMock(CurrentShopUserProviderInterface::class);
 
         $this->paymentMethodsProvider = new PaymentMethodsProvider(
             $this->adyenClientProvider,
@@ -61,6 +66,7 @@ final class PaymentMethodsProviderTest extends TestCase
             $this->storedPaymentMethodsFilter,
             $this->paymentMethodsMapper,
             $this->shopperReferenceResolver,
+            $this->shopUserProvider,
         );
     }
 
@@ -127,7 +133,7 @@ final class PaymentMethodsProviderTest extends TestCase
         $client = $this->createMock(AdyenClientInterface::class);
 
         $order->method('getCustomer')->willReturn($customer);
-        $customer->method('hasUser')->willReturn(false);
+        $customer->method('getUser')->willReturn(null);
 
         $this->paymentMethodRepository
             ->method('getOneAdyenForCode')
@@ -162,16 +168,118 @@ final class PaymentMethodsProviderTest extends TestCase
         self::assertSame(['Sf'], $result->storedPaymentMethods);
     }
 
-    public function testLoggedInCustomerResolvesShopperReferenceAndPassesItToClient(): void
+    public function testGuestWithCustomerAndUserDoesNotCallResolver(): void
     {
         $order = $this->createMock(OrderInterface::class);
         $customer = $this->createMock(CustomerInterface::class);
+        $user = $this->createMock(ShopUserInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+        $client = $this->createMock(AdyenClientInterface::class);
+
+        $order->method('getCustomer')->willReturn($customer);
+        $customer->method('getUser')->willReturn($user);
+
+        $this->shopUserProvider
+            ->method('getShopUser')
+            ->willReturn(null);
+
+        $this->paymentMethodRepository
+            ->method('getOneAdyenForCode')
+            ->willReturn($paymentMethod);
+
+        $this->shopperReferenceResolver
+            ->expects(self::never())
+            ->method('resolve');
+
+        $this->adyenClientProvider
+            ->method('getClientForCode')
+            ->willReturn($client);
+
+        $client
+            ->expects(self::once())
+            ->method('getPaymentMethodsResponse')
+            ->with($order, null)
+            ->willReturn($this->paymentMethodsResponse(['raw_available'], ['raw_stored']));
+
+        $this->expectMappingPipeline(
+            rawAvailable: ['raw_available'],
+            mappedAvailable: ['A'],
+            filteredAvailable: ['Af'],
+            rawStored: ['raw_stored'],
+            mappedStored: ['S'],
+            filteredStoredAgainst: ['Sf'],
+        );
+
+        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+
+        self::assertSame(['Af'], $result->paymentMethods);
+        self::assertSame(['Sf'], $result->storedPaymentMethods);
+    }
+
+    public function testLoggedInUserWithDifferentUserOrderDoesNotCallResolver(): void
+    {
+        $order = $this->createMock(OrderInterface::class);
+        $customer = $this->createMock(CustomerInterface::class);
+        $customerUser = $this->createMock(ShopUserInterface::class);
+        $loggedUser = $this->createMock(ShopUserInterface::class);
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+        $client = $this->createMock(AdyenClientInterface::class);
+
+        $order->method('getCustomer')->willReturn($customer);
+        $customer->method('getUser')->willReturn($customerUser);
+
+        $this->shopUserProvider
+            ->method('getShopUser')
+            ->willReturn($loggedUser);
+
+        $this->paymentMethodRepository
+            ->method('getOneAdyenForCode')
+            ->willReturn($paymentMethod);
+
+        $this->shopperReferenceResolver
+            ->expects(self::never())
+            ->method('resolve');
+
+        $this->adyenClientProvider
+            ->method('getClientForCode')
+            ->willReturn($client);
+
+        $client
+            ->expects(self::once())
+            ->method('getPaymentMethodsResponse')
+            ->with($order, null)
+            ->willReturn($this->paymentMethodsResponse(['raw_available'], ['raw_stored']));
+
+        $this->expectMappingPipeline(
+            rawAvailable: ['raw_available'],
+            mappedAvailable: ['A'],
+            filteredAvailable: ['Af'],
+            rawStored: ['raw_stored'],
+            mappedStored: ['S'],
+            filteredStoredAgainst: ['Sf'],
+        );
+
+        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+
+        self::assertSame(['Af'], $result->paymentMethods);
+        self::assertSame(['Sf'], $result->storedPaymentMethods);
+    }
+
+    public function testLoggedInUserResolvesShopperReferenceAndPassesItToClient(): void
+    {
+        $order = $this->createMock(OrderInterface::class);
+        $customer = $this->createMock(CustomerInterface::class);
+        $user = $this->createMock(ShopUserInterface::class);
         $paymentMethod = $this->createMock(PaymentMethodInterface::class);
         $client = $this->createMock(AdyenClientInterface::class);
         $shopperReference = $this->createMock(ShopperReferenceInterface::class);
 
         $order->method('getCustomer')->willReturn($customer);
-        $customer->method('hasUser')->willReturn(true);
+        $customer->method('getUser')->willReturn($user);
+
+        $this->shopUserProvider
+            ->method('getShopUser')
+            ->willReturn($user);
 
         $this->paymentMethodRepository
             ->method('getOneAdyenForCode')
