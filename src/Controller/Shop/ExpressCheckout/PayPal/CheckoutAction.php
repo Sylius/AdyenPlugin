@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
 
+use Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityChecker;
+use Sylius\AdyenPlugin\Exception\CheckoutValidationException;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\OrderCustomerModifierInterface;
 use Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifierInterface;
 use Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface;
@@ -29,33 +31,40 @@ final class CheckoutAction
         private readonly OrderAddressModifierInterface $orderAddressModifier,
         private readonly OrderCustomerModifierInterface $orderCustomerModifier,
         private readonly CheckoutResolverInterface $checkoutResolver,
+        private readonly OrderCheckoutCompleteIntegrityChecker $orderCheckoutCompleteIntegrityChecker,
     ) {
     }
 
     public function __invoke(Request $request): JsonResponse
     {
-        $order = $this->paymentCheckoutOrderResolver->resolve();
-
-        $data = json_decode($request->getContent(), true);
-        Assert::isArray($data);
-
-        $newAddress = $data['deliveryAddress'] ?? null;
-        $payer = $data['payer'] ?? null;
-
-        if (!isset($newAddress, $payer)) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'Missing required parameters: deliveryAddress, or payer.',
-            ], 400);
-        }
-
         try {
+            $order = $this->paymentCheckoutOrderResolver->resolve();
+            $this->orderCheckoutCompleteIntegrityChecker->check($order);
+
+            $data = json_decode($request->getContent(), true);
+            Assert::isArray($data);
+
+            $newAddress = $data['deliveryAddress'] ?? null;
+            $payer = $data['payer'] ?? null;
+
+            if (!isset($newAddress, $payer)) {
+                return new JsonResponse([
+                    'error' => true,
+                    'message' => 'Missing required parameters: deliveryAddress, or payer.',
+                ], 400);
+            }
+
             $this->orderAddressModifier->modify($order, $newAddress, $payer);
             $this->orderCustomerModifier->modify($order, $payer['email_address'] ?? null);
 
             $this->checkoutResolver->resolve($order);
 
             return new JsonResponse(['orderToken' => $order->getTokenValue()]);
+        } catch (CheckoutValidationException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_BAD_REQUEST);
         } catch (\Exception $exception) {
             return new JsonResponse([
                 'error' => true,

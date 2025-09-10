@@ -20,11 +20,7 @@ trait PayableOrderPaymentTrait
 {
     public function getPayablePayment(OrderInterface $order): PaymentInterface
     {
-        $payment = $order->getLastPayment(PaymentInterface::STATE_NEW);
-
-        if (null === $payment) {
-            $payment = $order->getLastPayment(PaymentInterface::STATE_CART);
-        }
+        $payment = $order->getLastPayment(PaymentInterface::STATE_NEW) ?? $order->getLastPayment(PaymentInterface::STATE_CART);
 
         if (null === $payment) {
             throw new \InvalidArgumentException(

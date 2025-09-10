@@ -82,6 +82,7 @@
             <argument type="service" id="sylius_adyen.modifier.express_checkout.google_pay.order_address"/>
             <argument type="service" id="sylius_adyen.modifier.express_checkout.order_customer"/>
             <argument type="service" id="sylius_adyen.resolver.order.express_checkout.checkout"/>
+            <argument type="service" id="sylius_adyen.checker.order_checkout_complete_integrity"/>
         </service>
 
         <service
@@ -138,6 +139,7 @@
             <argument type="service" id="sylius_adyen.modifier.express_checkout.paypal.order_address"/>
             <argument type="service" id="sylius_adyen.modifier.express_checkout.order_customer"/>
             <argument type="service" id="sylius_adyen.resolver.order.express_checkout.checkout"/>
+            <argument type="service" id="sylius_adyen.checker.order_checkout_complete_integrity"/>
         </service>
 
         <service
