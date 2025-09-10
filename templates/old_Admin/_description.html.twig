@@ -1,6 +1,4 @@
-{% set factory = constant('Sylius\\AdyenPlugin\\Provider\\AdyenClientProviderInterface::FACTORY_NAME') %}
-
-{% if payment_method is defined and payment_method.gatewayConfig.factoryName == factory %}
+{% if payment_method is defined and sylius_adyen_is_adyen_payment_method(paymentMethod) %}
     <div class="ui segment">
 
         <p>{{ 'sylius_adyen.ui.notification_endpoint_description'|trans }}:</p>
