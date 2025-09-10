@@ -27,6 +27,7 @@ use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactory;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
 use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
@@ -59,35 +60,35 @@ final class PaymentCommandFactoryTest extends TestCase
     public static function paymentLifecycleCommandMappingProvider(): iterable
     {
         yield 'authorisation event creates AuthorizePayment' => [
-            'event' => 'authorisation',
+            'event' => EventCodeResolverInterface::EVENT_AUTHORIZATION,
             'expectedClass' => AuthorizePayment::class,
         ];
         yield 'authorised event creates AuthorizePayment' => [
-            'event' => 'authorised',
+            'event' => ResponseStatus::AUTHORISED,
             'expectedClass' => AuthorizePayment::class,
         ];
         yield 'payment_status_received event creates PaymentStatusReceived' => [
-            'event' => 'payment_status_received',
+            'event' => ResponseStatus::PAYMENT_STATUS_RECEIVED,
             'expectedClass' => PaymentStatusReceived::class,
         ];
         yield 'capture event creates CapturePayment' => [
-            'event' => 'capture',
+            'event' => EventCodeResolverInterface::EVENT_CAPTURE,
             'expectedClass' => CapturePayment::class,
         ];
         yield 'received event creates MarkPaymentAsProcessedCommand' => [
-            'event' => 'received',
+            'event' => ResponseStatus::RECEIVED,
             'expectedClass' => MarkPaymentAsProcessedCommand::class,
         ];
         yield 'refused event creates PaymentFailedCommand' => [
-            'event' => 'refused',
+            'event' => ResponseStatus::REFUSED,
             'expectedClass' => PaymentFailedCommand::class,
         ];
         yield 'rejected event creates PaymentFailedCommand' => [
-            'event' => 'rejected',
+            'event' => ResponseStatus::REJECTED,
             'expectedClass' => PaymentFailedCommand::class,
         ];
         yield 'cancellation event creates PaymentCancelledCommand' => [
-            'event' => 'cancellation',
+            'event' => EventCodeResolverInterface::EVENT_CANCELLATION,
             'expectedClass' => PaymentCancelledCommand::class,
         ];
     }

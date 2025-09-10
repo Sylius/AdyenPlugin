@@ -111,4 +111,58 @@ final class OrderPaymentGuardTest extends TestCase
 
         self::assertTrue($this->guard->canBeCancelled($order));
     }
+
+    public function testItAllowsRequestPaymentForNonAdyenPayment(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(false);
+
+        self::assertTrue($this->guard->canRequestPayment($order));
+    }
+
+    public function testItAllowsRequestPaymentWhenPaymentIsNull(): void
+    {
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn(null);
+
+        self::assertTrue($this->guard->canRequestPayment($order));
+    }
+
+    public function testItAllowsRequestPaymentForAdyenPaymentNotInProcessingState(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->method('getState')->willReturn(PaymentInterface::STATE_NEW);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        self::assertTrue($this->guard->canRequestPayment($order));
+    }
+
+    public function testItDeniesRequestPaymentForAdyenPaymentInProcessingState(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->method('getState')->willReturn(PaymentInterface::STATE_PROCESSING);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        self::assertFalse($this->guard->canRequestPayment($order));
+    }
 }

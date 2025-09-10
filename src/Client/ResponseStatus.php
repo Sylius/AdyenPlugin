@@ -15,5 +15,23 @@ namespace Sylius\AdyenPlugin\Client;
 
 interface ResponseStatus
 {
+    public const ACTIVE = 'active';
+
+    public const AUTHORISED = 'authorised';
+
+    public const CANCELLED = 'cancelled';
+
+    public const ERROR = 'error';
+
+    public const PAYMENT_STATUS_RECEIVED = 'payment_status_received';
+
+    public const PROCESSING = 'processing';
+
     public const RECEIVED = 'received';
+
+    public const REDIRECT_SHOPPER = 'redirectshopper';
+
+    public const REFUSED = 'refused';
+
+    public const REJECTED = 'rejected';
 }

@@ -15,6 +15,7 @@ namespace Tests\Sylius\AdyenPlugin\Functional\ResponseProcessing\PaymentResponse
 
 use Sylius\AdyenPlugin\Bus\Command\PaymentLifecycleCommand;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessor\SuccessfulResponseProcessor;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -64,7 +65,7 @@ class SuccessfulResponseProcessorTest extends AbstractProcessor
         $this->paymentCommandFactory
             ->expects($this->once())
             ->method('createForEvent')
-            ->with(SuccessfulResponseProcessor::PAYMENT_STATUS_RECEIVED_CODE, $payment)
+            ->with(ResponseStatus::PAYMENT_STATUS_RECEIVED, $payment)
             ->willReturn($paymentStatusReceivedCommand);
 
         $this->messageBus

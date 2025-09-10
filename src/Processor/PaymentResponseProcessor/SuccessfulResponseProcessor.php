@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -24,7 +25,7 @@ class SuccessfulResponseProcessor extends AbstractProcessor
 {
     public const THANKS_ROUTE_NAME = 'sylius_shop_order_thank_you';
 
-    public const PAYMENT_PROCEED_CODES = ['authorised'];
+    public const PAYMENT_PROCEED_CODES = [ResponseStatus::AUTHORISED];
 
     public const ORDER_ID_KEY = 'sylius_order_id';
 
@@ -49,7 +50,7 @@ class SuccessfulResponseProcessor extends AbstractProcessor
     ): string {
         $targetRoute = self::THANKS_ROUTE_NAME;
 
-        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
+        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(ResponseStatus::PAYMENT_STATUS_RECEIVED, $payment);
         $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
         $request->getSession()->set(self::ORDER_ID_KEY, $payment->getOrder()->getId());

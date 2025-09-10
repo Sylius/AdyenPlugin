@@ -45,4 +45,17 @@ final class OrderPaymentGuard
 
         return true;
     }
+
+    public function canRequestPayment(OrderInterface $order): bool
+    {
+        $payment = $order->getLastPayment();
+        if (
+            null === $payment ||
+            false === $this->adyenPaymentMethodChecker->isAdyenPayment($payment)
+        ) {
+            return true;
+        }
+
+        return $payment->getState() !== PaymentInterface::STATE_PROCESSING;
+    }
 }

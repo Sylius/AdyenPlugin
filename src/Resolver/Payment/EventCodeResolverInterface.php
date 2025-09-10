@@ -21,6 +21,8 @@ interface EventCodeResolverInterface
 
     public const EVENT_CAPTURE = 'capture';
 
+    public const EVENT_CAPTURE_FAILED = 'capture_failed';
+
     public const EVENT_AUTHORIZATION = 'authorisation';
 
     public const EVENT_CANCELLATION = 'cancellation';

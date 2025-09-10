@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin\Functional;
+namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
@@ -26,6 +26,7 @@ use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\Component\Resource\Repository\RepositoryInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Mime\Email;
+use Tests\Sylius\AdyenPlugin\Functional\AdyenTestCase;
 
 final class PaymentLinkProcessTest extends AdyenTestCase
 {

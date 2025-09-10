@@ -18,6 +18,7 @@ use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForPayment;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Exception\UnmappedAdyenActionException;
 use Sylius\Bundle\ApiBundle\Command\Checkout\SendOrderConfirmation;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -31,7 +32,11 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class PaymentStatusReceivedHandler
 {
-    public const ALLOWED_EVENT_NAMES = ['authorised', 'redirectshopper', 'received'];
+    public const ALLOWED_RESPONSE_STATUSES = [
+        ResponseStatus::AUTHORISED,
+        ResponseStatus::REDIRECT_SHOPPER,
+        ResponseStatus::RECEIVED,
+    ];
 
     public function __construct(
         private readonly StateMachineInterface $stateMachine,
@@ -101,6 +106,6 @@ final class PaymentStatusReceivedHandler
 
     private function isAccepted(string $resultCode): bool
     {
-        return in_array($resultCode, self::ALLOWED_EVENT_NAMES, true);
+        return in_array($resultCode, self::ALLOWED_RESPONSE_STATUSES, true);
     }
 }

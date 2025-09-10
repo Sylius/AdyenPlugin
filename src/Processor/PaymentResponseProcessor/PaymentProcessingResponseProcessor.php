@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -22,7 +23,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class PaymentProcessingResponseProcessor extends AbstractProcessor
 {
-    public const PAYMENT_PROCESSING_CODES = ['received', 'processing'];
+    public const PAYMENT_PROCESSING_CODES = [ResponseStatus::RECEIVED, ResponseStatus::PROCESSING];
 
     public const LABEL_PROCESSING = 'sylius_adyen.ui.payment_processing';
 
@@ -47,7 +48,7 @@ final class PaymentProcessingResponseProcessor extends AbstractProcessor
         Request $request,
         PaymentInterface $payment,
     ): string {
-        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
+        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(ResponseStatus::PAYMENT_STATUS_RECEIVED, $payment);
         $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
         $this->addFlash($request, self::FLASH_INFO, self::LABEL_PROCESSING);

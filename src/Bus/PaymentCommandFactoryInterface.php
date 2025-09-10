@@ -21,22 +21,25 @@ use Sylius\AdyenPlugin\Bus\Command\PaymentCancelledCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentFailedCommand;
 use Sylius\AdyenPlugin\Bus\Command\PaymentRefunded;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Resolver\Notification\Struct\NotificationItemData;
+use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
 interface PaymentCommandFactoryInterface
 {
     public const MAPPING = [
-        'authorisation' => AuthorizePayment::class,
-        'authorised' => AuthorizePayment::class, // Special case for external page completion, sync
-        'payment_status_received' => PaymentStatusReceived::class,
-        'capture' => CapturePayment::class,
-        'received' => MarkPaymentAsProcessedCommand::class,
-        'refused' => PaymentFailedCommand::class,
-        'rejected' => PaymentFailedCommand::class,
-        'cancellation' => PaymentCancelledCommand::class,
-        'refund' => PaymentRefunded::class,
-        'pay_by_link_authorisation' => AuthorizePaymentByLink::class,
+        EventCodeResolverInterface::EVENT_AUTHORIZATION => AuthorizePayment::class,
+        EventCodeResolverInterface::EVENT_CANCELLATION => PaymentCancelledCommand::class,
+        EventCodeResolverInterface::EVENT_CAPTURE => CapturePayment::class,
+        EventCodeResolverInterface::EVENT_CAPTURE_FAILED => PaymentFailedCommand::class,
+        EventCodeResolverInterface::EVENT_PAY_BY_LINK_AUTHORISATION => AuthorizePaymentByLink::class,
+        EventCodeResolverInterface::EVENT_REFUND => PaymentRefunded::class,
+        ResponseStatus::AUTHORISED => AuthorizePayment::class, // Special case for external page completion, sync
+        ResponseStatus::PAYMENT_STATUS_RECEIVED => PaymentStatusReceived::class,
+        ResponseStatus::RECEIVED => MarkPaymentAsProcessedCommand::class,
+        ResponseStatus::REFUSED => PaymentFailedCommand::class,
+        ResponseStatus::REJECTED => PaymentFailedCommand::class,
     ];
 
     public function createForEvent(
