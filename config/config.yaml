@@ -18,4 +18,4 @@ sylius_mailer:
     emails:
         adyen_payment_link:
             subject: Payment link
-            template: "@SyliusAdyenPlugin/Shop/Email/paymentLink.html.twig"
+            template: "@SyliusAdyenPlugin/email/payment_link.html.twig"
