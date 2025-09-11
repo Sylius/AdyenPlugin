@@ -110,5 +110,9 @@
 
             <tag name="kernel.event_listener" event="sylius.menu.admin.order.show" method="addRefundButton" />
         </service>
+
+        <service id="sylius_adyen.listener.admin_main_menu" class="Sylius\AdyenPlugin\Menu\AdminMainMenuListener">
+            <tag name="kernel.event_listener" event="sylius.menu.admin.main" method="addAdyenSection" />
+        </service>
     </services>
 </container>
