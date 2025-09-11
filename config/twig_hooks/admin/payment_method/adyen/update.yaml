@@ -1,0 +1,42 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.payment_method.update.content.form.sections.gateway_configuration.adyen':
+            environment:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/environment.html.twig'
+                priority: 1300
+            merchant_account:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/merchant_account.html.twig'
+                priority: 1100
+            live_endpoint_url_prefix:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/live_endpoint_url_prefix.html.twig'
+                priority: 1000
+            api_key:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/api_key.html.twig'
+                priority: 900
+            client_key:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/client_key.html.twig'
+                priority: 800
+            hmac_key:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/hmac_key.html.twig'
+                priority: 700
+            auth_user:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/auth_user.html.twig'
+                priority: 600
+            auth_password:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/auth_password.html.twig'
+                priority: 500
+            esd_enabled:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/esd_enabled.html.twig'
+                priority: 400
+            esd_type:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/esd_type.html.twig'
+                priority: 300
+            merchant_category_code:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/merchant_category_code.html.twig'
+                priority: 200
+            capture_mode:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/capture_mode.html.twig'
+                priority: 100
+            adyen:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/adyen.html.twig'
+                priority: 0

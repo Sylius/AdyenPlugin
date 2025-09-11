@@ -1,5 +1,6 @@
 imports:
     - { resource: "@SyliusAdyenPlugin/config/grids/*/*.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/twig_hooks/**/*.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius/blocks.yml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius/resources.yml" }
     - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine/**.yaml" }
