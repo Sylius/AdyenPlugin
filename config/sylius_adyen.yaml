@@ -26,3 +26,22 @@ sylius_adyen:
             - 'twint'            # TWINT                  https://docs.adyen.com/payment-methods/twint/
             - 'wechatpayWeb'     # WeChat Pay             https://docs.adyen.com/payment-methods/wechat-pay/
             - 'wechatpayQR'      # WeChat Pay             https://docs.adyen.com/payment-methods/wechat-pay/
+        manual_capture_supporting_types:
+            - 'ach'
+            - 'alma'
+            - 'applepay'
+            - 'directdebit_GB'
+            - 'facilypay_10x'
+            - 'facilypay_12x'
+            - 'facilypay_3x'
+            - 'facilypay_4x'
+            - 'facilypay_6x'
+            - 'googlepay'
+            - 'klarna'
+            - 'klarna_account'
+            - 'klarna_b2b'
+            - 'klarna_paynow'
+            - 'paypal'
+            - 'scalapay_3x'
+            - 'scheme'
+            - 'twint'
