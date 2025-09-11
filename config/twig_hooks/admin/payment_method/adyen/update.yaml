@@ -1,6 +1,9 @@
 sylius_twig_hooks:
     hooks:
         'sylius_admin.payment_method.update.content.form.sections.gateway_configuration.adyen':
+            notifications_endpoint:
+                template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/notifications_endpoint.html.twig'
+                priority: 1400
             environment:
                 template: '@SyliusAdyenPlugin/admin/payment_method/form/sections/gateway_configuration/environment.html.twig'
                 priority: 1300
