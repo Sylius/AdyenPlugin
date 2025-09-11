@@ -41,7 +41,6 @@ sylius_adyen:
             - 'klarna_account'
             - 'klarna_b2b'
             - 'klarna_paynow'
-            - 'paypal'
             - 'scalapay_3x'
             - 'scheme'
             - 'twint'
