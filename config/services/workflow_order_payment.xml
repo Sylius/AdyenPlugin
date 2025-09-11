@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="sylius_adyen.listener.workflow.order.reverse_payment_on_cancel"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\OrderPayment\ReversePaymentOnCancelListener">
+            <argument type="service" id="sylius_adyen.processor.order.reverse_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel" method="__invoke" priority="-600"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.order_payment.guard_cancel"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\OrderPayment\GuardCancelListener">
+            <argument type="service" id="sylius_adyen.state_machine.guard.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_order_payment.guard.cancel" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.order_payment.guard_request_payment"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\OrderPayment\GuardRequestPaymentListener">
+            <argument type="service" id="sylius_adyen.state_machine.guard.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_order_payment.guard.request_payment" method="__invoke" priority="100"/>
+        </service>
+    </services>
+</container>
