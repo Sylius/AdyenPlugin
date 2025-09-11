@@ -3,6 +3,7 @@ imports:
     - { resource: "@SyliusAdyenPlugin/config/sylius/blocks.yml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius/resources.yml" }
     - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine/**.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/workflow/**.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius_adyen.yaml" }
 
 parameters:
