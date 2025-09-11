@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="sylius_adyen.listener.workflow.refund.process_on_confirm"
+                 class="Sylius\AdyenPlugin\EventListener\Workflow\Refund\ProcessRefundPaymentOnConfirmListener">
+            <argument type="service" id="sylius_adyen.processor.refund.refund_payment_state"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_refund_refund_payment.completed.confirm" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.refund.resolve_order_fully_refunded"
+                 class="Sylius\AdyenPlugin\EventListener\Workflow\Refund\ResolveOrderFullyRefundedListener">
+            <argument type="service" id="sylius_refund.state_resolver.order_fully_refunded"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_refund_refund_payment.completed.complete" method="__invoke" priority="100"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_refund_refund_payment.completed.confirm" method="__invoke" priority="100"/>
+        </service>
+    </services>
+</container>
