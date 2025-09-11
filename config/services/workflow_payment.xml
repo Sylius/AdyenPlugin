@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<container xmlns="http://symfony.com/schema/dic/services"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+        <service id="sylius_adyen.listener.workflow.payment.guard_complete"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\GuardCompleteListener">
+            <argument type="service" id="sylius_adyen.state_machine.guard.payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.guard.complete" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.guard_authorize"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\GuardAuthorizeListener">
+            <argument type="service" id="sylius_adyen.state_machine.guard.payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.guard.authorize" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.guard_cancel"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\GuardCancelListener">
+            <argument type="service" id="sylius_adyen.state_machine.guard.payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.guard.cancel" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.auto_capture_on_authorize"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\AutoCaptureOnAuthorizeListener">
+            <argument type="service" id="sylius_adyen.processor.authorization_state"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.authorize" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.process_order_payment_after_reversal"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ProcessOrderPaymentAfterReversalListener">
+            <argument type="service" id="sylius_adyen.processor.order.update_order_payment_state"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.cancel" method="__invoke" priority="100"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.refund" method="__invoke" priority="100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.resolve_after_complete"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveAfterCaptureListener">
+            <argument type="service" id="sylius.state_resolver.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.complete" method="__invoke" priority="-100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.resolve_after_process"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveAfterCaptureListener">
+            <argument type="service" id="sylius.state_resolver.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.process" method="__invoke" priority="-100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.resolve_after_refund"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveAfterCaptureListener">
+            <argument type="service" id="sylius.state_resolver.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.refund" method="__invoke" priority="-100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.resolve_after_authorize"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveAfterCaptureListener">
+            <argument type="service" id="sylius.state_resolver.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.authorize" method="__invoke" priority="-100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.resolve_after_capture"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveAfterCaptureListener">
+            <argument type="service" id="sylius.state_resolver.order_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.capture" method="__invoke" priority="-100"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.process_failed_payment_order"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ProcessFailedPaymentOrderListener">
+            <argument type="service" id="sylius_adyen.state_resolver.order_failed_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" method="__invoke" priority="-200"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.resolve_failed_payment_state"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveFailedPaymentStateListener">
+            <argument type="service" id="sylius_adyen.state_resolver.order_failed_payment"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" method="__invoke" priority="-150"/>
+        </service>
+
+        <service id="sylius_adyen.listener.workflow.payment.flush_on_fail"
+                class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\FlushOnFailListener">
+            <argument type="service" id="doctrine.orm.entity_manager"/>
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" method="__invoke" priority="-100"/>
+        </service>
+
+    </services>
+</container>
