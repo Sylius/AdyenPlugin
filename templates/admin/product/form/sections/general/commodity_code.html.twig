@@ -1,0 +1,8 @@
+{% set form = hookable_metadata.context.form %}
+{% set product = form.vars.value %}
+
+{% if product.simple %}
+    <div class="col-12 cold-md-6">
+        {{ form_row(form.variant.commodityCode, sylius_test_form_attribute('commodity-code')) }}
+    </div>
+{% endif %}
