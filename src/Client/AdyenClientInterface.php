@@ -40,6 +40,7 @@ interface AdyenClientInterface
     public function getPaymentMethodsResponse(
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
+        bool $manualCapture = false,
     ): PaymentMethodsResponse;
 
     public function getEnvironment(): string;

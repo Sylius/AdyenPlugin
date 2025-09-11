@@ -5,9 +5,16 @@ winzou_state_machine:
                 from: [awaiting_payment, partially_paid, authorized]
             cancel:
                 from: [awaiting_payment, authorized, partially_authorized, paid]
+            request_payment:
+                from: [cart, authorized, paid]
+                to: awaiting_payment
         callbacks:
             guard:
                 cancel_paid:
                     on: ["cancel"]
                     do: ["@sylius_adyen.state_machine.guard.order_payment", "canBeCancelled"]
+                    args: ["object"]
+                request_payment:
+                    on: ["request_payment"]
+                    do: ["@sylius_adyen.state_machine.guard.order_payment", "canRequestPayment"]
                     args: ["object"]

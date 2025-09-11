@@ -29,12 +29,25 @@ final class SupportedRefundPaymentMethodsProvider implements RefundPaymentMethod
 
     public function findForOrder(OrderInterface $order): array
     {
-        $methods = $this->decoratedProvider->findForOrder($order);
         $payment = $order->getLastPayment(PaymentInterface::STATE_COMPLETED);
-        if (null === $payment || $this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
-            return $methods;
+        if (null === $payment) {
+            return [];
         }
 
+        $nonAdyenPaymentMethods = $this->filterOutAdyenPaymentMethods($this->decoratedProvider->findForOrder($order));
+        if (false === $this->adyenPaymentMethodChecker->isAdyenPayment($payment)) {
+            return $nonAdyenPaymentMethods;
+        }
+
+        if ($payment->getMethod()->isEnabled()) {
+            return array_merge([$payment->getMethod()], $nonAdyenPaymentMethods);
+        }
+
+        return $nonAdyenPaymentMethods;
+    }
+
+    public function filterOutAdyenPaymentMethods(array $methods): array
+    {
         return array_filter($methods, fn (PaymentMethodInterface $method) => false === $this->adyenPaymentMethodChecker->isAdyenPaymentMethod($method));
     }
 }

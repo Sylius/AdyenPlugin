@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin\Functional;
+namespace Tests\Sylius\AdyenPlugin\Functional\OrderProcessing;
 
 use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Controller\Admin\ReverseOrderPaymentAction;
@@ -28,6 +28,7 @@ use Sylius\Component\Core\OrderPaymentStates;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
+use Tests\Sylius\AdyenPlugin\Functional\AdyenTestCase;
 
 final class PaymentReversalTest extends AdyenTestCase
 {

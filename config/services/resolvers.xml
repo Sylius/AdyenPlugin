@@ -102,8 +102,17 @@
             <argument type="service" id="sylius.manager.order"/>
             <argument type="service" id="sylius_abstraction.state_machine"/>
             <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.checker.order_checkout_complete_integrity"/>
         </service>
         <service id="Sylius\AdyenPlugin\Resolver\ExpressCheckout\CheckoutResolverInterface" alias="sylius_adyen.resolver.order.express_checkout.checkout"/>
+
+        <service
+            id="sylius_adyen.state_resolver.order_failed_payment"
+            class="Sylius\AdyenPlugin\Resolver\Order\FailedOrderPaymentStateResolver"
+        >
+            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
 
         <service
             id="sylius_adyen.refund.state_resolver.order_fully_refunded"

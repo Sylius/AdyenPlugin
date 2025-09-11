@@ -68,5 +68,24 @@
             <argument type="service" id="sylius.repository.order" />
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
+
+        <service
+            id="sylius_adyen.checker.zone_shipping_method_eligibility"
+            class="Sylius\AdyenPlugin\Checker\Eligibility\ZoneShippingMethodEligibilityChecker"
+        >
+            <argument type="service" id="sylius.matcher.zone"/>
+            <tag name="sylius.shipping_method_eligibility_checker"/>
+        </service>
+
+        <service
+            id="sylius_adyen.checker.order_checkout_complete_integrity"
+            class="Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityChecker"
+        >
+            <argument type="service" id="sylius.order_processing.order_processor"/>
+            <argument type="service" id="sylius.manager.order"/>
+            <argument type="service" id="validator"/>
+            <argument type="service" id="translator"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityCheckerInterface" alias="sylius_adyen.checker.order_checkout_complete_integrity"/>
     </services>
 </container>

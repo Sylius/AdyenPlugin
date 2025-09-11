@@ -16,6 +16,7 @@
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order" />
             <argument type="service" id="sylius_adyen.processor.payment_response" />
             <argument type="service" id="sylius_adyen.repository.adyen_payment_detail" />
+            <argument type="service" id="sylius_adyen.checker.order_checkout_complete_integrity" />
 
             <tag name="controller.service_arguments" />
         </service>
@@ -32,6 +33,7 @@
             <argument type="service" id="sylius_adyen.resolver.shopper_reference" />
             <argument type="service" id="sylius_adyen.provider.current_shop_user" />
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_adyen.checker.order_checkout_complete_integrity"/>
             <argument type="service" id="sylius.command_bus" />
 
             <tag name="controller.service_arguments" />

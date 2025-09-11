@@ -18,6 +18,7 @@ use Adyen\Model\Checkout\PaymentCancelRequest;
 use Adyen\Model\Checkout\PaymentCaptureRequest;
 use Adyen\Model\Checkout\PaymentDetailsRequest;
 use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Model\Checkout\PaymentRefundRequest;
 use Adyen\Model\Checkout\PaymentRequest;
 use Adyen\Model\Checkout\PaymentReversalRequest;
@@ -50,7 +51,8 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ArrayObject $options,
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): array {
+        bool $manualCapture = false,
+    ): PaymentMethodsRequest {
         $address = $order->getBillingAddress();
         $countryCode = $address?->getCountryCode() ?? '';
         $request = $this->requestStack->getCurrentRequest();
@@ -69,9 +71,10 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->injectShopperReference($payload, $shopperReference);
         $payload = $this->enableOneOffPaymentIfApplicable($payload, $shopperReference);
+        $payload = $this->addManualCaptureIfApplicable($payload, $manualCapture);
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return $payload;
+        return new PaymentMethodsRequest($payload);
     }
 
     public function createForPaymentDetails(
@@ -107,7 +110,6 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
             'reference' => (string) $order->getNumber(),
             'merchantAccount' => $options['merchantAccount'],
             'returnUrl' => $url,
-
             'channel' => 'web',
             'origin' => $this->getOrigin($url),
             'countryCode' => $countryCode,
@@ -143,13 +145,16 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ArrayObject $options,
         PaymentInterface $payment,
     ): PaymentCaptureRequest {
+        $order = $payment->getOrder();
+        Assert::notNull($order);
+
         $payload = [
             'merchantAccount' => $options['merchantAccount'],
-            'modificationAmount' => [
+            'amount' => [
                 'value' => $payment->getAmount(),
                 'currency' => (string) $payment->getCurrencyCode(),
             ],
-            'originalReference' => $payment->getDetails()['pspReference'],
+            'reference' => (string) $order->getNumber(),
         ];
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
@@ -161,9 +166,12 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ArrayObject $options,
         PaymentInterface $payment,
     ): PaymentCancelRequest {
+        $order = $payment->getOrder();
+        Assert::notNull($order);
+
         $params = [
             'merchantAccount' => $options['merchantAccount'],
-            'originalReference' => $payment->getDetails()['pspReference'],
+            'reference' => (string) $order->getNumber(),
         ];
 
         $params = $this->versionResolver->appendVersionConstraints($params);
@@ -199,12 +207,11 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $params = [
             'merchantAccount' => $options['merchantAccount'],
-            'modificationAmount' => [
+            'amount' => [
                 'value' => $refund->amount(),
                 'currency' => $refund->currencyCode(),
             ],
             'reference' => (string) $order->getNumber(),
-            'originalReference' => $payment->getDetails()['pspReference'],
         ];
 
         $params = $this->versionResolver->appendVersionConstraints($params);
@@ -214,9 +221,12 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
     public function createForReversal(ArrayObject $options, PaymentInterface $payment): PaymentReversalRequest
     {
+        $order = $payment->getOrder();
+        Assert::notNull($order);
+
         $payload = [
             'merchantAccount' => $options['merchantAccount'],
-            'reference' => $payment->getOrder()->getNumber(),
+            'reference' => (string) $order->getNumber(),
         ];
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
@@ -271,7 +281,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
                 'currency' => $order->getCurrencyCode(),
                 'value' => $order->getItemsSubtotal(),
             ]),
-            'reference' => $order->getNumber(),
+            'reference' => (string) $order->getNumber(),
             'returnUrl' => $returnUrl,
         ];
 

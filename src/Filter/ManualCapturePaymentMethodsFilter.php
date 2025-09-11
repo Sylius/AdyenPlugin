@@ -13,21 +13,23 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Filter;
 
-final class ConfiguredPaymentMethodsFilter implements PaymentMethodsFilterInterface
+use Sylius\AdyenPlugin\Model\PaymentMethod;
+
+final class ManualCapturePaymentMethodsFilter implements PaymentMethodsFilterInterface
 {
     public function __construct(
-        private readonly array $allowedTypes,
+        private readonly array $manualCaptureSupportingTypes = [],
     ) {
     }
 
     public function filter(array $paymentMethods, array $context = []): array
     {
-        if ($this->allowedTypes === []) {
+        if (false === ($context['manual_capture'] ?? false)) {
             return $paymentMethods;
         }
 
-        return array_values(array_filter($paymentMethods, function ($method): bool {
-            return in_array($method->type, $this->allowedTypes, true);
+        return array_values(array_filter($paymentMethods, function (PaymentMethod $paymentMethod): bool {
+            return in_array($paymentMethod->type, $this->manualCaptureSupportingTypes, true);
         }));
     }
 }

@@ -13,7 +13,9 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
+use Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityCheckerInterface;
 use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
+use Sylius\AdyenPlugin\Exception\CheckoutValidationException;
 use Sylius\AdyenPlugin\Processor\PaymentResponseProcessorInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
@@ -34,12 +36,23 @@ class PaymentDetailsAction
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly PaymentResponseProcessorInterface $paymentResponseProcessor,
         private readonly RepositoryInterface $adyenPaymentDetailRepository,
+        private readonly OrderCheckoutCompleteIntegrityCheckerInterface $orderCheckoutCompleteIntegrityChecker,
     ) {
     }
 
     public function __invoke(Request $request): Response
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
+
+        try {
+            $this->orderCheckoutCompleteIntegrityChecker->check($order);
+        } catch (CheckoutValidationException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_BAD_REQUEST);
+        }
+
         $payment = $this->getPayablePayment($order);
 
         /** @var AdyenPaymentDetailInterface $paymentDetail */

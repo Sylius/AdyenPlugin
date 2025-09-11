@@ -19,8 +19,9 @@ interface PaymentMethodsFilterInterface
 {
     /**
      * @param list<PaymentMethod> $paymentMethods
+     * @param array<string, mixed> $context
      *
      * @return list<PaymentMethod>
      */
-    public function filter(array $paymentMethods): array;
+    public function filter(array $paymentMethods, array $context = []): array;
 }

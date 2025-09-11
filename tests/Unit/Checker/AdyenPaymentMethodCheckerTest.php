@@ -436,6 +436,89 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
     }
 
+    #[DataProvider('provideForIsCaptureModeWithPaymentMethod')]
+    public function testIsCaptureModeWithPaymentMethod(
+        bool $hasGatewayConfig,
+        array $config,
+        string $mode,
+        bool $expectedResult,
+    ): void {
+        $paymentMethod = $this->createMock(PaymentMethodInterface::class);
+        $gatewayConfig = $hasGatewayConfig ? $this->createMock(GatewayConfigInterface::class) : null;
+
+        $this->adyenPaymentDetailRepository
+            ->expects($this->never())
+            ->method('findOneBy');
+
+        $paymentMethod
+            ->expects($this->once())
+            ->method('getGatewayConfig')
+            ->willReturn($gatewayConfig);
+
+        if ($gatewayConfig !== null) {
+            $gatewayConfig
+                ->expects($this->once())
+                ->method('getConfig')
+                ->willReturn($config);
+        }
+
+        $result = $this->checker->isCaptureMode($paymentMethod, $mode);
+
+        self::assertSame($expectedResult, $result);
+    }
+
+    public static function provideForIsCaptureModeWithPaymentMethod(): \Generator
+    {
+        yield 'payment method with manual capture mode configured' => [
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::MANUAL],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => true,
+        ];
+
+        yield 'payment method with automatic capture mode configured' => [
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
+            'mode' => PaymentCaptureMode::AUTOMATIC,
+            'expectedResult' => true,
+        ];
+
+        yield 'payment method with manual mode checking for automatic' => [
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::MANUAL],
+            'mode' => PaymentCaptureMode::AUTOMATIC,
+            'expectedResult' => false,
+        ];
+
+        yield 'payment method with automatic mode checking for manual' => [
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+
+        yield 'payment method without gateway config' => [
+            'hasGatewayConfig' => false,
+            'config' => [],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+
+        yield 'payment method with empty config' => [
+            'hasGatewayConfig' => true,
+            'config' => [],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+
+        yield 'payment method with other config keys' => [
+            'hasGatewayConfig' => true,
+            'config' => ['other_key' => 'value'],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+    }
+
     #[DataProvider('provideForIsPayByLink')]
     public function testIsPayByLink(
         bool $hasPaymentMethod,

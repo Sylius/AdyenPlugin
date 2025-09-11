@@ -18,6 +18,7 @@ use Psr\Log\LoggerInterface;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\AdyenPlugin\Entity\PaymentLinkInterface;
 use Sylius\AdyenPlugin\Exception\PaymentLinkGenerationException;
 use Sylius\AdyenPlugin\Factory\PaymentLinkFactoryInterface;
@@ -75,7 +76,7 @@ final class PaymentLinkGenerator implements PaymentLinkGeneratorInterface
             );
         }
 
-        if ($response['status'] !== 'active' || !isset($response['url'], $response['id'])) {
+        if ($response['status'] !== ResponseStatus::ACTIVE || !isset($response['url'], $response['id'])) {
             $this->logger->error('Failed to generate payment link.', [
                 'paymentId' => $payment->getId(),
                 'response' => $response,

@@ -13,16 +13,20 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Provider;
 
+use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
 use Sylius\AdyenPlugin\Model\PaymentMethodData;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 
 final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 {
@@ -32,37 +36,59 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentMethodsFilterInterface $paymentMethodsFilter,
+        private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
         private readonly StoredPaymentMethodsFilterInterface $storedPaymentMethodsFilter,
         private readonly PaymentMethodsMapperInterface $paymentMethodsMapper,
         private readonly ShopperReferenceResolverInterface $shopperReferenceResolver,
+        private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
     ) {
     }
 
     public function provideForOrder(string $paymentMethodCode, OrderInterface $order): PaymentMethodData
     {
         $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($paymentMethodCode);
-
-        if ($paymentMethod === null) {
+        if (null === $paymentMethod) {
             throw new AdyenPaymentMethodNotFoundException($paymentMethodCode);
         }
 
-        $customer = $order->getCustomer();
-
-        $shopperReference = $customer instanceof CustomerInterface && $customer->hasUser() === true
-            ? $this->shopperReferenceResolver->resolve($paymentMethod, $customer)
-            : null;
-
         $client = $this->adyenClientProvider->getClientForCode($paymentMethodCode);
 
-        $response = $client->getPaymentMethodsResponse($order, $shopperReference);
+        /** @var CustomerInterface|null $customer */
+        $customer = $order->getCustomer();
+        $shopperReference = $this->resolveShopperReference($paymentMethod, $customer);
+
+        $isManualCapture = $this->adyenPaymentMethodChecker->isCaptureMode($paymentMethod, PaymentCaptureMode::MANUAL);
+
+        $response = $client->getPaymentMethodsResponse(
+            $order,
+            $shopperReference,
+            $isManualCapture,
+        );
 
         $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods() ?? []);
-        $availableFiltered = $this->paymentMethodsFilter->filter($available);
         $stored = $this->paymentMethodsMapper->mapStored($response->getStoredPaymentMethods() ?? []);
+
+        $availableFiltered = $this->paymentMethodsFilter->filter($available, [
+            'order' => $order,
+            'payment_method' => $paymentMethod,
+            'manual_capture' => $isManualCapture,
+        ]);
 
         return new PaymentMethodData(
             paymentMethods: $availableFiltered,
             storedPaymentMethods: $this->storedPaymentMethodsFilter->filterAgainstAvailable($stored, $availableFiltered),
         );
+    }
+
+    private function resolveShopperReference(
+        PaymentMethodInterface $paymentMethod,
+        ?CustomerInterface $orderCustomer,
+    ): ?ShopperReferenceInterface {
+        $orderUser = $orderCustomer?->getUser();
+        if ($orderUser === null || $orderUser !== $this->currentShopUserProvider->getShopUser()) {
+            return null;
+        }
+
+        return $this->shopperReferenceResolver->resolve($paymentMethod, $orderCustomer);
     }
 }

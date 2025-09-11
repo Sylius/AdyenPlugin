@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Processor\PaymentResponseProcessor;
 
 use Sylius\AdyenPlugin\Bus\PaymentCommandFactoryInterface;
+use Sylius\AdyenPlugin\Client\ResponseStatus;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Messenger\MessageBusInterface;
@@ -23,7 +24,12 @@ use Webmozart\Assert\Assert;
 
 final class FailedResponseProcessor extends AbstractProcessor
 {
-    public const PAYMENT_REFUSED_CODES = ['refused', 'rejected', 'cancelled', 'error'];
+    public const PAYMENT_REFUSED_CODES = [
+        ResponseStatus::REFUSED,
+        ResponseStatus::REJECTED,
+        ResponseStatus::CANCELLED,
+        ResponseStatus::ERROR,
+    ];
 
     public const CHECKOUT_FINALIZATION_REDIRECT = 'sylius_shop_checkout_complete';
 
@@ -52,7 +58,7 @@ final class FailedResponseProcessor extends AbstractProcessor
     ): string {
         $this->addFlash($request, self::FLASH_ERROR, self::LABEL_PAYMENT_FAILED);
 
-        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(self::PAYMENT_STATUS_RECEIVED_CODE, $payment);
+        $paymentStatusReceivedCommand = $this->paymentCommandFactory->createForEvent(ResponseStatus::PAYMENT_STATUS_RECEIVED, $payment);
         $this->messageBus->dispatch($paymentStatusReceivedCommand);
 
         return $this->getRedirectUrl($payment, $request);

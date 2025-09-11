@@ -29,6 +29,7 @@ use Sylius\AdyenPlugin\Resolver\Payment\EventCodeResolverInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfig;
 use Sylius\Component\Core\Model\Address;
 use Sylius\Component\Core\Model\Channel;
+use Sylius\Component\Core\Model\ChannelPricing;
 use Sylius\Component\Core\Model\Customer;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -220,6 +221,11 @@ abstract class AdyenTestCase extends WebTestCase
             $variant->setCurrentLocale('en_US');
             $variant->addTranslation($variantTranslation);
             $this->getEntityManager()->persist($variant);
+
+            $channelPricing = new ChannelPricing();
+            $channelPricing->setChannelCode('WEB_US');
+            $channelPricing->setPrice(10000);
+            $variant->addChannelPricing($channelPricing);
 
             $orderItem = new OrderItem();
             $orderItem->setVariant($variant);

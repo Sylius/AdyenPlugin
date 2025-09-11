@@ -19,6 +19,7 @@ use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Bus\Command\AuthorizePayment;
 use Sylius\AdyenPlugin\Bus\Command\CapturePayment;
+use Sylius\AdyenPlugin\Bus\Command\PaymentFailedCommand;
 use Sylius\AdyenPlugin\Bus\Handler\PaymentFinalizationHandler;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\Order;
@@ -41,13 +42,17 @@ class PaymentFinalizationHandlerTest extends TestCase
     }
 
     #[DataProvider('provideForTestForApplicable')]
-    public function testApplicable(string $command, bool $canTransition): void
+    public function testApplicable(string $command, bool $canTransition, ?string $paymentState = null): void
     {
         $order = new Order();
         $order->setPaymentState(OrderPaymentStates::STATE_AUTHORIZED);
 
         $payment = new Payment();
         $payment->setOrder($order);
+
+        if (null !== $paymentState) {
+            $payment->setState($paymentState);
+        }
 
         $command = new $command($payment);
 
@@ -101,6 +106,16 @@ class PaymentFinalizationHandlerTest extends TestCase
             'authorize action without transition' => [
                 'command' => AuthorizePayment::class,
                 'canTransition' => false,
+            ],
+            'fail action with transition' => [
+                'command' => PaymentFailedCommand::class,
+                'canTransition' => true,
+                'paymentState' => Payment::STATE_FAILED,
+            ],
+            'fail action without transition' => [
+                'command' => PaymentFailedCommand::class,
+                'canTransition' => false,
+                'paymentState' => Payment::STATE_NEW,
             ],
         ];
     }

@@ -12,6 +12,9 @@ winzou_state_machine:
             cancel:
                 from: [new, processing, authorized, processing_reversal]
                 to: cancelled
+            fail:
+                from: [new, processing, authorized, completed]
+                to: failed
             refund:
                 from: [completed, processing_reversal]
                 to: refunded
@@ -22,6 +25,19 @@ winzou_state_machine:
             after:
                 sylius_resolve_state:
                     on: ["complete", "process", "refund", "authorize", "capture"]
+                process_failed_payment_order:
+                    on: ["fail"]
+                    do: ["@sylius_adyen.order_processing.order_payment_processor.after_checkout.fail", "process"]
+                    args: ["object.getOrder()"]
+                    priority: -200
+                resolve_failed_payment_state:
+                    on: ["fail"]
+                    do: ["@sylius_adyen.state_resolver.order_failed_payment", "resolve"]
+                    args: ["object.getOrder()"]
+                save_payment:
+                    on: ["fail"]
+                    do: ["@doctrine.orm.entity_manager", "flush"]
+                    priority: -100
                 auto_capture:
                     on: ["authorize"]
                     do: ["@sylius_adyen.processor.authorization_state", "process"]
