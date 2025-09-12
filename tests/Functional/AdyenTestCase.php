@@ -276,11 +276,12 @@ abstract class AdyenTestCase extends WebTestCase
 
         $request = new Request(
             [],
-            $data,
+            [],
             ['_locale' => 'en_US'],
             [],
             [],
             ['HTTP_HOST' => 'localhost'],
+            json_encode($data),
         );
         $request->setSession($session);
         $request->setLocale('en_US');
