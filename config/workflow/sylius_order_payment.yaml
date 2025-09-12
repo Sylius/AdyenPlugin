@@ -1,11 +1,10 @@
-framework:
-    workflows:
-        sylius_order_payment:
-            transitions:
-                request_payment_adyen: # request_payment from Sylius
-                    from: [authorized, paid] # cart already present in Sylius
-                    to: awaiting_payment
-
-                cancel_adyen:
-                    from: [paid]
-                    to: cancelled
+#framework:
+#    workflows:
+#        sylius_order_payment:
+#            transitions:
+#                request_payment:
+#                    from: [authorized, paid]
+#                    to: awaiting_payment
+#                cancel:
+#                    from: [paid]
+#                    to: cancelled
