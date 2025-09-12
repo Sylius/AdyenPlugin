@@ -260,7 +260,7 @@ final class UpdateOrderPaymentProcessorTest extends TestCase
             ->method('getPaymentState')
             ->willReturn(OrderPaymentStates::STATE_PAID);
 
-        $matcher = $this->exactly(4);
+        $matcher = $this->exactly(3);
         $this->stateMachine
             ->expects($matcher)
             ->method('can')
@@ -271,8 +271,7 @@ final class UpdateOrderPaymentProcessorTest extends TestCase
                 match ($matcher->numberOfInvocations()) {
                     1 => $this->assertSame('cancel_adyen', $arg3),
                     2 => $this->assertSame(OrderPaymentTransitions::TRANSITION_CANCEL, $arg3),
-                    3 => $this->assertSame('refund_adyen', $arg3),
-                    4 => $this->assertSame(OrderPaymentTransitions::TRANSITION_REFUND, $arg3),
+                    3 => $this->assertSame(OrderPaymentTransitions::TRANSITION_REFUND, $arg3),
                 };
 
                 return false;
