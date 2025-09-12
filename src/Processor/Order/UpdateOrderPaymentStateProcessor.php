@@ -52,15 +52,6 @@ final class UpdateOrderPaymentStateProcessor implements OrderPaymentProcessorInt
             return;
         }
 
-        try {
-            if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, 'cancel_adyen')) {
-                $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, 'cancel_adyen');
-
-                return;
-            }
-        } catch (\Exception) {
-        }
-
         if ($this->stateMachine->can($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)) {
             $this->stateMachine->apply($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL);
 

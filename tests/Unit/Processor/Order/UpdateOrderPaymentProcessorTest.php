@@ -200,22 +200,15 @@ final class UpdateOrderPaymentProcessorTest extends TestCase
         $this->stateMachine
             ->expects($this->once())
             ->method('can')
-            ->willReturnCallback(function ($arg1, $arg2, $arg3) use ($order) {
-                $this->assertSame($order, $arg1);
-                $this->assertSame(OrderPaymentTransitions::GRAPH, $arg2);
-                $this->assertContains($arg3, [OrderPaymentTransitions::TRANSITION_CANCEL, 'cancel_adyen']);
-
-                return true;
-            });
+            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
+            ->willReturn(true)
+        ;
 
         $this->stateMachine
             ->expects($this->once())
             ->method('apply')
-            ->willReturnCallback(function ($arg1, $arg2, $arg3) use ($order) {
-                $this->assertSame($order, $arg1);
-                $this->assertSame(OrderPaymentTransitions::GRAPH, $arg2);
-                $this->assertContains($arg3, [OrderPaymentTransitions::TRANSITION_CANCEL, 'cancel_adyen']);
-            });
+            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
+        ;
 
         $this->processor->process($order);
     }
@@ -260,7 +253,7 @@ final class UpdateOrderPaymentProcessorTest extends TestCase
             ->method('getPaymentState')
             ->willReturn(OrderPaymentStates::STATE_PAID);
 
-        $matcher = $this->exactly(3);
+        $matcher = $this->exactly(2);
         $this->stateMachine
             ->expects($matcher)
             ->method('can')
@@ -269,9 +262,8 @@ final class UpdateOrderPaymentProcessorTest extends TestCase
                 $this->assertSame(OrderPaymentTransitions::GRAPH, $arg2);
 
                 match ($matcher->numberOfInvocations()) {
-                    1 => $this->assertSame('cancel_adyen', $arg3),
-                    2 => $this->assertSame(OrderPaymentTransitions::TRANSITION_CANCEL, $arg3),
-                    3 => $this->assertSame(OrderPaymentTransitions::TRANSITION_REFUND, $arg3),
+                    1 => $this->assertSame(OrderPaymentTransitions::TRANSITION_CANCEL, $arg3),
+                    2 => $this->assertSame(OrderPaymentTransitions::TRANSITION_REFUND, $arg3),
                 };
 
                 return false;
