@@ -1,0 +1,7 @@
+framework:
+    workflows:
+        sylius_refund_refund_payment:
+            transitions:
+                confirm:
+                    from: new
+                    to: completed
