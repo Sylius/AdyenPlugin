@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\EventListener\Workflow\Order;
 
-use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
+use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Workflow\Event\Event;
 
 final class ReversePaymentOnCancelListener
@@ -25,7 +25,7 @@ final class ReversePaymentOnCancelListener
     public function __invoke(Event $event): void
     {
         $subject = $event->getSubject();
-        if ($subject instanceof RefundPaymentInterface) {
+        if ($subject instanceof OrderInterface) {
             $this->processor->process($subject);
         }
     }
