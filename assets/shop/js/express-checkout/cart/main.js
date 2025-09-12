@@ -1,3 +1,4 @@
+import { AdyenCheckout, GooglePay, PayPal } from '@adyen/adyen-web';
 import { SELECTORS } from '../constants.js';
 import { loadConfiguration } from '../utils.js';
 import { GooglePayHandler } from './googlepay.js';
@@ -6,8 +7,6 @@ import { PayPalHandler } from './paypal.js';
 const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
     if (!configUrl) return;
-
-    const { AdyenCheckout, GooglePay, PayPal } = window.AdyenWeb;
 
     const configuration = await loadConfiguration(configUrl);
 

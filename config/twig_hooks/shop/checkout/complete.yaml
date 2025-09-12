@@ -1,0 +1,15 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_shop.checkout.complete.content.form':
+            navigation:
+                template: '@SyliusAdyenPlugin/shop/checkout/complete/content/form/navigation.html.twig'
+
+        'sylius_shop.checkout.complete.content.form.navigation#base':
+            navigation:
+                template: '@SyliusShop/checkout/complete/content/form/navigation.html.twig'
+                priority: 0
+
+        'sylius_shop.checkout.complete.content.form.navigation#adyen':
+            dropin:
+                template: '@SyliusAdyenPlugin/shop/checkout/complete/content/form/navigation/dropin.html.twig'
+                priority: 0
