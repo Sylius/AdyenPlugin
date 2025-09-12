@@ -2,5 +2,5 @@ sylius_twig_hooks:
     hooks:
         'sylius_admin.product_variant.create.content.form.sections.general.body':
             commodity_code:
-                template: '@SyliusAdyenPlugin/product_variant/form/sections/general/body/commodity_code.html.twig'
+                template: '@SyliusAdyenPlugin/admin/product_variant/form/sections/general/body/commodity_code.html.twig'
                 priority: -100
