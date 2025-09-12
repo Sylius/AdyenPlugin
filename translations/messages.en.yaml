@@ -11,7 +11,7 @@ sylius_adyen:
         merchant_account: Merchant account
         live_endpoint_url_prefix: Live endpoint URL prefix
         hmac_key: HMAC Key
-        ayden_gateway_label: Adyen
+        adyen_gateway_label: Adyen
         auth_user: Webhook authentication username
         auth_password: Webhook authentication password
         capture_mode: Capture mode
