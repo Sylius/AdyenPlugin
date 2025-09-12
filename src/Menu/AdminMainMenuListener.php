@@ -24,7 +24,7 @@ final class AdminMainMenuListener
         $adyenSection = $menu
             ->addChild('adyen')
             ->setLabel('sylius_adyen.ui.ayden_gateway_label')
-            ->setLabelAttribute('icon', 'credit card outline')
+            ->setLabelAttribute('icon', 'tabler:credit-card')
             ->setExtra('always_open', true)
         ;
 

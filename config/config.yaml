@@ -1,5 +1,6 @@
 imports:
     - { resource: "@SyliusAdyenPlugin/config/grids/*/*.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/twig_hooks/**/*.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius/blocks.yml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius/resources.yml" }
     - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine/**.yaml" }
@@ -17,4 +18,4 @@ sylius_mailer:
     emails:
         adyen_payment_link:
             subject: Payment link
-            template: "@SyliusAdyenPlugin/Shop/Email/paymentLink.html.twig"
+            template: "@SyliusAdyenPlugin/email/payment_link.html.twig"

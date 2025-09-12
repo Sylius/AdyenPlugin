@@ -4,7 +4,7 @@ sylius_adyen_admin_log:
         section: admin
         path: /adyen/log
         permission: true
-        templates: "@SyliusAdmin\\Crud"
+        templates: "@SyliusAdmin\\shared\\crud"
         redirect: update
         grid: sylius_adyen_admin_log
         vars:

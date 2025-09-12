@@ -29,8 +29,7 @@ sylius_adyen:
         merchant_category_code_help: Your 4-digit MCC code to automatically determine ESD type
         esd_auto_detect: Auto-detect ESD Type
         esd_auto_detect_help: Automatically determine ESD type based on merchant category code
-        notification_endpoint_description: In order to configure Adyen payment, head to merchant panel and use following URL as target
-        notification_endpoint: Notifications endpoint
+        notification_endpoint_description: In order to configure the Adyen webhook, head to merchant panel and use the following URL as the target
         payment_failed: Payment failed, try again
         payment_processing: Payment is being processed, please watch the notifications on your e-mail
         log_list: Log list

@@ -4,6 +4,7 @@ on:
     push:
         branches-ignore:
             - 'dependabot/**'
+            - 'upmerge/**'
     pull_request:
         paths-ignore:
             - "doc/**"
@@ -156,7 +157,7 @@ jobs:
 
             -
                 name: Setup Messenger transports
-                run: vendor/bin/console  messenger:setup-transports
+                run: vendor/bin/console messenger:setup-transports
 
             -
                 name: Validate database schema
@@ -167,6 +168,10 @@ jobs:
                 run: vendor/bin/console cache:warmup -vvv
 
             -
+                name: Generate test application encryption key
+                run: vendor/bin/console sylius:payment:generate-key -n
+
+            -
                 name: Load fixtures in test application
                 run: vendor/bin/console sylius:fixtures:load -n
 
@@ -175,25 +180,17 @@ jobs:
                 run: vendor/bin/phpunit --colors=always --testsuite=functional
 
             -
-                name: Run Chrome Headless
-                run: google-chrome-stable --enable-automation --disable-background-networking --no-default-browser-check --no-first-run --disable-popup-blocking --disable-default-apps --allow-insecure-localhost --disable-translate --disable-extensions --no-sandbox --enable-features=Metal --headless --remote-debugging-port=9222 --window-size=2880,1800 --proxy-server='direct://' --proxy-bypass-list='*' http://127.0.0.1 > /dev/null 2>&1 &
+                name: Run Behat
+                run: vendor/bin/behat --tags="~@todo" --colors --strict -vvv --no-interaction || vendor/bin/behat --tags="~@todo" --colors --strict -vvv --no-interaction --rerun
 
             -
-                name: Run webserver
-                run: symfony server:start --port=8080 --daemon && symfony -V
-
-#            -
-#                name: Run Behat
-#                run: vendor/bin/behat --tags="~@todo" --colors --strict -vvv --no-interaction || vendor/bin/behat --tags="~@todo" --colors --strict -vvv --no-interaction --rerun
-#
-#            -
-#                name: Upload Behat logs
-#                uses: actions/upload-artifact@v4
-#                if: failure()
-#                with:
-#                    name: "Logs - ${{ github.run_id }}-${{ github.run_number }}"
-#                    path: |
-#                        etc/build
-#                        var/log
-#                    if-no-files-found: ignore
-#                    overwrite: true
+                name: Upload Behat logs
+                uses: actions/upload-artifact@v4
+                if: failure()
+                with:
+                    name: "Logs - ${{ github.run_id }}-${{ github.run_number }}"
+                    path: |
+                        etc/build
+                        var/log
+                    if-no-files-found: ignore
+                    overwrite: true

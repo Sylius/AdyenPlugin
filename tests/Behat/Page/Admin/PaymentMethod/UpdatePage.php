@@ -24,10 +24,10 @@ final class UpdatePage extends BaseUpdatePage implements UpdatePageInterface
 
     protected function getDefinedElements(): array
     {
-        return parent::getDefinedElements() + [
-            'apiKey' => '#sylius_payment_method_gatewayConfig_config_apiKey',
-            'merchantAccount' => '#sylius_payment_method_gatewayConfig_config_merchantAccount',
-            'hmacKey' => '#sylius_payment_method_gatewayConfig_config_hmacKey',
-        ];
+        return array_merge(parent::getDefinedElements(), [
+            'apiKey' => '[data-test-api-key]',
+            'merchantAccount' => '[data-test-merchant-account]',
+            'hmacKey' => '[data-test-hmac-key]',
+        ]);
     }
 }
