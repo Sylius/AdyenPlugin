@@ -1,7 +1,9 @@
 {% set order = hookable_metadata.context.resource %}
 {% set payment = hookable_metadata.context.payment %}
+{% set graph = constant('Sylius\\Component\\Payment\\PaymentTransitions::GRAPH') %}
+{% set transition_complete = constant('Sylius\\Component\\Payment\\PaymentTransitions::TRANSITION_COMPLETE') %}
 
-{%- if not sylius_adyen_is_adyen_payment(payment) and sylius_sm_can(payment, constant('Sylius\\Component\\Payment\\PaymentTransitions::GRAPH'), constant('Sylius\\Component\\Payment\\PaymentTransitions::TRANSITION_COMPLETE')) -%}
+{%- if not sylius_adyen_is_adyen_payment(payment) and sylius_sm_can(payment, graph, transition_complete) -%}
     <form action="{{ path('sylius_admin_order_payment_complete', {'orderId': order.id, 'id': payment.id}) }}" method="POST" novalidate>
         <input type="hidden" name="_method" value="PUT">
         <input type="hidden" name="_csrf_token" value="{{ csrf_token(payment.id) }}" />
