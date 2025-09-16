@@ -22,6 +22,7 @@ use Symfony\Component\Workflow\Transition;
 final class AddPaymentWorkflowTransitionPassTest extends TestCase
 {
     private AddPaymentWorkflowTransitionPass $compilerPass;
+
     private ContainerBuilder $container;
 
     protected function setUp(): void
@@ -75,7 +76,7 @@ final class AddPaymentWorkflowTransitionPassTest extends TestCase
         $processTransitionsCount = 0;
         foreach ($transitions as $transition) {
             if ($transition instanceof Definition && $transition->getArgument(0) === 'process') {
-                $processTransitionsCount++;
+                ++$processTransitionsCount;
             }
         }
 

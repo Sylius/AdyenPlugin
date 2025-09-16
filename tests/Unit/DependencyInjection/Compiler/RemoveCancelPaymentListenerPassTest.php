@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\Definition;
 final class RemoveCancelPaymentListenerPassTest extends TestCase
 {
     private RemoveCancelPaymentListenerPass $compilerPass;
+
     private ContainerBuilder $container;
 
     protected function setUp(): void

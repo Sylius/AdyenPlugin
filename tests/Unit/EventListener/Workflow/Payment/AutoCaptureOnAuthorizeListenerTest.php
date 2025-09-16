@@ -23,6 +23,7 @@ use Symfony\Component\Workflow\Event\Event;
 final class AutoCaptureOnAuthorizeListenerTest extends TestCase
 {
     private AuthorizationStateProcessorInterface&MockObject $processor;
+
     private AutoCaptureOnAuthorizeListener $listener;
 
     protected function setUp(): void

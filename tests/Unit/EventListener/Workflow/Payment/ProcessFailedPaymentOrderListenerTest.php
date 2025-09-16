@@ -23,7 +23,8 @@ use Symfony\Component\Workflow\Event\Event;
 
 final class ProcessFailedPaymentOrderListenerTest extends TestCase
 {
-    private OrderProcessorInterface&MockObject $orderPaymentProcessor;
+    private MockObject&OrderProcessorInterface $orderPaymentProcessor;
+
     private ProcessFailedPaymentOrderListener $listener;
 
     protected function setUp(): void

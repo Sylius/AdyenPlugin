@@ -22,7 +22,8 @@ use Symfony\Component\Workflow\Event\Event;
 
 final class ProcessRefundPaymentOnConfirmListenerTest extends TestCase
 {
-    private RefundPaymentStateProcessorInterface&MockObject $processor;
+    private MockObject&RefundPaymentStateProcessorInterface $processor;
+
     private ProcessRefundPaymentOnConfirmListener $listener;
 
     protected function setUp(): void

@@ -16,14 +16,15 @@ namespace Tests\Sylius\AdyenPlugin\Unit\EventListener\Workflow\Payment;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\EventListener\Workflow\Payment\ProcessOrderPaymentAfterReversalListener;
+use Sylius\AdyenPlugin\Processor\Order\OrderPaymentProcessorInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\AdyenPlugin\Processor\Order\OrderPaymentProcessorInterface;
 use Symfony\Component\Workflow\Event\Event;
 
 final class ProcessOrderPaymentAfterReversalListenerTest extends TestCase
 {
-    private OrderPaymentProcessorInterface&MockObject $orderPaymentProcessor;
+    private MockObject&OrderPaymentProcessorInterface $orderPaymentProcessor;
+
     private ProcessOrderPaymentAfterReversalListener $listener;
 
     protected function setUp(): void

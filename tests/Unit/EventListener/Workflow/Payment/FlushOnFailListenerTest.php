@@ -22,6 +22,7 @@ use Symfony\Component\Workflow\Event\Event;
 final class FlushOnFailListenerTest extends TestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
+
     private FlushOnFailListener $listener;
 
     protected function setUp(): void

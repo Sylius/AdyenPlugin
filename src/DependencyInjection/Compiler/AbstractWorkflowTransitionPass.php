@@ -83,7 +83,7 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
             $transitionKey = $this->createTransitionKey(
                 $requiredTransition['name'],
                 $requiredTransition['from'],
-                $requiredTransition['to']
+                $requiredTransition['to'],
             );
 
             if (!in_array($transitionKey, $existingTransitions, true)) {

@@ -23,7 +23,8 @@ use Symfony\Component\Workflow\Event\Event;
 
 final class ResolveStateListenerTest extends TestCase
 {
-    private StateResolverInterface&MockObject $resolver;
+    private MockObject&StateResolverInterface $resolver;
+
     private ResolveStateListener $listener;
 
     protected function setUp(): void

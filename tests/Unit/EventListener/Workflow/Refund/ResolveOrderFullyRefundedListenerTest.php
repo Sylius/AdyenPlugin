@@ -17,13 +17,14 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\EventListener\Workflow\Refund\ResolveOrderFullyRefundedListener;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\RefundPlugin\StateResolver\OrderFullyRefundedStateResolverInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
+use Sylius\RefundPlugin\StateResolver\OrderFullyRefundedStateResolverInterface;
 use Symfony\Component\Workflow\Event\Event;
 
 final class ResolveOrderFullyRefundedListenerTest extends TestCase
 {
-    private OrderFullyRefundedStateResolverInterface&MockObject $resolver;
+    private MockObject&OrderFullyRefundedStateResolverInterface $resolver;
+
     private ResolveOrderFullyRefundedListener $listener;
 
     protected function setUp(): void

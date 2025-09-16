@@ -30,7 +30,9 @@ use Symfony\Component\Workflow\WorkflowInterface;
 final class GuardCancelListenerTest extends TestCase
 {
     private AdyenPaymentMethodCheckerInterface&MockObject $adyenPaymentMethodChecker;
+
     private OrderPaymentGuard $guard;
+
     private GuardCancelListener $listener;
 
     protected function setUp(): void

@@ -31,9 +31,13 @@ use Symfony\Component\Workflow\Event\Event;
 final class RequestCancelOnCancelListenerTest extends TestCase
 {
     private AdyenPaymentMethodCheckerInterface&MockObject $adyenPaymentMethodChecker;
-    private StateMachineInterface&MockObject $stateMachine;
+
+    private MockObject&StateMachineInterface $stateMachine;
+
     private MessageBusInterface&MockObject $messageBus;
+
     private RequestCancelCallback $requestCancelCallback;
+
     private RequestCancelOnCancelListener $listener;
 
     protected function setUp(): void

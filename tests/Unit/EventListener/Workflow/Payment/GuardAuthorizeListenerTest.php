@@ -28,7 +28,9 @@ use Symfony\Component\Workflow\WorkflowInterface;
 final class GuardAuthorizeListenerTest extends TestCase
 {
     private AdyenPaymentMethodCheckerInterface&MockObject $adyenPaymentMethodChecker;
+
     private AdyenPaymentGuard $guard;
+
     private GuardAuthorizeListener $listener;
 
     protected function setUp(): void
