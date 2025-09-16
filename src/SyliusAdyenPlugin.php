@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin;
 
+use Sylius\AdyenPlugin\DependencyInjection\Compiler\AddOrderPaymentWorkflowTransitionPass;
+use Sylius\AdyenPlugin\DependencyInjection\Compiler\AddPaymentWorkflowTransitionPass;
 use Sylius\AdyenPlugin\DependencyInjection\Compiler\RemoveCancelPaymentListenerPass;
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -26,6 +28,8 @@ final class SyliusAdyenPlugin extends Bundle
     {
         parent::build($container);
 
+        $container->addCompilerPass(new AddOrderPaymentWorkflowTransitionPass());
+        $container->addCompilerPass(new AddPaymentWorkflowTransitionPass());
         $container->addCompilerPass(new RemoveCancelPaymentListenerPass());
     }
 
