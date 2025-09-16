@@ -1,0 +1,18 @@
+{% set payment = hookable_metadata.context.payment %}
+
+{%- if sylius_adyen_can_generate_payment_link(payment) -%}
+    {% set should_be_resent = payment.state != constant('Sylius\\Component\\Payment\\Model\\PaymentInterface::STATE_NEW') %}
+        <a
+            href="{{ path('sylius_adyen_admin_order_payment_generate_pay_link', {'id': payment.id}) }}"
+            class="btn btn-icon {% if should_be_resent %}blue{% else %}teal{% endif%}"
+        >
+            {{ ux_icon('tabler:check') }}
+            <span>
+            {%- if should_be_resent -%}
+                {{ 'sylius_adyen.ui.resend_payment_link'|trans }}
+            {%- else -%}
+                {{ 'sylius_adyen.ui.send_payment_link'|trans }}
+            {%- endif -%}
+            </span>
+        </a>
+{%- endif -%}

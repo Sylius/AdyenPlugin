@@ -1,5 +1,5 @@
 imports:
-    - { resource: "@SyliusRefundPlugin/Resources/config/app/config.yml" }
+    - { resource: "@SyliusRefundPlugin/config/config.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/config.yaml" }
     - { resource: "services_test.php" }
 
@@ -8,10 +8,6 @@ parameters:
     sylius_refund.supported_gateways:
         - offline
         - adyen
-
-sylius_refund:
-    pdf_generator:
-        enabled: false
 
 doctrine:
     orm:
@@ -24,6 +20,17 @@ doctrine:
                         dir: '%kernel.project_dir%/../../../tests/TestApplication/src/Entity'
                         prefix: Tests\Sylius\AdyenPlugin
 
+sylius_state_machine_abstraction:
+    default_adapter: winzou_state_machine
+
+sylius_refund:
+    pdf_generator:
+        enabled: false
+    resources:
+        refund_payment:
+            classes:
+                repository: Tests\Sylius\AdyenPlugin\Repository\RefundPaymentRepository
+
 sylius_product:
     resources:
         product_variant:
@@ -35,12 +42,6 @@ sylius_payment:
         payment_method:
             classes:
                 repository: Tests\Sylius\AdyenPlugin\Repository\PaymentMethodRepository
-
-sylius_resource:
-    resources:
-        sylius_refund.refund_payment:
-            classes:
-                repository: Tests\Sylius\AdyenPlugin\Repository\RefundPaymentRepository
 
 monolog:
     channels: ["app", "doctrine", "event", "php", "adyen"]
