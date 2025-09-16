@@ -22,7 +22,7 @@
             class="Sylius\AdyenPlugin\EventListener\Workflow\Order\ReversePaymentOnCancelListener"
         >
             <argument type="service" id="sylius_adyen.processor.order.reverse_payment" />
-            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel" priority="-600" />
+            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel" priority="700" />
         </service>
 
         <service
@@ -30,7 +30,7 @@
             class="Sylius\AdyenPlugin\EventListener\Workflow\Order\RequestCancelOnCancelListener"
         >
             <argument type="service" id="sylius_adyen.callback.request_cancel" />
-            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel" priority="-500" />
+            <tag name="kernel.event_listener" event="workflow.sylius_order.completed.cancel" priority="650" />
         </service>
 
         <service

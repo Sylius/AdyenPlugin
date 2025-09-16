@@ -13,27 +13,22 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\EventListener\Workflow\Payment;
 
-use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Order\StateResolver\StateResolverInterface;
+use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\Workflow\Event\Event;
 
 final class ProcessFailedPaymentOrderListener
 {
-    public function __construct(private readonly StateResolverInterface $stateResolver)
+    public function __construct(private readonly OrderProcessorInterface $orderPaymentProcessor)
     {
     }
 
     public function __invoke(Event $event): void
     {
         $payment = $event->getSubject();
-        if (!$payment instanceof PaymentInterface) {
-            return;
-        }
-
         $order = $payment->getOrder();
-        if ($order instanceof OrderInterface) {
-            $this->stateResolver->resolve($order);
+        if ($payment instanceof PaymentInterface && null !== $order) {
+            $this->orderPaymentProcessor->process($order);
         }
     }
 }

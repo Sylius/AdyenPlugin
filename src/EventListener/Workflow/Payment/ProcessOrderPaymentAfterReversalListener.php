@@ -27,8 +27,9 @@ final class ProcessOrderPaymentAfterReversalListener
     public function __invoke(Event $event): void
     {
         $payment = $event->getSubject();
-        if ($payment instanceof PaymentInterface && null !== $payment->getOrder()) {
-            $this->orderPaymentProcessor->process($payment->getOrder());
+        $order = $payment->getOrder();
+        if ($payment instanceof PaymentInterface && null !== $order) {
+            $this->orderPaymentProcessor->process($order);
         }
     }
 }

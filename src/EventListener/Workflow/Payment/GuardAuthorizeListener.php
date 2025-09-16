@@ -19,14 +19,14 @@ use Symfony\Component\Workflow\Event\GuardEvent;
 
 final class GuardAuthorizeListener
 {
-    public function __construct(private AdyenPaymentGuard $guard)
+    public function __construct(private readonly AdyenPaymentGuard $guard)
     {
     }
 
     public function __invoke(GuardEvent $event): void
     {
-        $p = $event->getSubject();
-        if ($p instanceof PaymentInterface && !$this->guard->canBeAuthorized($p)) {
+        $payment = $event->getSubject();
+        if ($payment instanceof PaymentInterface && !$this->guard->canBeAuthorized($payment)) {
             $event->setBlocked(true);
         }
     }

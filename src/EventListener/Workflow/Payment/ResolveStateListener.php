@@ -17,7 +17,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Order\StateResolver\StateResolverInterface;
 use Symfony\Component\Workflow\Event\Event;
 
-final class ResolveAfterCaptureListener
+final class ResolveStateListener
 {
     public function __construct(private readonly StateResolverInterface $resolver)
     {
@@ -25,9 +25,10 @@ final class ResolveAfterCaptureListener
 
     public function __invoke(Event $event): void
     {
-        $p = $event->getSubject();
-        if ($p instanceof PaymentInterface && null !== $p->getOrder()) {
-            $this->resolver->resolve($p->getOrder());
+        $payment = $event->getSubject();
+        $order = $payment->getOrder();
+        if ($payment instanceof PaymentInterface && null !== $order) {
+            $this->resolver->resolve($order);
         }
     }
 }

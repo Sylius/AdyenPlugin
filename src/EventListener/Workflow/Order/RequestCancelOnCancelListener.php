@@ -13,22 +13,21 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\EventListener\Workflow\Order;
 
-use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
+use Sylius\AdyenPlugin\Callback\RequestCancelCallback;
+use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Workflow\Event\Event;
 
 final class RequestCancelOnCancelListener
 {
-    public function __construct(private readonly object $resolver)
+    public function __construct(private readonly RequestCancelCallback $requestCancelCallback)
     {
     }
 
     public function __invoke(Event $event): void
     {
-        $subject = $event->getSubject();
-        if (!$subject instanceof RefundPaymentInterface) {
-            return;
+        $order = $event->getSubject();
+        if ($order instanceof OrderInterface) {
+            $this->requestCancelCallback->__invoke($order);
         }
-
-        $this->resolver->resolve($subject->getOrder()->getNumber());
     }
 }

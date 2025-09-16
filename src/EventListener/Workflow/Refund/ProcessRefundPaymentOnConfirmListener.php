@@ -13,20 +13,21 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\EventListener\Workflow\Refund;
 
+use Sylius\AdyenPlugin\Processor\Refund\RefundPaymentStateProcessorInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Symfony\Component\Workflow\Event\Event;
 
 final class ProcessRefundPaymentOnConfirmListener
 {
-    public function __construct(private readonly object $processor)
+    public function __construct(private readonly RefundPaymentStateProcessorInterface $processor)
     {
     }
 
     public function __invoke(Event $event): void
     {
-        $subject = $event->getSubject();
-        if ($subject instanceof RefundPaymentInterface) {
-            $this->processor->process($subject);
+        $refundPayment = $event->getSubject();
+        if ($refundPayment instanceof RefundPaymentInterface) {
+            $this->processor->process($refundPayment);
         }
     }
 }

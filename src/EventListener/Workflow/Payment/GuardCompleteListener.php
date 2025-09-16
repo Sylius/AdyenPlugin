@@ -13,23 +13,20 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\EventListener\Workflow\Payment;
 
+use Sylius\AdyenPlugin\StateMachine\Guard\AdyenPaymentGuard;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Symfony\Component\Workflow\Event\GuardEvent;
 
 final class GuardCompleteListener
 {
-    public function __construct(private readonly object $guardService)
+    public function __construct(private readonly AdyenPaymentGuard $guard)
     {
     }
 
     public function __invoke(GuardEvent $event): void
     {
         $payment = $event->getSubject();
-        if (!$payment instanceof PaymentInterface) {
-            return;
-        }
-
-        if (method_exists($this->guardService, 'canBeCompleted') && !$this->guardService->canBeCompleted($payment)) {
+        if ($payment instanceof PaymentInterface && !$this->guard->canBeCompleted($payment)) {
             $event->setBlocked(true);
         }
     }
