@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\EventListener\Workflow\Order;
 
 use Sylius\AdyenPlugin\StateMachine\Guard\OrderGuard;
 use Sylius\Component\Core\Model\OrderInterface;
-use Symfony\Component\Workflow\Event\Event;
+use Symfony\Component\Workflow\Event\GuardEvent;
 
 final class GuardCancelOrderListener
 {
@@ -23,7 +23,7 @@ final class GuardCancelOrderListener
     {
     }
 
-    public function __invoke(Event $event): void
+    public function __invoke(GuardEvent $event): void
     {
         $order = $event->getSubject();
         if ($order instanceof OrderInterface && !$this->guard->canBeCancelled($order)) {

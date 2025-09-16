@@ -27,7 +27,7 @@ final class RequestCancelOnCancelListener
     {
         $order = $event->getSubject();
         if ($order instanceof OrderInterface) {
-            $this->requestCancelCallback->__invoke($order);
+            ($this->requestCancelCallback)($order);
         }
     }
 }

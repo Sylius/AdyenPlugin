@@ -26,8 +26,12 @@ final class ProcessFailedPaymentOrderListener
     public function __invoke(Event $event): void
     {
         $payment = $event->getSubject();
+        if (!$payment instanceof PaymentInterface) {
+            return;
+        }
+
         $order = $payment->getOrder();
-        if ($payment instanceof PaymentInterface && null !== $order) {
+        if (null !== $order) {
             $this->orderPaymentProcessor->process($order);
         }
     }
