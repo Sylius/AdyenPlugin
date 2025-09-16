@@ -11,29 +11,29 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal;
+namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay;
 
 use Doctrine\Persistence\ObjectManager;
-use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
+use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProviderInterface;
+use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
 
 final class ShippingOptionsChangeAction
 {
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        private readonly AdyenClientProviderInterface $adyenClientProvider,
-        private readonly ShippingMethodRepositoryInterface $shippingMethodRepository,
-        private readonly OrderProcessorInterface $orderProcessor,
         private readonly ObjectManager $orderManager,
-        private readonly MessageBusInterface $messageBus,
+        private readonly OrderProcessorInterface $orderProcessor,
+        private readonly ShippingMethodRepositoryInterface $shippingMethodRepository,
+        private readonly TransactionInfoProviderInterface $transactionInfoProvider,
+        private readonly ShippingMethodsProviderInterface $shippingMethodsProvider,
     ) {
     }
 
@@ -44,36 +44,36 @@ final class ShippingOptionsChangeAction
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
 
-        $paymentData = $data['paymentData'] ?? null;
-        $pspReference = $data['pspReference'] ?? null;
-        $selectedDeliveryMethod = $data['selectedDeliveryMethod'] ?? null;
+        $selectedShippingMethod = $data['selectedShippingMethod'] ?? null;
 
-        if (!isset($paymentData, $pspReference, $selectedDeliveryMethod)) {
+        if (!isset($selectedShippingMethod)) {
             return new JsonResponse([
                 'error' => true,
-                'message' => 'Missing required parameters: paymentData, pspReference, or selectedDeliveryMethod.',
+                'message' => 'Missing required parameter: selectedShippingMethod.',
             ], 400);
         }
 
         try {
             $shipment = $order->getShipments()->first();
-            $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $selectedDeliveryMethod['id']]);
+            $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $selectedShippingMethod]);
             Assert::notNull($shippingMethod);
 
             $shipment->setMethod($shippingMethod);
             $this->orderProcessor->process($order);
             $this->orderManager->flush();
 
-            $this->messageBus->dispatch(new CreatePaymentDetailForPayment($order->getLastPayment()));
-
-            $client = $this->adyenClientProvider->getDefaultClient();
-            $paypalUpdateOrderData = $client->updatesOrderForPaypalExpressCheckout(
-                $pspReference,
-                $paymentData,
-                $order,
+            return new JsonResponse(
+                array_merge(
+                    $this->transactionInfoProvider->provide($order),
+                    $this->shippingMethodsProvider->provide($order),
+                )
             );
-
-            return new JsonResponse($paypalUpdateOrderData);
+        } catch (NoShippingMethodsAvailableException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'code' => 'NO_SHIPPING_OPTION',
+                'message' => $exception->getMessage(),
+            ], 400);
         } catch (\Exception $exception) {
             return new JsonResponse([
                 'error' => true,

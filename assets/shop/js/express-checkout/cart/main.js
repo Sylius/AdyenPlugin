@@ -1,5 +1,6 @@
 import { SELECTORS } from '../constants.js';
 import { loadConfiguration } from '../utils.js';
+import { ApplePayHandler } from './applepay.js';
 import { GooglePayHandler } from './googlepay.js';
 import { PayPalHandler } from './paypal.js';
 
@@ -7,7 +8,7 @@ const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
     if (!configUrl) return;
 
-    const { AdyenCheckout, GooglePay, PayPal } = window.AdyenWeb;
+    const { AdyenCheckout, ApplePay, GooglePay, PayPal } = window.AdyenWeb;
 
     const configuration = await loadConfiguration(configUrl);
 
@@ -18,6 +19,19 @@ const initExpressCheckout = async ($container) => {
         environment: configuration.environment,
         countryCode: configuration.allowedCountryCodes[0],
     });
+
+    try {
+        const applePayHandler = new ApplePayHandler(configuration);
+        const applePay = new ApplePay(checkout, applePayHandler.getConfig());
+
+        applePay
+            .isAvailable()
+            .then(() => {
+                applePay.mount(SELECTORS.APPLEPAY_MOUNT);
+            });
+    } catch (e) {
+        console.error('Apple Pay is not available');
+    }
 
     try {
         const googlePayHandler = new GooglePayHandler(configuration);
