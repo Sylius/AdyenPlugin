@@ -63,19 +63,11 @@
             class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveStateListener"
         >
             <argument type="service" id="sylius.state_resolver.order_payment" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.complete" priority="-100" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.process" priority="-100" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.refund" priority="-100" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.authorize" priority="-100" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.capture" priority="-100" />
-        </service>
-
-        <service
-            id="sylius_adyen.listener.workflow.payment.flush_on_fail"
-            class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\FlushOnFailListener"
-        >
-            <argument type="service" id="doctrine.orm.entity_manager" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" priority="-100" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.complete" priority="100" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.process" priority="100" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.refund" priority="100" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.authorize" priority="100" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.capture" priority="100" />
         </service>
 
         <service
@@ -83,7 +75,15 @@
             class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ProcessFailedPaymentOrderListener"
         >
             <argument type="service" id="sylius_adyen.order_processing.order_payment_processor.after_checkout.fail" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" priority="-200" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" priority="300" />
+        </service>
+
+        <service
+            id="sylius_adyen.listener.workflow.payment.flush_on_fail"
+            class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\FlushOnFailListener"
+        >
+            <argument type="service" id="doctrine.orm.entity_manager" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" priority="200" />
         </service>
 
         <service
@@ -91,7 +91,7 @@
             class="Sylius\AdyenPlugin\EventListener\Workflow\Payment\ResolveFailedPaymentStateListener"
         >
             <argument type="service" id="sylius_adyen.state_resolver.order_failed_payment" />
-            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" priority="-300" />
+            <tag name="kernel.event_listener" event="workflow.sylius_payment.completed.fail" priority="100" />
         </service>
     </services>
 </container>
