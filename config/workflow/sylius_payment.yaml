@@ -10,15 +10,3 @@ framework:
                 reverse:
                     from: [completed]
                     to: processing_reversal
-#                fail:
-#                    from: completed
-#                    to: failed
-#                process:
-#                    from: authorized
-#                    to: processing
-#                cancel:
-#                    from: processing_reversal
-#                    to: cancelled
-#                refund:
-#                    from: processing_reversal
-#                    to: refunded
