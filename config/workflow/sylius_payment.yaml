@@ -1,0 +1,12 @@
+framework:
+    workflows:
+        sylius_payment:
+            places:
+                - processing_reversal
+            transitions:
+                capture:
+                    from: [new, processing, authorized]
+                    to: completed
+                reverse:
+                    from: [completed]
+                    to: processing_reversal
