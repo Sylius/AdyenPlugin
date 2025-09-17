@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Checker;
 
 use Sylius\AdyenPlugin\Entity\AdyenPaymentDetailInterface;
+use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentLinkRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -23,10 +24,14 @@ use Webmozart\Assert\Assert;
 
 final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterface
 {
-    /** @param RepositoryInterface<AdyenPaymentDetailInterface> $adyenPaymentDetailRepository */
+    /**
+     * @param RepositoryInterface<AdyenPaymentDetailInterface> $adyenPaymentDetailRepository
+     * @param string[] $onlyManualCaptureMethods
+     */
     public function __construct(
         private RepositoryInterface $adyenPaymentDetailRepository,
         private PaymentLinkRepositoryInterface $paymentLinkRepository,
+        private readonly array $onlyManualCaptureMethods = [],
     ) {
     }
 
@@ -61,6 +66,10 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
                 return $mode === $paymentDetail->getCaptureMode();
             }
 
+            if ($this->allowsOnlyManual($paymentOrMethod)) {
+                return $mode === PaymentCaptureMode::MANUAL;
+            }
+
             $paymentOrMethod = $paymentOrMethod->getMethod();
         }
 
@@ -78,5 +87,18 @@ final class AdyenPaymentMethodChecker implements AdyenPaymentMethodCheckerInterf
         }
 
         return 0 !== count($this->paymentLinkRepository->findBy(['payment' => $payment], limit: 1));
+    }
+
+    private function allowsOnlyManual(PaymentInterface $payment): bool
+    {
+        $paymentMethodType = $payment->getDetails()['paymentMethod']['type']
+            ?? $payment->getDetails()['action']['paymentMethodType']
+            ?? null
+        ;
+
+        return
+            [] !== $this->onlyManualCaptureMethods &&
+            in_array($paymentMethodType, $this->onlyManualCaptureMethods, true)
+        ;
     }
 }

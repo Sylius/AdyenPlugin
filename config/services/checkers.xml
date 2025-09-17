@@ -33,6 +33,7 @@
         >
             <argument type="service" id="sylius_adyen.repository.adyen_payment_detail" />
             <argument type="service" id="sylius_adyen.repository.payment_link" />
+            <argument>%sylius_adyen.payment_methods.only_manual_capture_types%</argument>
         </service>
         <service
             id="Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface"

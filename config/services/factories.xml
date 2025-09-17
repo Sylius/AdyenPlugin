@@ -35,6 +35,7 @@
             decorates="sylius_adyen.factory.adyen_payment_detail"
         >
             <argument type="service" id=".inner"/>
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method"/>
         </service>
 
         <service
