@@ -22,12 +22,6 @@ use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 final class SyliusAdyenExtension extends ConfigurableExtension implements PrependExtensionInterface
 {
-    public const SYLIUS_ADYEN_PAYMENT_METHODS_ALLOWED_TYPES = 'sylius_adyen.payment_methods.allowed_types';
-
-    public const SYLIUS_ADYEN_PAYMENT_METHODS_MANUAL_CAPTURE_SUPPORTING_TYPES = 'sylius_adyen.payment_methods.manual_capture_supporting_types';
-
-    public const SYLIUS_ADYEN_PAYMENT_METHODS_ONLY_FOR_LOGGED_IN_USERS_TYPES = 'sylius_adyen.payment_methods.only_for_logged_in_users_types';
-
     public function prepend(ContainerBuilder $container): void
     {
         $container->prependExtensionConfig('doctrine_migrations', [
@@ -51,17 +45,9 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
         $loader->load('services.xml');
 
-        $allowedTypes = $mergedConfig['payment_methods']['allowed_types'];
-        $manualCaptureSupportingTypes = $mergedConfig['payment_methods']['manual_capture_supporting_types'];
-        $onlyForLoggedInUsersTypes = $mergedConfig['payment_methods']['only_for_logged_in_users_types'] ?? [];
+        $this->setPaymentMethodsParameters($mergedConfig, $container);
+        $this->setEsdParameters($mergedConfig, $container);
 
-        $container->setParameter(self::SYLIUS_ADYEN_PAYMENT_METHODS_ALLOWED_TYPES, $allowedTypes);
-        $container->setParameter(self::SYLIUS_ADYEN_PAYMENT_METHODS_MANUAL_CAPTURE_SUPPORTING_TYPES, $manualCaptureSupportingTypes);
-        $container->setParameter(self::SYLIUS_ADYEN_PAYMENT_METHODS_ONLY_FOR_LOGGED_IN_USERS_TYPES, $onlyForLoggedInUsersTypes);
-
-        $container->setParameter('sylius_adyen.esd.supported_currencies', $mergedConfig['esd']['supported_currencies']);
-        $container->setParameter('sylius_adyen.esd.supported_countries', $mergedConfig['esd']['supported_countries']);
-        $container->setParameter('sylius_adyen.esd.supported_card_brands', $mergedConfig['esd']['supported_card_brands']);
         $container->setParameter('sylius_adyen.integrator_name', $mergedConfig['integrator_name']);
     }
 
@@ -73,5 +59,46 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
     public function getAlias(): string
     {
         return 'sylius_adyen';
+    }
+
+    private function setPaymentMethodsParameters(array $config, ContainerBuilder $container): void
+    {
+        $container->setParameter(
+            'sylius_adyen.payment_methods.allowed_types',
+            $config['payment_methods']['allowed_types'],
+        );
+        $container->setParameter(
+            'sylius_adyen.payment_methods.manual_capture_supporting_types',
+            $this->mergeUniquely(
+                $config['payment_methods']['manual_capture_supporting_types'],
+                $config['payment_methods']['only_manual_capture_types'],
+            ),
+        );
+        $container->setParameter(
+            'sylius_adyen.payment_methods.only_for_logged_in_users_types',
+            $config['payment_methods']['only_for_logged_in_users_types'],
+        );
+        $container->setParameter(
+            'sylius_adyen.payment_methods.only_manual_capture_types',
+            $config['payment_methods']['only_manual_capture_types'],
+        );
+    }
+
+    private function setEsdParameters(array $config, ContainerBuilder $container): void
+    {
+        $container->setParameter('sylius_adyen.esd.supported_currencies', $config['esd']['supported_currencies']);
+        $container->setParameter('sylius_adyen.esd.supported_countries', $config['esd']['supported_countries']);
+        $container->setParameter('sylius_adyen.esd.supported_card_brands', $config['esd']['supported_card_brands']);
+    }
+
+    /**
+     * @param string[] $first
+     * @param string[] $second
+     *
+     * @return string[]
+     */
+    private function mergeUniquely(array $first, array $second): array
+    {
+        return array_values(array_unique(array_merge($first, $second)));
     }
 }

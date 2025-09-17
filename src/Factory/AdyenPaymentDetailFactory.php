@@ -22,8 +22,10 @@ use Sylius\Component\Resource\Factory\FactoryInterface;
 
 final class AdyenPaymentDetailFactory implements AdyenPaymentDetailFactoryInterface
 {
-    public function __construct(private readonly FactoryInterface $adyenPaymentDetailFactory)
-    {
+    public function __construct(
+        private readonly FactoryInterface $adyenPaymentDetailFactory,
+        private readonly array $onlyManualCaptureMethods = [],
+    ) {
     }
 
     public function createForPayment(PaymentInterface $payment): AdyenPaymentDetailInterface
@@ -32,10 +34,7 @@ final class AdyenPaymentDetailFactory implements AdyenPaymentDetailFactoryInterf
         $result->setPayment($payment);
         $result->setAmount($payment->getAmount());
 
-        $result->setCaptureMode(
-            $this->getGatewayConfig($payment)['captureMode'] ??
-            PaymentCaptureMode::AUTOMATIC,
-        );
+        $this->setCaptureMode($result, $payment);
 
         return $result;
     }
@@ -46,6 +45,23 @@ final class AdyenPaymentDetailFactory implements AdyenPaymentDetailFactoryInterf
         $paymentDetail = $this->adyenPaymentDetailFactory->createNew();
 
         return $paymentDetail;
+    }
+
+    private function setCaptureMode(
+        AdyenPaymentDetailInterface $paymentDetail,
+        PaymentInterface $payment,
+    ): void {
+        $gatewayConfig = $this->getGatewayConfig($payment);
+        if (
+            [] !== $this->onlyManualCaptureMethods &&
+            in_array($gatewayConfig['paymentMethod']['type'] ?? null, $this->onlyManualCaptureMethods, true)
+        ) {
+            $paymentDetail->setCaptureMode(PaymentCaptureMode::MANUAL);
+
+            return;
+        }
+
+        $paymentDetail->setCaptureMode($gatewayConfig['captureMode'] ?? PaymentCaptureMode::AUTOMATIC);
     }
 
     private function getGatewayConfig(PaymentInterface $payment): array
