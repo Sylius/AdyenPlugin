@@ -1,4 +1,5 @@
-{% set path_parameters = {code: adyen_method_code} %}
+{% set order = hookable_metadata.context.order %}
+{% set path_parameters = {code: order.payments.last.method.code} %}
 
 {% if order.tokenValue is not empty %}
     {% set path_parameters = path_parameters|merge({orderToken: order.tokenValue}) %}
