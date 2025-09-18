@@ -95,9 +95,12 @@ final class PaymentsAction
         try {
             $this->paymentReferencesClearer->clear($payment);
 
+            $paymentRequest = $request->request->all();
+            $payment->setDetails($paymentRequest);
+
             $result = $client->submitPayment(
                 $url,
-                $request->request->all(),
+                $paymentRequest,
                 $order,
                 $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL),
                 $shopperReference,
