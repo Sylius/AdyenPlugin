@@ -61,7 +61,6 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
             $shopperReference,
             $isManualCapture,
         );
-        dump($response);
 
         $available = $this->paymentMethodsMapper->mapAvailable($response->getPaymentMethods() ?? []);
         $stored = $this->paymentMethodsMapper->mapStored($response->getStoredPaymentMethods() ?? []);
