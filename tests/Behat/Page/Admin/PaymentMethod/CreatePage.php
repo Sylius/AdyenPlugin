@@ -19,7 +19,7 @@ final class CreatePage extends BaseCreatePage implements CreatePageInterface
 {
     public function setAdyenPlatform(string $platform): void
     {
-        $this->getDocument()->selectFieldOption('Platform', $platform);
+        $this->getElement('platform')->selectOption($platform);
     }
 
     public function setValue(string $name, $value): void
@@ -29,13 +29,14 @@ final class CreatePage extends BaseCreatePage implements CreatePageInterface
 
     protected function getDefinedElements(): array
     {
-        return parent::getDefinedElements() + [
-            'apiKey' => '#sylius_payment_method_gatewayConfig_config_apiKey',
-            'merchantAccount' => '#sylius_payment_method_gatewayConfig_config_merchantAccount',
-            'hmacKey' => '#sylius_payment_method_gatewayConfig_config_hmacKey',
-            'clientKey' => '#sylius_payment_method_gatewayConfig_config_clientKey',
-            'authUser' => '#sylius_payment_method_gatewayConfig_config_authUser',
-            'authPassword' => '#sylius_payment_method_gatewayConfig_config_authPassword',
-        ];
+        return array_merge(parent::getDefinedElements(), [
+            'platform' => '[data-test-environment]',
+            'apiKey' => '[data-test-api-key]',
+            'merchantAccount' => '[data-test-merchant-account]',
+            'hmacKey' => '[data-test-hmac-key]',
+            'clientKey' => '[data-test-client-key]',
+            'authUser' => '[data-test-auth-user]',
+            'authPassword' => '[data-test-auth-password]',
+        ]);
     }
 }

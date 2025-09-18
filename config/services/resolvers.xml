@@ -113,5 +113,13 @@
             <argument type="service" id="sylius_abstraction.state_machine" />
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
+
+        <service
+            id="sylius_adyen.refund.state_resolver.order_fully_refunded"
+            class="Sylius\AdyenPlugin\Resolver\Order\OrderFullyRefundedStateResolver"
+        >
+            <!--    Wrapper to expose it for winzou callbacks    -->
+            <argument type="service" id="sylius_refund.state_resolver.order_fully_refunded" />
+        </service>
     </services>
 </container>

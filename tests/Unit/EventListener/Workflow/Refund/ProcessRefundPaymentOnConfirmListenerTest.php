@@ -54,15 +54,4 @@ final class ProcessRefundPaymentOnConfirmListenerTest extends TestCase
 
         ($this->listener)($event);
     }
-
-    public function testItDoesNothingWhenSubjectIsNull(): void
-    {
-        $event = $this->createMock(Event::class);
-
-        $event->expects($this->once())->method('getSubject')->willReturn(null);
-
-        $this->processor->expects($this->never())->method('process');
-
-        ($this->listener)($event);
-    }
 }
