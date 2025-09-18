@@ -95,6 +95,9 @@ final class PaymentsAction
         try {
             $this->paymentReferencesClearer->clear($payment);
 
+            $paymentRequest = $request->request->all();
+            $payment->setDetails($paymentRequest);
+
             $result = $client->submitPayment(
                 $url,
                 json_decode($request->getContent(), true),

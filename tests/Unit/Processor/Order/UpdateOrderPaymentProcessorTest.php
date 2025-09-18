@@ -201,12 +201,14 @@ final class UpdateOrderPaymentProcessorTest extends TestCase
             ->expects($this->once())
             ->method('can')
             ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
-            ->willReturn(true);
+            ->willReturn(true)
+        ;
 
         $this->stateMachine
             ->expects($this->once())
             ->method('apply')
-            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL);
+            ->with($order, OrderPaymentTransitions::GRAPH, OrderPaymentTransitions::TRANSITION_CANCEL)
+        ;
 
         $this->processor->process($order);
     }

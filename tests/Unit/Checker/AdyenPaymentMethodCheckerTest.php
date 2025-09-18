@@ -33,17 +33,10 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
 
     private MockObject|PaymentLinkRepositoryInterface $paymentLinkRepository;
 
-    private AdyenPaymentMethodChecker $checker;
-
     protected function setUp(): void
     {
         $this->adyenPaymentDetailRepository = $this->createMock(RepositoryInterface::class);
         $this->paymentLinkRepository = $this->createMock(PaymentLinkRepositoryInterface::class);
-
-        $this->checker = new AdyenPaymentMethodChecker(
-            $this->adyenPaymentDetailRepository,
-            $this->paymentLinkRepository,
-        );
     }
 
     #[DataProvider('provideForIsAdyenPayment')]
@@ -60,32 +53,33 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $gatewayConfig = $hasGatewayConfig ? $this->createMock(GatewayConfigInterface::class) : null;
 
         $payment
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMethod')
             ->willReturn($paymentMethod);
 
         if ($paymentMethod !== null) {
             $paymentMethod
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getGatewayConfig')
                 ->willReturn($gatewayConfig);
         }
 
         if ($gatewayConfig !== null) {
             $gatewayConfig
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getConfig')
                 ->willReturn($config);
 
             if (!isset($config['factory_name'])) {
                 $gatewayConfig
-                    ->expects($this->once())
+                    ->expects(self::once())
                     ->method('getFactoryName')
                     ->willReturn($factoryName);
             }
         }
 
-        $result = $this->checker->isAdyenPayment($payment);
+        $checker = $this->createChecker();
+        $result = $checker->isAdyenPayment($payment);
 
         self::assertSame($expectedResult, $result);
     }
@@ -168,25 +162,26 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $gatewayConfig = $hasGatewayConfig ? $this->createMock(GatewayConfigInterface::class) : null;
 
         $paymentMethod
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getGatewayConfig')
             ->willReturn($gatewayConfig);
 
         if ($gatewayConfig !== null) {
             $gatewayConfig
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getConfig')
                 ->willReturn($config);
 
             if (!isset($config['factory_name'])) {
                 $gatewayConfig
-                    ->expects($this->once())
+                    ->expects(self::once())
                     ->method('getFactoryName')
                     ->willReturn($factoryName);
             }
         }
 
-        $result = $this->checker->isAdyenPaymentMethod($paymentMethod);
+        $checker = $this->createChecker();
+        $result = $checker->isAdyenPaymentMethod($paymentMethod);
 
         self::assertSame($expectedResult, $result);
     }
@@ -262,12 +257,17 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
 
         $payment
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMethod')
             ->willReturn(null);
 
+        $payment
+            ->expects(self::atLeastOnce())
+            ->method('getDetails')
+            ->willReturn([]);
+
         $this->adyenPaymentDetailRepository
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findOneBy')
             ->with(['payment' => $payment])
             ->willReturn(null);
@@ -275,11 +275,14 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Expected an instance of Sylius\Component\Core\Model\PaymentMethodInterface. Got: NULL');
 
-        $this->checker->isCaptureMode($payment, PaymentCaptureMode::MANUAL);
+        $checker = $this->createChecker();
+        $checker->isCaptureMode($payment, PaymentCaptureMode::MANUAL);
     }
 
     #[DataProvider('provideForIsCaptureModeWithoutPaymentDetail')]
     public function testIsCaptureModeWithoutPaymentDetail(
+        array $onlyManualCaptureMethods,
+        array $paymentDetails,
         bool $hasPaymentMethod,
         bool $hasGatewayConfig,
         array $config,
@@ -290,33 +293,54 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $paymentMethod = $hasPaymentMethod ? $this->createMock(PaymentMethodInterface::class) : null;
         $gatewayConfig = $hasGatewayConfig ? $this->createMock(GatewayConfigInterface::class) : null;
 
-        // The repository should return null to check config
         $this->adyenPaymentDetailRepository
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findOneBy')
             ->with(['payment' => $payment])
             ->willReturn(null);
 
         $payment
-            ->expects($this->once())
-            ->method('getMethod')
-            ->willReturn($paymentMethod);
+            ->expects(self::atLeastOnce())
+            ->method('getDetails')
+            ->willReturn($paymentDetails);
 
-        if ($paymentMethod !== null) {
-            $paymentMethod
-                ->expects($this->once())
-                ->method('getGatewayConfig')
-                ->willReturn($gatewayConfig);
+        $paymentMethodType = $paymentDetails['paymentMethod']['type']
+            ?? $paymentDetails['action']['paymentMethodType']
+            ?? null;
+
+        $allowsOnlyManual = [] !== $onlyManualCaptureMethods &&
+            $paymentMethodType !== null &&
+            in_array($paymentMethodType, $onlyManualCaptureMethods, true);
+
+        $expectsGetMethod = !$allowsOnlyManual;
+
+        if ($expectsGetMethod) {
+            $payment
+                ->expects(self::once())
+                ->method('getMethod')
+                ->willReturn($paymentMethod);
+
+            if ($paymentMethod !== null) {
+                $paymentMethod
+                    ->expects(self::once())
+                    ->method('getGatewayConfig')
+                    ->willReturn($gatewayConfig);
+            }
+
+            if ($gatewayConfig !== null) {
+                $gatewayConfig
+                    ->expects(self::once())
+                    ->method('getConfig')
+                    ->willReturn($config);
+            }
+        } else {
+            $payment
+                ->expects(self::never())
+                ->method('getMethod');
         }
 
-        if ($gatewayConfig !== null) {
-            $gatewayConfig
-                ->expects($this->once())
-                ->method('getConfig')
-                ->willReturn($config);
-        }
-
-        $result = $this->checker->isCaptureMode($payment, $mode);
+        $checker = $this->createChecker($onlyManualCaptureMethods);
+        $result = $checker->isCaptureMode($payment, $mode);
 
         self::assertSame($expectedResult, $result);
     }
@@ -324,6 +348,8 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
     public static function provideForIsCaptureModeWithoutPaymentDetail(): \Generator
     {
         yield 'payment with manual capture mode configured' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => true,
             'config' => ['captureMode' => PaymentCaptureMode::MANUAL],
@@ -332,6 +358,8 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
 
         yield 'payment with automatic capture mode configured' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => true,
             'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
@@ -340,6 +368,8 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
 
         yield 'payment with manual mode checking for automatic' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => true,
             'config' => ['captureMode' => PaymentCaptureMode::MANUAL],
@@ -348,6 +378,8 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
 
         yield 'payment with automatic mode checking for manual' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => true,
             'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
@@ -356,6 +388,8 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
 
         yield 'payment without gateway config' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => false,
             'config' => [],
@@ -364,6 +398,8 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
 
         yield 'payment with empty config' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => true,
             'config' => [],
@@ -372,9 +408,60 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         ];
 
         yield 'payment with other config keys' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => [],
             'hasPaymentMethod' => true,
             'hasGatewayConfig' => true,
             'config' => ['other_key' => 'value'],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+        yield 'payment with onlyManualCaptureMethods matching paymentMethod type' => [
+            'onlyManualCaptureMethods' => ['klarna', 'afterpay'],
+            'paymentDetails' => ['paymentMethod' => ['type' => 'klarna']],
+            'hasPaymentMethod' => true,
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => true,
+        ];
+
+        yield 'payment with onlyManualCaptureMethods not matching paymentMethod type' => [
+            'onlyManualCaptureMethods' => ['klarna', 'afterpay'],
+            'paymentDetails' => ['paymentMethod' => ['type' => 'scheme']],
+            'hasPaymentMethod' => true,
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+
+        yield 'payment with onlyManualCaptureMethods matching action paymentMethodType' => [
+            'onlyManualCaptureMethods' => ['klarna'],
+            'paymentDetails' => ['action' => ['paymentMethodType' => 'klarna']],
+            'hasPaymentMethod' => true,
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => true,
+        ];
+
+        yield 'payment with empty onlyManualCaptureMethods' => [
+            'onlyManualCaptureMethods' => [],
+            'paymentDetails' => ['paymentMethod' => ['type' => 'klarna']],
+            'hasPaymentMethod' => true,
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
+            'mode' => PaymentCaptureMode::MANUAL,
+            'expectedResult' => false,
+        ];
+
+        yield 'payment with onlyManualCaptureMethods but no payment details' => [
+            'onlyManualCaptureMethods' => ['klarna'],
+            'paymentDetails' => [],
+            'hasPaymentMethod' => true,
+            'hasGatewayConfig' => true,
+            'config' => ['captureMode' => PaymentCaptureMode::AUTOMATIC],
             'mode' => PaymentCaptureMode::MANUAL,
             'expectedResult' => false,
         ];
@@ -390,21 +477,22 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $adyenPaymentDetail = $this->createMock(AdyenPaymentDetailInterface::class);
 
         $this->adyenPaymentDetailRepository
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('findOneBy')
             ->with(['payment' => $payment])
             ->willReturn($adyenPaymentDetail);
 
         $adyenPaymentDetail
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getCaptureMode')
             ->willReturn($detailCaptureMode);
 
         $payment
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('getMethod');
 
-        $result = $this->checker->isCaptureMode($payment, $checkMode);
+        $checker = $this->createChecker();
+        $result = $checker->isCaptureMode($payment, $checkMode);
 
         self::assertSame($expectedResult, $result);
     }
@@ -447,22 +535,23 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $gatewayConfig = $hasGatewayConfig ? $this->createMock(GatewayConfigInterface::class) : null;
 
         $this->adyenPaymentDetailRepository
-            ->expects($this->never())
+            ->expects(self::never())
             ->method('findOneBy');
 
         $paymentMethod
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getGatewayConfig')
             ->willReturn($gatewayConfig);
 
         if ($gatewayConfig !== null) {
             $gatewayConfig
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getConfig')
                 ->willReturn($config);
         }
 
-        $result = $this->checker->isCaptureMode($paymentMethod, $mode);
+        $checker = $this->createChecker();
+        $result = $checker->isCaptureMode($paymentMethod, $mode);
 
         self::assertSame($expectedResult, $result);
     }
@@ -534,26 +623,26 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
         $gatewayConfig = $hasGatewayConfig ? $this->createMock(GatewayConfigInterface::class) : null;
 
         $payment
-            ->expects($this->once())
+            ->expects(self::once())
             ->method('getMethod')
             ->willReturn($paymentMethod);
 
         if ($paymentMethod !== null) {
             $paymentMethod
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getGatewayConfig')
                 ->willReturn($gatewayConfig);
         }
 
         if ($gatewayConfig !== null) {
             $gatewayConfig
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('getConfig')
                 ->willReturn($config);
 
             if (!isset($config['factory_name'])) {
                 $gatewayConfig
-                    ->expects($this->once())
+                    ->expects(self::once())
                     ->method('getFactoryName')
                     ->willReturn($factoryName);
             }
@@ -561,17 +650,18 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
 
         if ($shouldCallRepository) {
             $this->paymentLinkRepository
-                ->expects($this->once())
+                ->expects(self::once())
                 ->method('findBy')
                 ->with(['payment' => $payment], null, 1, null)
                 ->willReturn($paymentLinks);
         } else {
             $this->paymentLinkRepository
-                ->expects($this->never())
+                ->expects(self::never())
                 ->method('findBy');
         }
 
-        $result = $this->checker->isPayByLink($payment);
+        $checker = $this->createChecker();
+        $result = $checker->isPayByLink($payment);
 
         self::assertSame($expectedResult, $result);
     }
@@ -647,5 +737,14 @@ final class AdyenPaymentMethodCheckerTest extends TestCase
             'shouldCallRepository' => true,
             'expectedResult' => true,
         ];
+    }
+
+    private function createChecker(array $onlyManualCaptureMethods = []): AdyenPaymentMethodChecker
+    {
+        return new AdyenPaymentMethodChecker(
+            $this->adyenPaymentDetailRepository,
+            $this->paymentLinkRepository,
+            $onlyManualCaptureMethods,
+        );
     }
 }

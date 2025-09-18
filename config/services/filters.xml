@@ -35,6 +35,15 @@
         </service>
 
         <service
+            id="sylius_adyen.payment_methods_filter.guest"
+            class="Sylius\AdyenPlugin\Filter\GuestPaymentMethodsFilter"
+        >
+            <argument>%sylius_adyen.payment_methods.only_for_logged_in_users_types%</argument>
+
+            <tag name="sylius_adyen.payment_methods_filter" />
+        </service>
+
+        <service
             id="sylius_adyen.filter.stored_payment_methods"
             class="Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilter"
         />

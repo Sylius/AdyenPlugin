@@ -135,7 +135,7 @@ final class CheckoutTest extends AdyenTestCase
         $payment = $this->testOrder->getLastPayment();
         self::assertNotNull($payment);
         self::assertEquals(PaymentInterface::STATE_NEW, $payment->getState());
-        self::assertEmpty($payment->getDetails());
+        self::assertSame($request->request->all(), $payment->getDetails());
     }
 
     public function testCheckoutWithStoredPaymentMethod(): void

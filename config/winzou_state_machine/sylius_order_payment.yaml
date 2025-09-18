@@ -1,8 +1,6 @@
 winzou_state_machine:
     sylius_order_payment:
         transitions:
-            pay:
-                from: [awaiting_payment, partially_paid, authorized]
             cancel:
                 from: [awaiting_payment, authorized, partially_authorized, paid]
             request_payment:

@@ -27,6 +27,7 @@ use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Model\ShopUserInterface;
 
 final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 {
@@ -55,7 +56,8 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
 
         /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
-        $shopperReference = $this->resolveShopperReference($paymentMethod, $customer);
+        $currentShopUser = $this->currentShopUserProvider->getShopUser();
+        $shopperReference = $this->resolveShopperReference($paymentMethod, $customer, $currentShopUser);
 
         $isManualCapture = $this->adyenPaymentMethodChecker->isCaptureMode($paymentMethod, PaymentCaptureMode::MANUAL);
 
@@ -72,6 +74,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
             'order' => $order,
             'payment_method' => $paymentMethod,
             'manual_capture' => $isManualCapture,
+            'guest' => null === $currentShopUser,
         ]);
 
         return new PaymentMethodData(
@@ -83,9 +86,10 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
     private function resolveShopperReference(
         PaymentMethodInterface $paymentMethod,
         ?CustomerInterface $orderCustomer,
+        ?ShopUserInterface $shopUser,
     ): ?ShopperReferenceInterface {
         $orderUser = $orderCustomer?->getUser();
-        if ($orderUser === null || $orderUser !== $this->currentShopUserProvider->getShopUser()) {
+        if ($orderUser === null || $orderUser !== $shopUser) {
             return null;
         }
 

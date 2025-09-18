@@ -387,12 +387,11 @@ abstract class AdyenTestCase extends WebTestCase
             'paymentMethod' => 'scheme',
             'additionalData' => array_merge(
                 ['hmacSignature' => self::TEST_HMAC_SIGNATURE],
-                $paymentLinkId ? ['paymentLinkId' => $paymentLinkId] : [],
+                is_string($paymentLinkId) ? ['paymentLinkId' => $paymentLinkId] : [],
                 $additionalData,
             ),
         ];
 
-        // Add originalReference if provided as parameter
         if ($originalReference !== null) {
             $notificationItem['originalReference'] = $originalReference;
         }
