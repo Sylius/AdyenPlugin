@@ -14,12 +14,13 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
+use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
+use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\ShopperReferenceRepositoryInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
-use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -37,6 +38,7 @@ class DropinConfigurationAction
 
     public function __construct(
         private readonly CartContextInterface $cartContext,
+        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly OrderRepositoryInterface $orderRepository,
@@ -56,10 +58,13 @@ class DropinConfigurationAction
             return $this->getResponseForDroppedOrder($request);
         }
 
-        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($code, $order);
+        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
+        if (null === $paymentMethod) {
+            throw new AdyenPaymentMethodNotFoundException($code);
+        }
 
-        /** @var PaymentMethodInterface $paymentMethod */
-        $paymentMethod = $order->getLastPayment()->getMethod();
+        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
+
         $config = $paymentMethod->getGatewayConfig()->getConfig();
 
         $billingAddress = $order->getBillingAddress();

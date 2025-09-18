@@ -13,7 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
-use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ConfigurationProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
@@ -50,11 +49,11 @@ abstract class AbstractConfigurationAction
         /** @var OrderInterface $order */
         $order = $this->cartContext->getCart();
 
-        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder(AdyenClientProviderInterface::FACTORY_NAME, $order);
-
         $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
+
         $config = $paymentMethod->getGatewayConfig()->getConfig();
+        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
         $configuration = [
             'paymentMethods' => $paymentMethodsData,
