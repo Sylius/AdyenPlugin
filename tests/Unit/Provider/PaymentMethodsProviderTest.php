@@ -369,11 +369,10 @@ final class PaymentMethodsProviderTest extends TestCase
             ->expects(self::once())
             ->method('filter')
             ->with($mappedAvailable, self::callback(function ($context) {
-                return is_array($context) &&
-                    isset($context['order']) &&
-                    isset($context['payment_method']) &&
-                    isset($context['manual_capture']) &&
-                    isset($context['guest']);
+                return
+                    is_array($context) &&
+                    isset($context['order'], $context['payment_method'], $context['manual_capture'], $context['guest'])
+                ;
             }))
             ->willReturn($filteredAvailable);
 

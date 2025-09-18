@@ -84,7 +84,7 @@ final class PaymentMethodsProvider implements PaymentMethodsProviderInterface
         ?ShopUserInterface $shopUser,
     ): ?ShopperReferenceInterface {
         $orderUser = $orderCustomer?->getUser();
-        if ($orderUser === null || $orderUser !== $shopUser) {
+        if ($shopUser === null || $orderUser !== $shopUser) {
             return null;
         }
 

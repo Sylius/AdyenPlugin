@@ -15,9 +15,9 @@ namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
+use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use Sylius\AdyenPlugin\Repository\ShopperReferenceRepositoryInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -38,12 +38,12 @@ class DropinConfigurationAction
 
     public function __construct(
         private readonly CartContextInterface $cartContext,
+        private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
         private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
         private readonly OrderRepositoryInterface $orderRepository,
         private readonly TranslatorInterface $translator,
-        private readonly ShopperReferenceRepositoryInterface $shopperReferenceRepository,
     ) {
     }
 
@@ -74,8 +74,10 @@ class DropinConfigurationAction
             'code' => $code,
             'tokenValue' => $order->getTokenValue(),
         ];
-        /** @var CustomerInterface $customer */
+        /** @var CustomerInterface|null $customer */
         $customer = $order->getCustomer();
+        $currentShopUser = $this->currentShopUserProvider->getShopUser();
+        $canStoreDetails = null !== $currentShopUser && $currentShopUser === $customer?->getUser();
 
         return new JsonResponse([
             'billingAddress' => [
@@ -90,7 +92,7 @@ class DropinConfigurationAction
             'clientKey' => $config['clientKey'],
             'locale' => $order->getLocaleCode(),
             'environment' => $config['environment'],
-            'enableStoreDetails' => null !== $this->shopperReferenceRepository->findOneByPaymentMethodAndCustomer($paymentMethod, $customer),
+            'enableStoreDetails' => $canStoreDetails,
             'amount' => [
                 'currency' => $order->getCurrencyCode(),
                 'value' => $order->getTotal(),
