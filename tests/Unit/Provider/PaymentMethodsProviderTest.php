@@ -19,7 +19,6 @@ use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Client\AdyenClientInterface;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
-use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Filter\PaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Filter\StoredPaymentMethodsFilterInterface;
 use Sylius\AdyenPlugin\Mapper\PaymentMethodsMapperInterface;
@@ -27,7 +26,6 @@ use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProvider;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -37,8 +35,6 @@ use Sylius\Component\Core\Model\ShopUserInterface;
 final class PaymentMethodsProviderTest extends TestCase
 {
     private AdyenClientProviderInterface $adyenClientProvider;
-
-    private PaymentMethodRepositoryInterface $paymentMethodRepository;
 
     private PaymentMethodsFilterInterface $paymentMethodsFilter;
 
@@ -57,7 +53,6 @@ final class PaymentMethodsProviderTest extends TestCase
     protected function setUp(): void
     {
         $this->adyenClientProvider = $this->createMock(AdyenClientProviderInterface::class);
-        $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
         $this->paymentMethodsFilter = $this->createMock(PaymentMethodsFilterInterface::class);
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
         $this->storedPaymentMethodsFilter = $this->createMock(StoredPaymentMethodsFilterInterface::class);
@@ -67,7 +62,6 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $this->paymentMethodsProvider = new PaymentMethodsProvider(
             $this->adyenClientProvider,
-            $this->paymentMethodRepository,
             $this->paymentMethodsFilter,
             $this->adyenPaymentMethodChecker,
             $this->storedPaymentMethodsFilter,
@@ -75,20 +69,6 @@ final class PaymentMethodsProviderTest extends TestCase
             $this->shopperReferenceResolver,
             $this->shopUserProvider,
         );
-    }
-
-    public function testThrowsWhenPaymentMethodNotFound(): void
-    {
-        $order = $this->createMock(OrderInterface::class);
-
-        $this->paymentMethodRepository
-            ->method('getOneAdyenForCode')
-            ->with('missing')
-            ->willReturn(null);
-
-        $this->expectException(AdyenPaymentMethodNotFoundException::class);
-
-        $this->paymentMethodsProvider->provideForOrder('missing', $order);
     }
 
     #[DataProvider('getCaptureMode')]
@@ -100,9 +80,11 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $order->method('getCustomer')->willReturn(null);
 
-        $this->paymentMethodRepository
-            ->method('getOneAdyenForCode')
-            ->willReturn($paymentMethod);
+        $paymentMethod->method('getCode')->willReturn('adyen_card');
+
+        $this->shopUserProvider
+            ->method('getShopUser')
+            ->willReturn(null);
 
         $this->shopperReferenceResolver
             ->expects(self::never())
@@ -110,6 +92,7 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $this->adyenClientProvider
             ->method('getClientForCode')
+            ->with('adyen_card')
             ->willReturn($client);
 
         $this->adyenPaymentMethodChecker
@@ -132,7 +115,7 @@ final class PaymentMethodsProviderTest extends TestCase
             filteredStoredAgainst: ['S2'],
         );
 
-        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+        $result = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
         self::assertSame(['A2'], $result->paymentMethods);
         self::assertSame(['S2'], $result->storedPaymentMethods);
@@ -149,9 +132,11 @@ final class PaymentMethodsProviderTest extends TestCase
         $order->method('getCustomer')->willReturn($customer);
         $customer->method('getUser')->willReturn(null);
 
-        $this->paymentMethodRepository
-            ->method('getOneAdyenForCode')
-            ->willReturn($paymentMethod);
+        $paymentMethod->method('getCode')->willReturn('adyen_card');
+
+        $this->shopUserProvider
+            ->method('getShopUser')
+            ->willReturn(null);
 
         $this->shopperReferenceResolver
             ->expects(self::never())
@@ -159,6 +144,7 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $this->adyenClientProvider
             ->method('getClientForCode')
+            ->with('adyen_card')
             ->willReturn($client);
 
         $this->adyenPaymentMethodChecker
@@ -181,7 +167,7 @@ final class PaymentMethodsProviderTest extends TestCase
             filteredStoredAgainst: ['Sf'],
         );
 
-        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+        $result = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
         self::assertSame(['Af'], $result->paymentMethods);
         self::assertSame(['Sf'], $result->storedPaymentMethods);
@@ -199,13 +185,11 @@ final class PaymentMethodsProviderTest extends TestCase
         $order->method('getCustomer')->willReturn($customer);
         $customer->method('getUser')->willReturn($user);
 
+        $paymentMethod->method('getCode')->willReturn('adyen_card');
+
         $this->shopUserProvider
             ->method('getShopUser')
             ->willReturn(null);
-
-        $this->paymentMethodRepository
-            ->method('getOneAdyenForCode')
-            ->willReturn($paymentMethod);
 
         $this->shopperReferenceResolver
             ->expects(self::never())
@@ -213,6 +197,7 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $this->adyenClientProvider
             ->method('getClientForCode')
+            ->with('adyen_card')
             ->willReturn($client);
 
         $this->adyenPaymentMethodChecker
@@ -235,7 +220,7 @@ final class PaymentMethodsProviderTest extends TestCase
             filteredStoredAgainst: ['Sf'],
         );
 
-        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+        $result = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
         self::assertSame(['Af'], $result->paymentMethods);
         self::assertSame(['Sf'], $result->storedPaymentMethods);
@@ -254,13 +239,11 @@ final class PaymentMethodsProviderTest extends TestCase
         $order->method('getCustomer')->willReturn($customer);
         $customer->method('getUser')->willReturn($customerUser);
 
+        $paymentMethod->method('getCode')->willReturn('adyen_card');
+
         $this->shopUserProvider
             ->method('getShopUser')
             ->willReturn($loggedUser);
-
-        $this->paymentMethodRepository
-            ->method('getOneAdyenForCode')
-            ->willReturn($paymentMethod);
 
         $this->shopperReferenceResolver
             ->expects(self::never())
@@ -268,6 +251,7 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $this->adyenClientProvider
             ->method('getClientForCode')
+            ->with('adyen_card')
             ->willReturn($client);
 
         $this->adyenPaymentMethodChecker
@@ -290,7 +274,7 @@ final class PaymentMethodsProviderTest extends TestCase
             filteredStoredAgainst: ['Sf'],
         );
 
-        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+        $result = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
         self::assertSame(['Af'], $result->paymentMethods);
         self::assertSame(['Sf'], $result->storedPaymentMethods);
@@ -309,13 +293,11 @@ final class PaymentMethodsProviderTest extends TestCase
         $order->method('getCustomer')->willReturn($customer);
         $customer->method('getUser')->willReturn($user);
 
+        $paymentMethod->method('getCode')->willReturn('adyen_card');
+
         $this->shopUserProvider
             ->method('getShopUser')
             ->willReturn($user);
-
-        $this->paymentMethodRepository
-            ->method('getOneAdyenForCode')
-            ->willReturn($paymentMethod);
 
         $this->shopperReferenceResolver
             ->expects(self::once())
@@ -325,6 +307,7 @@ final class PaymentMethodsProviderTest extends TestCase
 
         $this->adyenClientProvider
             ->method('getClientForCode')
+            ->with('adyen_card')
             ->willReturn($client);
 
         $this->adyenPaymentMethodChecker
@@ -347,7 +330,7 @@ final class PaymentMethodsProviderTest extends TestCase
             filteredStoredAgainst: ['Sf'],
         );
 
-        $result = $this->paymentMethodsProvider->provideForOrder('adyen_card', $order);
+        $result = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
         self::assertSame(['Af'], $result->paymentMethods);
         self::assertSame(['Sf'], $result->storedPaymentMethods);
@@ -385,7 +368,12 @@ final class PaymentMethodsProviderTest extends TestCase
         $this->paymentMethodsFilter
             ->expects(self::once())
             ->method('filter')
-            ->with($mappedAvailable)
+            ->with($mappedAvailable, self::callback(function ($context) {
+                return
+                    is_array($context) &&
+                    isset($context['order'], $context['payment_method'], $context['manual_capture'], $context['guest'])
+                ;
+            }))
             ->willReturn($filteredAvailable);
 
         $this->paymentMethodsMapper

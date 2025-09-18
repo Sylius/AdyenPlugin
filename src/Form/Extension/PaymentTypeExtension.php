@@ -43,7 +43,7 @@ final class PaymentTypeExtension extends AbstractTypeExtension
         $paymentMethods = $this->paymentMethodRepository->findAllAdyenByChannel($this->channelContext->getChannel());
         foreach ($paymentMethods as $paymentMethod) {
             $order = $this->paymentCheckoutOrderResolver->resolve();
-            $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod->getCode(), $order);
+            $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
 
             $adyen->add((string) $paymentMethod->getCode(), PaymentMethodChoiceType::class, [
                 'environment' => $paymentMethod->getGatewayConfig()->getConfig()['environment'],
