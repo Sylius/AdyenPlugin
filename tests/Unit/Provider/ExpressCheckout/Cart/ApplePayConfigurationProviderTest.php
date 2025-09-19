@@ -21,7 +21,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class ApplePayConfigurationProviderTest extends TestCase
 {
-    private UrlGeneratorInterface&MockObject $urlGenerator;
+    private MockObject&UrlGeneratorInterface $urlGenerator;
+
     private ApplePayConfigurationProvider $applePayConfigurationProvider;
 
     protected function setUp(): void

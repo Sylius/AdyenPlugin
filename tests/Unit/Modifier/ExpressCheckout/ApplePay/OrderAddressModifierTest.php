@@ -23,6 +23,7 @@ use Sylius\Component\Core\Model\OrderInterface;
 final class OrderAddressModifierTest extends TestCase
 {
     private AddressFactoryInterface&MockObject $addressFactory;
+
     private OrderAddressModifier $orderAddressModifier;
 
     protected function setUp(): void

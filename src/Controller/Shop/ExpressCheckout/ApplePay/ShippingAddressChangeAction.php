@@ -62,18 +62,19 @@ final class ShippingAddressChangeAction
                 array_merge(
                     $this->transactionInfoProvider->provide($order),
                     $this->shippingMethodsProvider->provide($order),
-                )
+                ),
             );
         } catch (NoShippingMethodsAvailableException $exception) {
             return new JsonResponse(
-                array_merge([
-                    'error' => true,
-                    'code' => 'NO_SHIPPING_OPTION',
-                    'message' => $exception->getMessage(),
-                ],
+                array_merge(
+                    [
+                        'error' => true,
+                        'code' => 'NO_SHIPPING_OPTION',
+                        'message' => $exception->getMessage(),
+                    ],
                     $this->transactionInfoProvider->provide($order),
                     ['newShippingMethods' => []],
-                )
+                ),
             );
         } catch (\Exception $exception) {
             return new JsonResponse([

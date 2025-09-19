@@ -22,7 +22,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class TransactionInfoProviderTest extends TestCase
 {
-    private TranslatorInterface&MockObject $translator;
+    private MockObject&TranslatorInterface $translator;
+
     private TransactionInfoProvider $transactionInfoProvider;
 
     protected function setUp(): void

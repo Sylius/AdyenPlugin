@@ -48,14 +48,15 @@ final class ShippingOptionsChangeAction
 
         if (!isset($selectedShippingMethod) || $selectedShippingMethod === '') {
             return new JsonResponse(
-                array_merge([
+                array_merge(
+                    [
                     'error' => true,
                     'code' => 'NO_SHIPPING_OPTION',
                     'message' => 'Missing or invalid selectedShippingMethod.',
                 ],
                     $this->transactionInfoProvider->provide($order),
                     $this->shippingMethodsProvider->provide($order),
-                )
+                ),
             );
         }
 
@@ -64,14 +65,15 @@ final class ShippingOptionsChangeAction
             $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $selectedShippingMethod]);
             if (null === $shippingMethod) {
                 return new JsonResponse(
-                    array_merge([
-                        'error' => true,
-                        'code' => 'NO_SHIPPING_OPTION',
-                        'message' => 'Selected shipping method does not exist.',
-                    ],
+                    array_merge(
+                        [
+                            'error' => true,
+                            'code' => 'NO_SHIPPING_OPTION',
+                            'message' => 'Selected shipping method does not exist.',
+                        ],
                         $this->transactionInfoProvider->provide($order),
                         $this->shippingMethodsProvider->provide($order),
-                    )
+                    ),
                 );
             }
 
@@ -83,7 +85,7 @@ final class ShippingOptionsChangeAction
                 array_merge(
                     $this->transactionInfoProvider->provide($order),
                     $this->shippingMethodsProvider->provide($order),
-                )
+                ),
             );
         } catch (NoShippingMethodsAvailableException $exception) {
             return new JsonResponse([

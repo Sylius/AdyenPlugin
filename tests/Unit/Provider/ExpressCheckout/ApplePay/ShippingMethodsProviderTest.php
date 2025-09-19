@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Provider\ExpressCheckout\ApplePay;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
@@ -23,12 +24,13 @@ use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Registry\ServiceRegistryInterface;
 use Sylius\Component\Shipping\Calculator\CalculatorInterface;
 use Sylius\Component\Shipping\Resolver\ShippingMethodsResolverInterface;
-use Doctrine\Common\Collections\ArrayCollection;
 
 final class ShippingMethodsProviderTest extends TestCase
 {
-    private ShippingMethodsResolverInterface&MockObject $shippingMethodsResolver;
-    private ServiceRegistryInterface&MockObject $calculators;
+    private MockObject&ShippingMethodsResolverInterface $shippingMethodsResolver;
+
+    private MockObject&ServiceRegistryInterface $calculators;
+
     private ShippingMethodsProvider $shippingMethodsProvider;
 
     protected function setUp(): void
