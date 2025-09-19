@@ -65,11 +65,16 @@ final class ShippingAddressChangeAction
                 )
             );
         } catch (NoShippingMethodsAvailableException $exception) {
-            return new JsonResponse([
-                'error' => true,
-                'code' => 'NO_SHIPPING_OPTION',
-                'message' => $exception->getMessage(),
-            ], 400);
+            return new JsonResponse(
+                array_merge([
+                    'error' => true,
+                    'code' => 'NO_SHIPPING_OPTION',
+                    'message' => $exception->getMessage(),
+                ],
+                    $this->transactionInfoProvider->provide($order),
+                    ['newShippingMethods' => []],
+                )
+            );
         } catch (\Exception $exception) {
             return new JsonResponse([
                 'error' => true,

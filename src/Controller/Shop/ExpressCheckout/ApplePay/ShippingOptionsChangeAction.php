@@ -46,17 +46,34 @@ final class ShippingOptionsChangeAction
 
         $selectedShippingMethod = $data['selectedShippingMethod'] ?? null;
 
-        if (!isset($selectedShippingMethod)) {
-            return new JsonResponse([
-                'error' => true,
-                'message' => 'Missing required parameter: selectedShippingMethod.',
-            ], 400);
+        if (!isset($selectedShippingMethod) || $selectedShippingMethod === '') {
+            return new JsonResponse(
+                array_merge([
+                    'error' => true,
+                    'code' => 'NO_SHIPPING_OPTION',
+                    'message' => 'Missing or invalid selectedShippingMethod.',
+                ],
+                    $this->transactionInfoProvider->provide($order),
+                    $this->shippingMethodsProvider->provide($order),
+                )
+            );
         }
 
         try {
             $shipment = $order->getShipments()->first();
             $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $selectedShippingMethod]);
-            Assert::notNull($shippingMethod);
+            if (null === $shippingMethod) {
+                return new JsonResponse(
+                    array_merge([
+                        'error' => true,
+                        'code' => 'NO_SHIPPING_OPTION',
+                        'message' => 'Selected shipping method does not exist.',
+                    ],
+                        $this->transactionInfoProvider->provide($order),
+                        $this->shippingMethodsProvider->provide($order),
+                    )
+                );
+            }
 
             $shipment->setMethod($shippingMethod);
             $this->orderProcessor->process($order);

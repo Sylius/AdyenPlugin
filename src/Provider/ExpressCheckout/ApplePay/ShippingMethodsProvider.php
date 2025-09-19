@@ -51,7 +51,7 @@ final class ShippingMethodsProvider implements ShippingMethodsProviderInterface
                 'identifier' => $shippingMethod->getCode(),
                 'label' => $shippingMethod->getName(),
                 'amount' => $this->formatPrice($fee),
-                'detail' => $shippingMethod->getDescription(),
+                'detail' => $shippingMethod->getDescription() ?? '',
             ];
         }
 

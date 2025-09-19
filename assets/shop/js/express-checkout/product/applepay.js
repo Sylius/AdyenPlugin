@@ -36,19 +36,27 @@ export class ApplePayHandler {
             );
             const data = await response.json();
 
-            // if (data.error) {
-            //     if (data.code === 'NO_SHIPPING_OPTION') {
-            //         return reject({
-            //             errors: [{
-            //                 code: 'shippingContactInvalid',
-            //                 contactField: 'countryCode',
-            //                 message: data.message
-            //             }]
-            //         });
-            //     } else {
-            //         return reject(data.message);
-            //     }
-            // }
+            if (data.error) {
+                if (data.code === 'NO_SHIPPING_OPTION') {
+                    return resolve({
+                        errors: [{
+                            code: 'shippingContactInvalid',
+                            contactField: 'countryCode',
+                            message: data.message,
+                        }],
+                        newTotal: data.newTotal,
+                        newLineItems: data.newLineItems,
+                        newShippingMethods: data.newShippingMethods ?? [],
+                    });
+                } else {
+                    return resolve({
+                        errors: [{ code: 'unknown', message: data.message }],
+                        newTotal: data.newTotal,
+                        newLineItems: data.newLineItems,
+                        newShippingMethods: data.newShippingMethods ?? [],
+                    });
+                }
+            }
 
             return resolve({
                 newTotal: data.newTotal,
@@ -65,27 +73,23 @@ export class ApplePayHandler {
             const response = await fetch(
                 createUrlWithToken(this.configuration.applePay.path.optionsChange, this.orderToken),
                 createFetchOptions({
-                    selectedShippingMethod: event.shippingMethod,
+                    selectedShippingMethod: event?.shippingMethod?.identifier ?? event?.shippingMethod ?? null,
                 })
             );
             const data = await response.json();
 
-            // if (data.error) {
-            //     if (data.code === 'NO_SHIPPING_OPTION') {
-            //         return resolve({
-            //             errors: [{
-            //                 code: 'shippingContactInvalid',
-            //                 contactField: 'countryCode',
-            //                 message: data.message
-            //             }]
-            //         });
-            //     } else {
-            //         return reject({
-            //             code: "unknown",
-            //             message: data.message
-            //         });
-            //     }
-            // }
+            if (data.error) {
+                return resolve({
+                    errors: [{
+                        code: data.code || 'unknown',
+                        contactField: data.code === 'NO_SHIPPING_OPTION' ? 'countryCode' : undefined,
+                        message: data.message,
+                    }],
+                    newTotal: data.newTotal,
+                    newLineItems: data.newLineItems,
+                    newShippingMethods: data.newShippingMethods ?? [],
+                });
+            }
 
             return resolve({
                 newTotal: data.newTotal,

@@ -17,19 +17,27 @@ export class ApplePayHandler {
             );
             const data = await response.json();
 
-            // if (data.error) {
-            //     if (data.code === 'NO_SHIPPING_OPTION') {
-            //         return reject({
-            //             errors: [{
-            //                 code: 'shippingContactInvalid',
-            //                 contactField: 'countryCode',
-            //                 message: data.message
-            //             }]
-            //         });
-            //     } else {
-            //         return reject(data.message);
-            //     }
-            // }
+            if (data.error) {
+                if (data.code === 'NO_SHIPPING_OPTION') {
+                    return resolve({
+                        errors: [{
+                            code: 'shippingContactInvalid',
+                            contactField: 'countryCode',
+                            message: data.message,
+                        }],
+                        newTotal: data.newTotal,
+                        newLineItems: data.newLineItems,
+                        newShippingMethods: data.newShippingMethods ?? [],
+                    });
+                }
+
+                return resolve({
+                    errors: [{ code: 'unknown', message: data.message }],
+                    newTotal: data.newTotal,
+                    newLineItems: data.newLineItems,
+                    newShippingMethods: data.newShippingMethods ?? [],
+                });
+            }
 
             return resolve({
                 newTotal: data.newTotal,
@@ -46,27 +54,23 @@ export class ApplePayHandler {
             const response = await fetch(
                 this.configuration.applePay.path.optionsChange,
                 createFetchOptions({
-                    selectedShippingMethod: event.shippingMethod,
+                    selectedShippingMethod: event?.shippingMethod?.identifier ?? event?.shippingMethod ?? null,
                 })
             );
             const data = await response.json();
 
-            // if (data.error) {
-            //     if (data.code === 'NO_SHIPPING_OPTION') {
-            //         return resolve({
-            //             errors: [{
-            //                 code: 'shippingContactInvalid',
-            //                 contactField: 'countryCode',
-            //                 message: data.message
-            //             }]
-            //         });
-            //     } else {
-            //         return reject({
-            //             code: "unknown",
-            //             message: data.message
-            //         });
-            //     }
-            // }
+            if (data.error) {
+                return resolve({
+                    errors: [{
+                        code: data.code || 'unknown',
+                        contactField: data.code === 'NO_SHIPPING_OPTION' ? 'countryCode' : undefined,
+                        message: data.message,
+                    }],
+                    newTotal: data.newTotal,
+                    newLineItems: data.newLineItems,
+                    newShippingMethods: data.newShippingMethods ?? [],
+                });
+            }
 
             return resolve({
                 newTotal: data.newTotal,
@@ -114,6 +118,7 @@ export class ApplePayHandler {
             countryCode: this.configuration.allowedCountryCodes[0],
             requiredBillingContactFields: ['postalAddress'],
             requiredShippingContactFields: ['postalAddress', 'name', 'email'],
+            supportedCountries: this.configuration.allowedCountryCodes,
 
             onShippingContactSelected: this.handleShippingContactSelected,
             onShippingMethodSelected: this.handleShippingMethodSelected,
