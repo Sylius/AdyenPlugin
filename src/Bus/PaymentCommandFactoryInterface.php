@@ -40,6 +40,7 @@ interface PaymentCommandFactoryInterface
         ResponseStatus::RECEIVED => MarkPaymentAsProcessedCommand::class,
         ResponseStatus::REFUSED => PaymentFailedCommand::class,
         ResponseStatus::REJECTED => PaymentFailedCommand::class,
+        ResponseStatus::CANCELLED => PaymentFailedCommand::class,
     ];
 
     public function createForEvent(

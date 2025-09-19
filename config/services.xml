@@ -44,11 +44,12 @@
             id="sylius_adyen.controller.shop.dropin_configuration"
         >
             <argument type="service" id="sylius.context.cart.composite"/>
+            <argument type="service" id="sylius_adyen.provider.current_shop_user"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <argument type="service" id="router"/>
             <argument type="service" id="sylius.repository.order"/>
             <argument type="service" id="translator"/>
-            <argument type="service" id="sylius_adyen.repository.shopper_reference"/>
 
             <tag name="controller.service_arguments"/>
         </service>
@@ -58,7 +59,6 @@
             class="Sylius\AdyenPlugin\Provider\PaymentMethodsProvider"
         >
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
-            <argument type="service" id="sylius.repository.payment_method"/>
             <argument type="service" id="sylius_adyen.payment_methods_filter"/>
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
             <argument type="service" id="sylius_adyen.filter.stored_payment_methods"/>
