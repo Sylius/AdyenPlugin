@@ -43,7 +43,7 @@ export class GooglePayHandler {
 
     handleAuthorized = async (paymentData, actions) => {
         try {
-            const { email, shippingAddress, shippingOptionData } = paymentData.authorizedEvent;
+            const { email, shippingAddress } = paymentData.authorizedEvent;
 
             const response = await fetch(this.configuration.googlePay.path.checkout, createFetchOptions({
                 email,

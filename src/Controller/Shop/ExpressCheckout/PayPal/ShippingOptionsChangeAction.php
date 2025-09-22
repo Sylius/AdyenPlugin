@@ -30,7 +30,7 @@ final class ShippingOptionsChangeAction
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
-        private readonly ShippingMethodRepositoryInterface $shippingMethodsRepository,
+        private readonly ShippingMethodRepositoryInterface $shippingMethodRepository,
         private readonly OrderProcessorInterface $orderProcessor,
         private readonly ObjectManager $orderManager,
         private readonly MessageBusInterface $messageBus,
@@ -57,7 +57,7 @@ final class ShippingOptionsChangeAction
 
         try {
             $shipment = $order->getShipments()->first();
-            $shippingMethod = $this->shippingMethodsRepository->findOneBy(['code' => $selectedDeliveryMethod['id']]);
+            $shippingMethod = $this->shippingMethodRepository->findOneBy(['code' => $selectedDeliveryMethod['id']]);
             Assert::notNull($shippingMethod);
 
             $shipment->setMethod($shippingMethod);
