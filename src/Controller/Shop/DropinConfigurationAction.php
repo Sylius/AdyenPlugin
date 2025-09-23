@@ -14,12 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Controller\Shop;
 
 use Sylius\AdyenPlugin\Callback\PreserveOrderTokenUponRedirectionCallback;
-use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
-use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
-use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use Sylius\Component\Core\Model\AddressInterface;
-use Sylius\Component\Core\Model\CustomerInterface;
+use Sylius\AdyenPlugin\Provider\DropinConfigurationProviderInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -27,23 +22,14 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Contracts\Translation\TranslatorInterface;
-use Webmozart\Assert\Assert;
 
 class DropinConfigurationAction
 {
-    public const TRANSLATIONS = [
-        'sylius_adyen.runtime.payment_failed_try_again',
-    ];
-
     public function __construct(
+        private readonly DropinConfigurationProviderInterface $dropinConfigurationProvider,
         private readonly CartContextInterface $cartContext,
-        private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
-        private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
-        private readonly UrlGeneratorInterface $urlGenerator,
         private readonly OrderRepositoryInterface $orderRepository,
-        private readonly TranslatorInterface $translator,
+        private readonly UrlGeneratorInterface $urlGenerator,
     ) {
     }
 
@@ -58,65 +44,7 @@ class DropinConfigurationAction
             return $this->getResponseForDroppedOrder($request);
         }
 
-        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
-        if (null === $paymentMethod) {
-            throw new AdyenPaymentMethodNotFoundException($code);
-        }
-
-        $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);
-
-        $config = $paymentMethod->getGatewayConfig()->getConfig();
-
-        $billingAddress = $order->getBillingAddress();
-        Assert::isInstanceOf($billingAddress, AddressInterface::class);
-
-        $pathParams = [
-            'code' => $code,
-            'tokenValue' => $order->getTokenValue(),
-        ];
-        /** @var CustomerInterface|null $customer */
-        $customer = $order->getCustomer();
-        $currentShopUser = $this->currentShopUserProvider->getShopUser();
-        $canStoreDetails = null !== $currentShopUser && $currentShopUser === $customer?->getUser();
-
-        return new JsonResponse([
-            'billingAddress' => [
-                'firstName' => $billingAddress->getFirstName(),
-                'lastName' => $billingAddress->getLastName(),
-                'countryCode' => $billingAddress->getCountryCode(),
-                'province' => $billingAddress->getProvinceName() ?? $billingAddress->getProvinceCode(),
-                'city' => $billingAddress->getCity(),
-                'postcode' => $billingAddress->getPostcode(),
-            ],
-            'paymentMethods' => $paymentMethodsData,
-            'clientKey' => $config['clientKey'],
-            'locale' => $order->getLocaleCode(),
-            'environment' => $config['environment'],
-            'enableStoreDetails' => $canStoreDetails,
-            'amount' => [
-                'currency' => $order->getCurrencyCode(),
-                'value' => $order->getTotal(),
-            ],
-            'path' => [
-                'payments' => $this->urlGenerator->generate('sylius_adyen_shop_payments', $pathParams),
-                'paymentDetails' => $this->urlGenerator->generate('sylius_adyen_shop_payment_details', $pathParams),
-                'deleteToken' => $this->urlGenerator->generate(
-                    'sylius_adyen_shop_remove_token',
-                    $pathParams + ['paymentReference' => '_REFERENCE_'],
-                ),
-            ],
-            'translations' => $this->getTranslations(),
-        ]);
-    }
-
-    private function getTranslations(): array
-    {
-        $result = [];
-        foreach (self::TRANSLATIONS as $key) {
-            $result[$key] = $this->translator->trans($key);
-        }
-
-        return $result;
+        return new JsonResponse($this->dropinConfigurationProvider->getConfiguration($order, $code));
     }
 
     private function getOrder(?string $orderToken = null): ?OrderInterface
@@ -124,16 +52,10 @@ class DropinConfigurationAction
         if (null === $orderToken) {
             $order = $this->cartContext->getCart();
         } else {
-            $order = $this->orderRepository->findOneByTokenValue($orderToken);
-
-            if (null === $order) {
-                $order = $this->orderRepository->findCartByTokenValue($orderToken);
-            }
+            $order = $this->orderRepository->findOneByTokenValue($orderToken) ?? $this->orderRepository->findCartByTokenValue($orderToken);
         }
 
-        /**
-         * @var ?OrderInterface $result
-         */
+        /** @var OrderInterface|null $result */
         $result = $order;
 
         return $result;
@@ -141,9 +63,7 @@ class DropinConfigurationAction
 
     private function getResponseForDroppedOrder(Request $request): JsonResponse
     {
-        /**
-         * @var ?string $tokenValue
-         */
+        /** @var string|null $tokenValue */
         $tokenValue = $request->getSession()->get(
             PreserveOrderTokenUponRedirectionCallback::NON_FINALIZED_CART_SESSION_KEY,
         );

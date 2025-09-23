@@ -8,7 +8,7 @@
         <operations>
             <operation
                 class="ApiPlatform\Metadata\Get"
-                name="shop_get_adyen_details"
+                name="sylius_adyen_api_shop_get_adyen_details"
                 uriTemplate="/shop/payment/adyen/{code}/details"
                 controller="sylius_adyen.controller.shop.adyen_details"
                 read="false"
@@ -109,7 +109,7 @@
 
             <operation
                 class="ApiPlatform\Metadata\Get"
-                name="shop_get_dropin_configuration"
+                name="sylius_adyen_api_shop_get_dropin_configuration"
                 uriTemplate="/shop/payment/adyen/{code}/{orderToken}"
                 controller="sylius_adyen.controller.shop.dropin_configuration"
                 read="false"
@@ -129,11 +129,11 @@
                     </values>
                 </normalizationContext>
                 <openapi
-                    summary="Fetches dropin configuration"
-                    description="Returns Adyen dropin configuration including payment methods, billing address, and other settings"
+                    summary="Fetches Drop-in configuration"
+                    description="Returns Adyen Drop-in configuration including payment methods, billing address, and other settings"
                 >
                     <responses>
-                        <response status="200" description="Adyen dropin configuration">
+                        <response status="200" description="Adyen Drop-in configuration">
                             <content>
                                 <values>
                                     <value name="application/json">
@@ -398,7 +398,7 @@
 
             <operation
                 class="ApiPlatform\Metadata\Get"
-                name="shop_get_custom_thank_you_page"
+                name="sylius_adyen_api_shop_get_custom_thank_you_page"
                 uriTemplate="/shop/payment/adyen/{code}/thanks"
                 controller="sylius_adyen.controller.shop.redirect_target"
                 read="false"

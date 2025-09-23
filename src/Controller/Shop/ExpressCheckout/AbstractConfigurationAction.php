@@ -27,14 +27,14 @@ use Webmozart\Assert\Assert;
 abstract class AbstractConfigurationAction
 {
     /** @var array<ConfigurationProviderInterface> */
-    private readonly array $configurationProviders;
+    protected readonly array $configurationProviders;
 
     public function __construct(
         iterable $configurationProviders,
-        private readonly CartContextInterface $cartContext,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
-        private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
-        private readonly CountryProviderInterface $countryProvider,
+        protected readonly CartContextInterface $cartContext,
+        protected readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        protected readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
+        protected readonly CountryProviderInterface $countryProvider,
     ) {
         Assert::allIsInstanceOf(
             $configurationProviders,
