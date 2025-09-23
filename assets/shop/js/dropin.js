@@ -1,11 +1,11 @@
+import { AdyenCheckout, Dropin } from '@adyen/adyen-web/auto';
+
 (() => {
     const instantiate = async ($container) => {
 
         let checkout = null;
         let configuration = {};
         let $form = $container.closest('form');
-
-        const { AdyenCheckout, Dropin, Card } = window.AdyenWeb;
 
         const _toggleLoader = (show) => {
             const $form = $container.closest('form');
