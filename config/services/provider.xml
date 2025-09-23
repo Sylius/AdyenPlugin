@@ -41,7 +41,7 @@
             id="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters"
             class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProvider"
         >
-            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius.resolver.shipping_methods"/>
             <argument type="service" id="sylius.registry.shipping_calculator"/>
             <argument type="service" id="sylius.money_formatter"/>
         </service>
@@ -61,7 +61,7 @@
             id="sylius_adyen.provider.express_checkout.apple_pay.shipping_methods"
             class="Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProvider"
         >
-            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius.resolver.shipping_methods"/>
             <argument type="service" id="sylius.registry.shipping_calculator"/>
         </service>
         <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProviderInterface"
