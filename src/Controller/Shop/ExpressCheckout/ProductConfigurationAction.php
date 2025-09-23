@@ -16,8 +16,14 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
 use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\Component\Core\Factory\CartItemFactoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\ProductInterface;
+use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
+use Sylius\Component\Order\Modifier\OrderItemQuantityModifierInterface;
+use Sylius\Component\Order\Modifier\OrderModifierInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
@@ -30,8 +36,30 @@ final class ProductConfigurationAction extends AbstractConfigurationAction
         PaymentMethodsProviderInterface $paymentMethodsProvider,
         CountryProviderInterface $countryProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
+        private readonly ProductRepositoryInterface $productRepository,
+        private readonly CartItemFactoryInterface $cartItemFactory,
+        private readonly OrderItemQuantityModifierInterface $quantityModifier,
+        private readonly OrderModifierInterface $orderModifier,
     ) {
         parent::__construct($configurationProviders, $cartContext, $paymentMethodRepository, $paymentMethodsProvider, $countryProvider);
+    }
+
+    public function __invoke(Request $request): JsonResponse
+    {
+        $productId = $request->query->get('productId');
+        if (null === $productId) {
+            return new JsonResponse(['error' => 'Product id is required'], 400);
+        }
+
+        /** @var ProductInterface|null $product */
+        $product = $this->productRepository->find($productId);
+        if (null === $product) {
+            return new JsonResponse(['error' => 'Product not found'], 404);
+        }
+
+        $this->addProductToOrder($product);
+
+        return parent::__invoke($request);
     }
 
     protected function configureShipping(array $configuration, OrderInterface $order, Request $request): array
@@ -42,5 +70,15 @@ final class ProductConfigurationAction extends AbstractConfigurationAction
         ];
 
         return $configuration;
+    }
+
+    private function addProductToOrder(ProductInterface $product): void
+    {
+        /** @var OrderInterface $order */
+        $order = $this->cartContext->getCart();
+
+        $cartItem = $this->cartItemFactory->createForProduct($product);
+        $this->quantityModifier->modify($cartItem, 1);
+        $this->orderModifier->addToOrder($order, $cartItem);
     }
 }
