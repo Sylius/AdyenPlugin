@@ -123,7 +123,7 @@
             class="Sylius\AdyenPlugin\Bus\Handler\PrepareOrderForPaymentHandler"
             id="sylius_adyen.bus.handler.prepare_order_for_payment"
         >
-            <argument type="service" id="sylius.order_number_assigner"/>
+            <argument type="service" id="sylius.number_assigner.order_number"/>
             <argument type="service" id="sylius.repository.order"/>
 
             <tag name="messenger.message_handler" bus="sylius.command_bus" />
