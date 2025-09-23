@@ -1,13 +1,13 @@
 document.addEventListener('DOMContentLoaded', (e) => {
 
-    const $form = document.querySelector('form[name=sylius_checkout_select_payment]');
+    const $form = document.querySelector('form[name=sylius_checkout_select_payment], form[name=sylius_shop_checkout_select_payment]');
     if (!$form) {
         return;
     }
 
     const $paymentMethods = $form.querySelectorAll(' input[type=radio]');
     const $adyenLayers = $form.querySelectorAll('.adyen-method-grid, .dropin-container');
-    const $selectorSubmitButton = $form.querySelector('#sylius-pay-link');
+    const $selectorSubmitButton = $form.querySelector('div.d-grid button[type="submit"]');
 
     const toggleSubmitButton = (show) => {
         if (!$selectorSubmitButton) {

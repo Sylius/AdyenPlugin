@@ -54,10 +54,8 @@ final class AdyenReferenceRepository extends EntityRepository implements AdyenRe
             ->innerJoin('r.payment', 'p')
             ->innerJoin('p.method', 'pm')
             ->where('r.pspReference = :reference AND pm.code = :code')
-            ->setParameters([
-                'reference' => $pspReference,
-                'code' => $code,
-            ])
+            ->setParameter('reference', $pspReference)
+            ->setParameter('code', $code)
         ;
 
         return $qb;

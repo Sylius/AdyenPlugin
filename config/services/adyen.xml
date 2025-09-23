@@ -57,7 +57,7 @@
             id="sylius_adyen.client.paypal_update_order_request_factory"
             class="Sylius\AdyenPlugin\Client\PaypalUpdateOrderRequestFactory"
         >
-            <argument type="service" id="sylius.shipping_methods_resolver"/>
+            <argument type="service" id="sylius.resolver.shipping_methods"/>
             <argument type="service" id="sylius.registry.shipping_calculator"/>
         </service>
         <service id="Sylius\AdyenPlugin\Client\PaypalUpdateOrderRequestFactoryInterface" alias="sylius_adyen.client.paypal_update_order_request_factory"/>
