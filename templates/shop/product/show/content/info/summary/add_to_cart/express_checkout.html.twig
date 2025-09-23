@@ -1,0 +1,10 @@
+{% set product = hookable_metadata.context.product %}
+
+<div
+    id="adyen-product-express-checkout"
+    data-config-url="{{ path('sylius_adyen_shop_express_checkout_product_configuration', {'productId': product.id}) }}"
+    data-product-id="{{ product.id }}"
+    data-shipping-required="{{ (product|sylius_resolve_variant).shippingRequired }}"
+>
+    {% hook 'express_checkout' %}
+</div>
