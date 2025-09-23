@@ -15,12 +15,12 @@ namespace Sylius\AdyenPlugin\Exception;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
-class OrderWithoutCustomerException extends \InvalidArgumentException
+final class OrderWithoutBillingAddressException extends \RuntimeException
 {
     public function __construct(OrderInterface $order, ?\Throwable $previous = null)
     {
         parent::__construct(
-            sprintf('An order %d has no customer associated', (int) $order->getId()),
+            sprintf('The order %d has no billing address set.', (int) $order->getId()),
             0,
             $previous,
         );
