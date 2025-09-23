@@ -19,36 +19,22 @@ use Sylius\Component\Order\Repository\OrderRepositoryInterface;
 use Symfony\Component\HttpFoundation\Exception\BadRequestException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 final class PaymentCheckoutOrderResolver implements PaymentCheckoutOrderResolverInterface
 {
-    /** @var RequestStack */
-    private $requestStack;
-
-    /** @var CartContextInterface */
-    private $cartContext;
-
-    private readonly OrderRepositoryInterface $orderRepository;
-
     public function __construct(
-        RequestStack $requestStack,
-        CartContextInterface $cartContext,
-        OrderRepositoryInterface $orderRepository,
+        private readonly RequestStack $requestStack,
+        private readonly CartContextInterface $cartContext,
+        private readonly OrderRepositoryInterface $orderRepository,
     ) {
-        $this->requestStack = $requestStack;
-        $this->cartContext = $cartContext;
-        $this->orderRepository = $orderRepository;
     }
 
-    private function getCurrentRequest(): Request
+    public function resolve(): OrderInterface
     {
-        $result = $this->requestStack->getCurrentRequest();
-        if (null === $result) {
-            throw new BadRequestException('No request provided');
-        }
+        /** @var OrderInterface $order */
+        $order = $this->getCurrentOrder() ?? $this->cartContext->getCart();
 
-        return $result;
+        return $order;
     }
 
     private function getCurrentOrder(): ?OrderInterface
@@ -68,18 +54,13 @@ final class PaymentCheckoutOrderResolver implements PaymentCheckoutOrderResolver
         return $order;
     }
 
-    public function resolve(): OrderInterface
+    private function getCurrentRequest(): Request
     {
-        $order = $this->getCurrentOrder();
-
-        if (!$order instanceof OrderInterface) {
-            $order = $this->cartContext->getCart();
+        $result = $this->requestStack->getCurrentRequest();
+        if (null === $result) {
+            throw new BadRequestException('No request provided');
         }
 
-        if ($order instanceof OrderInterface) {
-            return $order;
-        }
-
-        throw new NotFoundHttpException('Order was not found');
+        return $result;
     }
 }
