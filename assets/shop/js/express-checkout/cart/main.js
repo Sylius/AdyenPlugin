@@ -1,6 +1,7 @@
-import { AdyenCheckout, GooglePay, PayPal } from '@adyen/adyen-web';
+import { AdyenCheckout, ApplePay, GooglePay, PayPal } from '@adyen/adyen-web';
 import { SELECTORS } from '../constants.js';
 import { loadConfiguration } from '../utils.js';
+import { ApplePayHandler } from './applepay.js';
 import { GooglePayHandler } from './googlepay.js';
 import { PayPalHandler } from './paypal.js';
 
@@ -17,6 +18,19 @@ const initExpressCheckout = async ($container) => {
         environment: configuration.environment,
         countryCode: configuration.allowedCountryCodes[0],
     });
+
+    try {
+        const applePayHandler = new ApplePayHandler(configuration);
+        const applePay = new ApplePay(checkout, applePayHandler.getConfig());
+
+        applePay
+            .isAvailable()
+            .then(() => {
+                applePay.mount(SELECTORS.APPLEPAY_MOUNT);
+            });
+    } catch (e) {
+        console.error('Apple Pay is not available');
+    }
 
     try {
         const googlePayHandler = new GooglePayHandler(configuration);

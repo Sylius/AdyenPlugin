@@ -6,6 +6,7 @@ sylius_adyen:
             - 'alipay'           # Alipay                 https://docs.adyen.com/payment-methods/alipay/
             - 'alipay_hk'        # Alipay HK              https://docs.adyen.com/payment-methods/alipayhk/
             - 'alma'             # Alma                   https://docs.adyen.com/payment-methods/alma/
+            - 'applepay'         # Apple Pay              https://docs.adyen.com/payment-methods/apple-pay/
             - 'directdebit_GB'   # BACS Direct Debit      https://docs.adyen.com/payment-methods/bacs/
             - 'bcmc_mobile'      # Bancontact mobile      https://docs.adyen.com/payment-methods/bancontact/bancontact-mobile/
             - 'klarna_b2b'       # Brillie via Klarna     https://docs.adyen.com/payment-methods/klarna/billie/

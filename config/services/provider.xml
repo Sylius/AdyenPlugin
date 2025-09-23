@@ -4,6 +4,31 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service
+                id="sylius_adyen.provider.express_checkout.cart.google_pay_configuration"
+                class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\GooglePayConfigurationProvider"
+        >
+            <argument type="service" id="router"/>
+            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"/>
+            <tag name="sylius_adyen.express_checkout.cart.configuration" key="googlePay" />
+        </service>
+
+        <service
+                id="sylius_adyen.provider.express_checkout.cart.paypal_configuration"
+                class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\PaypalConfigurationProvider"
+        >
+            <argument type="service" id="router"/>
+            <tag name="sylius_adyen.express_checkout.cart.configuration" key="paypal" />
+        </service>
+
+        <service
+                id="sylius_adyen.provider.express_checkout.cart.apple_pay_configuration"
+                class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ApplePayConfigurationProvider"
+        >
+            <argument type="service" id="router"/>
+            <tag name="sylius_adyen.express_checkout.cart.configuration" key="applePay" />
+        </service>
+
+        <service
             id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"
             class="Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProvider"
         >
@@ -24,6 +49,25 @@
                  alias="sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters" />
 
         <service
+            id="sylius_adyen.provider.express_checkout.apple_pay.transaction_info"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProvider"
+        >
+            <argument type="service" id="translator"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.apple_pay.transaction_info" />
+
+        <service
+            id="sylius_adyen.provider.express_checkout.apple_pay.shipping_methods"
+            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProvider"
+        >
+            <argument type="service" id="sylius.resolver.shipping_methods"/>
+            <argument type="service" id="sylius.registry.shipping_calculator"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProviderInterface"
+                 alias="sylius_adyen.provider.express_checkout.apple_pay.shipping_methods" />
+
+        <service
             id="sylius_adyen.provider.express_checkout.country"
             class="Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProvider"
         >
@@ -31,23 +75,6 @@
         </service>
         <service id="Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface"
                  alias="sylius_adyen.provider.express_checkout.country" />
-
-        <service
-            id="sylius_adyen.provider.express_checkout.cart.google_pay_configuration"
-            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\GooglePayConfigurationProvider"
-        >
-            <argument type="service" id="router"/>
-            <argument type="service" id="sylius_adyen.provider.express_checkout.google_pay.transaction_info"/>
-            <tag name="sylius_adyen.express_checkout.cart.configuration" key="googlePay" />
-        </service>
-
-        <service
-            id="sylius_adyen.provider.express_checkout.cart.paypal_configuration"
-            class="Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\PaypalConfigurationProvider"
-        >
-            <argument type="service" id="router"/>
-            <tag name="sylius_adyen.express_checkout.cart.configuration" key="paypal" />
-        </service>
 
     </services>
 </container>

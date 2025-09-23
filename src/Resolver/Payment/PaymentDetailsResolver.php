@@ -13,38 +13,33 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Resolver\Payment;
 
+use Doctrine\ORM\EntityManagerInterface;
 use Sylius\AdyenPlugin\Exception\PaymentMethodForReferenceNotFoundException;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\Bundle\OrderBundle\Doctrine\ORM\OrderRepository;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
-use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 
 final class PaymentDetailsResolver implements PaymentDetailsResolverInterface
 {
-    /** @var OrderRepository */
-    private $orderRepository;
-
-    /** @var PaymentRepositoryInterface */
-    private $paymentRepository;
-
     public function __construct(
-        OrderRepository $orderRepository,
+        private readonly OrderRepository $orderRepository,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
-        PaymentRepositoryInterface $paymentRepository,
+        private readonly EntityManagerInterface $entityManager,
     ) {
-        $this->orderRepository = $orderRepository;
-        $this->paymentRepository = $paymentRepository;
     }
 
-    private function createPayloadForDetails(string $referenceId): array
+    public function resolve(string $code, string $referenceId): PaymentInterface
     {
-        return [
-            'details' => [
-                'redirectResult' => $referenceId,
-            ],
-        ];
+        $client = $this->adyenClientProvider->getClientForCode($code);
+        $result = $client->paymentDetails($this->createPayloadForDetails($referenceId));
+        $payment = $this->getPaymentForReference((string) $result['merchantReference']);
+        $payment->setDetails($result);
+
+        $this->entityManager->flush();
+
+        return $payment;
     }
 
     private function getPaymentForReference(string $orderNumber): PaymentInterface
@@ -65,15 +60,12 @@ final class PaymentDetailsResolver implements PaymentDetailsResolverInterface
         return $payment;
     }
 
-    public function resolve(string $code, string $referenceId): PaymentInterface
+    private function createPayloadForDetails(string $referenceId): array
     {
-        $client = $this->adyenClientProvider->getClientForCode($code);
-        $result = $client->paymentDetails($this->createPayloadForDetails($referenceId));
-        $payment = $this->getPaymentForReference((string) $result['merchantReference']);
-        $payment->setDetails($result);
-
-        $this->paymentRepository->add($payment);
-
-        return $payment;
+        return [
+            'details' => [
+                'redirectResult' => $referenceId,
+            ],
+        ];
     }
 }

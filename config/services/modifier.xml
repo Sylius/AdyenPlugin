@@ -4,6 +4,15 @@
            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
     <services>
         <service
+                id="sylius_adyen.modifier.express_checkout.apple_pay.order_address"
+                class="Sylius\AdyenPlugin\Modifier\ExpressCheckout\ApplePay\OrderAddressModifier"
+        >
+            <argument type="service" id="sylius.factory.address"/>
+        </service>
+        <service id="Sylius\AdyenPlugin\Modifier\ExpressCheckout\ApplePay\OrderAddressModifierInterface"
+                 alias="sylius_adyen.modifier.express_checkout.apple_pay.order_address" />
+
+        <service
                 id="sylius_adyen.modifier.express_checkout.paypal.order_address"
                 class="Sylius\AdyenPlugin\Modifier\ExpressCheckout\Paypal\OrderAddressModifier"
         >

@@ -31,22 +31,6 @@ final class PaymentResponseProcessor implements PaymentResponseProcessorInterfac
     ) {
     }
 
-    private function processForPaymentSpecified(
-        string $code,
-        Request $request,
-        PaymentInterface $payment,
-    ): ?string {
-        foreach ($this->processors as $processor) {
-            if (!$processor->accepts($request, $payment)) {
-                continue;
-            }
-
-            return $processor->process($code, $request, $payment);
-        }
-
-        return null;
-    }
-
     public function process(
         string $code,
         Request $request,
@@ -64,5 +48,21 @@ final class PaymentResponseProcessor implements PaymentResponseProcessorInterfac
         return $this->urlGenerator->generate(self::DEFAULT_REDIRECT_ROUTE, [
             '_locale' => $payment?->getOrder()?->getLocaleCode() ?? $request->getLocale(),
         ]);
+    }
+
+    private function processForPaymentSpecified(
+        string $code,
+        Request $request,
+        PaymentInterface $payment,
+    ): ?string {
+        foreach ($this->processors as $processor) {
+            if (!$processor->accepts($request, $payment)) {
+                continue;
+            }
+
+            return $processor->process($code, $request, $payment);
+        }
+
+        return null;
     }
 }
