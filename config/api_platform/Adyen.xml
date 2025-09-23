@@ -1,0 +1,444 @@
+<?xml version="1.0" ?>
+
+<resources xmlns="https://api-platform.com/schema/metadata/resources-3.0"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="https://api-platform.com/schema/metadata/resources-3.0 https://api-platform.com/schema/metadata/resources-3.0.xsd"
+>
+    <resource class="%sylius_adyen.model.shopper_reference.class%" shortName="Adyen">
+        <operations>
+            <operation
+                class="ApiPlatform\Metadata\Get"
+                name="shop_get_adyen_details"
+                uriTemplate="/shop/payment/adyen/{code}/details"
+                controller="sylius_adyen.controller.shop.adyen_details"
+                read="false"
+                paginationEnabled="false"
+            >
+                <uriVariables>
+                    <uriVariable parameterName="code" />
+                </uriVariables>
+                <parameters>
+                    <parameter key="referenceId" in="query" required="true" description="Payment reference ID">
+                        <schema>
+                            <values>
+                                <value name="type">string</value>
+                            </values>
+                        </schema>
+                    </parameter>
+                </parameters>
+                <normalizationContext>
+                    <values>
+                        <value name="groups">
+                            <values>
+                                <value>sylius</value>
+                            </values>
+                        </value>
+                    </values>
+                </normalizationContext>
+                <openapi
+                    summary="Adyen payment details"
+                    description="Retrieves payment details from Adyen for the specified payment code and reference ID"
+                >
+                    <responses>
+                        <response status="200" description="Adyen payment details">
+                            <content>
+                                <values>
+                                    <value name="application/json">
+                                        <values>
+                                            <value name="schema">
+                                                <values>
+                                                    <value name="type">object</value>
+                                                    <value name="properties">
+                                                        <values>
+                                                            <value name="pspReference">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="refusalReason">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="resultCode">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="refusalReasonCode">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="amount">
+                                                                <values>
+                                                                    <value name="type">object</value>
+                                                                    <value name="properties">
+                                                                        <values>
+                                                                            <value name="currency">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="value">
+                                                                                <values>
+                                                                                    <value name="type">integer</value>
+                                                                                </values>
+                                                                            </value>
+                                                                        </values>
+                                                                    </value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="merchantReference">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                        </values>
+                                                    </value>
+                                                </values>
+                                            </value>
+                                        </values>
+                                    </value>
+                                </values>
+                            </content>
+                        </response>
+                    </responses>
+                </openapi>
+            </operation>
+
+            <operation
+                class="ApiPlatform\Metadata\Get"
+                name="shop_get_dropin_configuration"
+                uriTemplate="/shop/payment/adyen/{code}/{orderToken}"
+                controller="sylius_adyen.controller.shop.dropin_configuration"
+                read="false"
+                paginationEnabled="false"
+            >
+                <uriVariables>
+                    <uriVariable parameterName="code" />
+                    <uriVariable parameterName="orderToken" />
+                </uriVariables>
+                <normalizationContext>
+                    <values>
+                        <value name="groups">
+                            <values>
+                                <value>sylius</value>
+                            </values>
+                        </value>
+                    </values>
+                </normalizationContext>
+                <openapi
+                    summary="Fetches dropin configuration"
+                    description="Returns Adyen dropin configuration including payment methods, billing address, and other settings"
+                >
+                    <responses>
+                        <response status="200" description="Adyen dropin configuration">
+                            <content>
+                                <values>
+                                    <value name="application/json">
+                                        <values>
+                                            <value name="schema">
+                                                <values>
+                                                    <value name="type">object</value>
+                                                    <value name="properties">
+                                                        <values>
+                                                            <value name="billingAddress">
+                                                                <values>
+                                                                    <value name="type">object</value>
+                                                                    <value name="properties">
+                                                                        <values>
+                                                                            <value name="firstName">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="lastName">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="countryCode">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="province">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="city">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="postcode">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                        </values>
+                                                                    </value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="paymentMethods">
+                                                                <values>
+                                                                    <value name="type">object</value>
+                                                                    <value name="properties">
+                                                                        <values>
+                                                                            <value name="paymentMethods">
+                                                                                <values>
+                                                                                    <value name="type">array</value>
+                                                                                    <value name="items">
+                                                                                        <values>
+                                                                                            <value name="oneOf">
+                                                                                                <values>
+                                                                                                    <value>
+                                                                                                        <values>
+                                                                                                            <value name="type">object</value>
+                                                                                                            <value name="properties">
+                                                                                                                <values>
+                                                                                                                    <value name="issuers">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">array</value>
+                                                                                                                            <value name="items">
+                                                                                                                                <values>
+                                                                                                                                    <value name="type">object</value>
+                                                                                                                                    <value name="properties">
+                                                                                                                                        <values>
+                                                                                                                                            <value name="disabled">
+                                                                                                                                                <values>
+                                                                                                                                                    <value name="type">boolean</value>
+                                                                                                                                                </values>
+                                                                                                                                            </value>
+                                                                                                                                            <value name="id">
+                                                                                                                                                <values>
+                                                                                                                                                    <value name="type">string</value>
+                                                                                                                                                </values>
+                                                                                                                                            </value>
+                                                                                                                                            <value name="name">
+                                                                                                                                                <values>
+                                                                                                                                                    <value name="type">string</value>
+                                                                                                                                                </values>
+                                                                                                                                            </value>
+                                                                                                                                        </values>
+                                                                                                                                    </value>
+                                                                                                                                </values>
+                                                                                                                            </value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                    <value name="name">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">string</value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                    <value name="type">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">string</value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                </values>
+                                                                                                            </value>
+                                                                                                        </values>
+                                                                                                    </value>
+                                                                                                    <value>
+                                                                                                        <values>
+                                                                                                            <value name="type">object</value>
+                                                                                                            <value name="properties">
+                                                                                                                <values>
+                                                                                                                    <value name="brands">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">array</value>
+                                                                                                                            <value name="items">
+                                                                                                                                <values>
+                                                                                                                                    <value name="type">string</value>
+                                                                                                                                </values>
+                                                                                                                            </value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                    <value name="configuration">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">object</value>
+                                                                                                                            <value name="properties">
+                                                                                                                                <values>
+                                                                                                                                    <value name="merchantId">
+                                                                                                                                        <values>
+                                                                                                                                            <value name="type">string</value>
+                                                                                                                                        </values>
+                                                                                                                                    </value>
+                                                                                                                                    <value name="gatewayMerchantId">
+                                                                                                                                        <values>
+                                                                                                                                            <value name="type">string</value>
+                                                                                                                                        </values>
+                                                                                                                                    </value>
+                                                                                                                                    <value name="merchantName">
+                                                                                                                                        <values>
+                                                                                                                                            <value name="type">string</value>
+                                                                                                                                        </values>
+                                                                                                                                    </value>
+                                                                                                                                </values>
+                                                                                                                            </value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                    <value name="name">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">string</value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                    <value name="type">
+                                                                                                                        <values>
+                                                                                                                            <value name="type">string</value>
+                                                                                                                        </values>
+                                                                                                                    </value>
+                                                                                                                </values>
+                                                                                                            </value>
+                                                                                                        </values>
+                                                                                                    </value>
+                                                                                                </values>
+                                                                                            </value>
+                                                                                        </values>
+                                                                                    </value>
+                                                                                </values>
+                                                                            </value>
+                                                                        </values>
+                                                                    </value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="clientKey">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="locale">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="environment">
+                                                                <values>
+                                                                    <value name="type">string</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="enableStoreDetails">
+                                                                <values>
+                                                                    <value name="type">boolean</value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="amount">
+                                                                <values>
+                                                                    <value name="type">object</value>
+                                                                    <value name="properties">
+                                                                        <values>
+                                                                            <value name="currency">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="value">
+                                                                                <values>
+                                                                                    <value name="type">integer</value>
+                                                                                </values>
+                                                                            </value>
+                                                                        </values>
+                                                                    </value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="path">
+                                                                <values>
+                                                                    <value name="type">object</value>
+                                                                    <value name="properties">
+                                                                        <values>
+                                                                            <value name="payments">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="paymentDetails">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                            <value name="deleteToken">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                        </values>
+                                                                    </value>
+                                                                </values>
+                                                            </value>
+                                                            <value name="translations">
+                                                                <values>
+                                                                    <value name="type">object</value>
+                                                                    <value name="properties">
+                                                                        <values>
+                                                                            <value
+                                                                                name="sylius_adyen.runtime.payment_failed_try_again">
+                                                                                <values>
+                                                                                    <value name="type">string</value>
+                                                                                </values>
+                                                                            </value>
+                                                                        </values>
+                                                                    </value>
+                                                                </values>
+                                                            </value>
+                                                        </values>
+                                                    </value>
+                                                </values>
+                                            </value>
+                                        </values>
+                                    </value>
+                                </values>
+                            </content>
+                        </response>
+                    </responses>
+                </openapi>
+            </operation>
+
+            <operation
+                class="ApiPlatform\Metadata\Get"
+                name="shop_get_custom_thank_you_page"
+                uriTemplate="/shop/payment/adyen/{code}/thanks"
+                controller="sylius_adyen.controller.shop.redirect_target"
+                read="false"
+                paginationEnabled="false"
+            >
+                <uriVariables>
+                    <uriVariable parameterName="code" />
+                </uriVariables>
+                <normalizationContext>
+                    <values>
+                        <value name="groups">
+                            <values>
+                                <value>sylius</value>
+                            </values>
+                        </value>
+                    </values>
+                </normalizationContext>
+                <openapi
+                    summary="Custom thank-you page, that needs to be intercepted."
+                    description="Returns a custom thank-you page HTML response that needs to be intercepted by the frontend"
+                >
+                    <responses>
+                        <response status="200" description="HTML response">
+                            <content>
+                                <values>
+                                    <value name="text/html">
+                                        <values>
+                                            <value name="schema">
+                                                <values>
+                                                    <value name="type">string</value>
+                                                </values>
+                                            </value>
+                                        </values>
+                                    </value>
+                                </values>
+                            </content>
+                        </response>
+                    </responses>
+                </openapi>
+            </operation>
+        </operations>
+    </resource>
+</resources>
