@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ConfigurationProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -32,7 +32,7 @@ abstract class AbstractConfigurationAction
     public function __construct(
         iterable $configurationProviders,
         protected readonly CartContextInterface $cartContext,
-        protected readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        protected readonly AdyenPaymentMethodQueryInterface $adyenAdyenPaymentMethodQuery,
         protected readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         protected readonly CountryProviderInterface $countryProvider,
     ) {
@@ -49,7 +49,7 @@ abstract class AbstractConfigurationAction
         /** @var OrderInterface $order */
         $order = $this->cartContext->getCart();
 
-        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
+        $paymentMethod = $this->adyenAdyenPaymentMethodQuery->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
 
         $config = $paymentMethod->getGatewayConfig()->getConfig();

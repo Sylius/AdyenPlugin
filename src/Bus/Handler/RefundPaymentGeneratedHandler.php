@@ -16,10 +16,10 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
 use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
@@ -44,6 +44,7 @@ final class RefundPaymentGeneratedHandler
     {
         /** @var PaymentInterface $payment */
         $payment = $this->paymentRepository->find($refundPaymentGenerated->paymentId());
+        /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $this->paymentMethodRepository->find($refundPaymentGenerated->paymentMethodId());
 
         if (

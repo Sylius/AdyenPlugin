@@ -65,10 +65,9 @@
             class="Sylius\AdyenPlugin\Controller\Shop\RemoveStoredTokenAction"
             id="sylius_adyen.controller.shop.remove_stored_token"
         >
-
             <argument type="service" id="security.token_storage"/>
             <argument type="service" id="sylius_adyen.repository.shopper_reference"/>
-            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.repository.query.adyen_payment_method"/>
             <argument type="service" id="sylius_adyen.provider.adyen_client"/>
 
             <tag name="controller.service_arguments" />

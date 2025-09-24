@@ -17,7 +17,7 @@ use Adyen\AdyenException;
 use Sylius\AdyenPlugin\Bus\Command\PaymentStatusReceived;
 use Sylius\AdyenPlugin\Bus\Command\PrepareOrderForPayment;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -32,7 +32,7 @@ final class InitializeAction
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly MessageBusInterface $messageBus,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
     ) {
@@ -45,7 +45,7 @@ final class InitializeAction
         $data = json_decode($request->getContent(), true);
         Assert::isArray($data);
 
-        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
+        $paymentMethod = $this->adyenPaymentMethodQuery->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
 
         $this->messageBus->dispatch(new PrepareOrderForPayment($order));

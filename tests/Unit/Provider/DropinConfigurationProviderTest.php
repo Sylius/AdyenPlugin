@@ -22,7 +22,7 @@ use Sylius\AdyenPlugin\Model\PaymentMethodData;
 use Sylius\AdyenPlugin\Provider\CurrentShopUserProviderInterface;
 use Sylius\AdyenPlugin\Provider\DropinConfigurationProvider;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Bundle\PayumBundle\Model\GatewayConfigInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
@@ -34,7 +34,7 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class DropinConfigurationProviderTest extends TestCase
 {
-    private MockObject|PaymentMethodRepositoryInterface $paymentMethodRepository;
+    private AdyenPaymentMethodQueryInterface|MockObject $adyenPaymentMethodQuery;
 
     private MockObject|PaymentMethodsProviderInterface $paymentMethodsProvider;
 
@@ -48,14 +48,14 @@ final class DropinConfigurationProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
+        $this->adyenPaymentMethodQuery = $this->createMock(AdyenPaymentMethodQueryInterface::class);
         $this->paymentMethodsProvider = $this->createMock(PaymentMethodsProviderInterface::class);
         $this->currentShopUserProvider = $this->createMock(CurrentShopUserProviderInterface::class);
         $this->urlGenerator = $this->createMock(UrlGeneratorInterface::class);
         $this->translator = $this->createMock(TranslatorInterface::class);
 
         $this->provider = new DropinConfigurationProvider(
-            $this->paymentMethodRepository,
+            $this->adyenPaymentMethodQuery,
             $this->paymentMethodsProvider,
             $this->currentShopUserProvider,
             $this->urlGenerator,
@@ -68,7 +68,7 @@ final class DropinConfigurationProviderTest extends TestCase
         $order = $this->createMock(OrderInterface::class);
         $paymentMethodCode = 'non_existent_method';
 
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects(self::once())
             ->method('getOneAdyenForCode')
             ->with($paymentMethodCode)
@@ -85,7 +85,7 @@ final class DropinConfigurationProviderTest extends TestCase
         $paymentMethod = $this->createMock(PaymentMethodInterface::class);
         $paymentMethodCode = 'adyen_card';
 
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects(self::once())
             ->method('getOneAdyenForCode')
             ->with($paymentMethodCode)
@@ -293,7 +293,7 @@ final class DropinConfigurationProviderTest extends TestCase
         $currencyCode = 'USD';
         $total = 10000;
 
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects(self::once())
             ->method('getOneAdyenForCode')
             ->with($paymentMethodCode)
@@ -459,7 +459,7 @@ final class DropinConfigurationProviderTest extends TestCase
         string $environment = 'test',
         bool $mockTranslator = true,
     ): void {
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects(self::once())
             ->method('getOneAdyenForCode')
             ->with($paymentMethodCode)

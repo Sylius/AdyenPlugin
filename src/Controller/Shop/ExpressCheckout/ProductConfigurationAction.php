@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Component\Core\Factory\CartItemFactoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\ProductInterface;
@@ -32,7 +32,7 @@ final class ProductConfigurationAction extends AbstractConfigurationAction
     public function __construct(
         iterable $configurationProviders,
         CartContextInterface $cartContext,
-        PaymentMethodRepositoryInterface $paymentMethodRepository,
+        AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         PaymentMethodsProviderInterface $paymentMethodsProvider,
         CountryProviderInterface $countryProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
@@ -41,7 +41,7 @@ final class ProductConfigurationAction extends AbstractConfigurationAction
         private readonly OrderItemQuantityModifierInterface $quantityModifier,
         private readonly OrderModifierInterface $orderModifier,
     ) {
-        parent::__construct($configurationProviders, $cartContext, $paymentMethodRepository, $paymentMethodsProvider, $countryProvider);
+        parent::__construct($configurationProviders, $cartContext, $adyenPaymentMethodQuery, $paymentMethodsProvider, $countryProvider);
     }
 
     public function __invoke(Request $request): JsonResponse

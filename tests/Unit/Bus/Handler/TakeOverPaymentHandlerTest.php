@@ -20,7 +20,7 @@ use Sylius\AdyenPlugin\Bus\Command\TakeOverPayment;
 use Sylius\AdyenPlugin\Bus\Handler\TakeOverPaymentHandler;
 use Sylius\AdyenPlugin\Clearer\PaymentReferencesClearerInterface;
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -33,7 +33,7 @@ class TakeOverPaymentHandlerTest extends TestCase
 
     private const NEW_TEST_PAYMENT_CODE = 'Szczebrzeszyn';
 
-    private MockObject|PaymentMethodRepositoryInterface $paymentMethodRepository;
+    private MockObject|AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery;
 
     private MockObject|PaymentReferencesClearerInterface $paymentReferencesClearer;
 
@@ -43,12 +43,12 @@ class TakeOverPaymentHandlerTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
+        $this->adyenPaymentMethodQuery = $this->createMock(AdyenPaymentMethodQueryInterface::class);
         $this->paymentReferencesClearer = $this->createMock(PaymentReferencesClearerInterface::class);
         $this->paymentManager = $this->createMock(EntityManagerInterface::class);
 
         $this->handler = new TakeOverPaymentHandler(
-            $this->paymentMethodRepository,
+            $this->adyenPaymentMethodQuery,
             $this->paymentReferencesClearer,
             $this->paymentManager,
         );
@@ -56,7 +56,7 @@ class TakeOverPaymentHandlerTest extends TestCase
 
     public function testTheSamePaymentMethod(): void
     {
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects($this->never())
             ->method('getOneAdyenForCode')
         ;
@@ -83,7 +83,7 @@ class TakeOverPaymentHandlerTest extends TestCase
         $paymentMethod = new PaymentMethod();
         $paymentMethod->setCode(self::TEST_PAYMENT_CODE);
 
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects($this->once())
             ->method('getOneAdyenForCode')
             ->with(self::NEW_TEST_PAYMENT_CODE)
@@ -132,7 +132,7 @@ class TakeOverPaymentHandlerTest extends TestCase
         $newPaymentMethod = new PaymentMethod();
         $newPaymentMethod->setCode(self::NEW_TEST_PAYMENT_CODE);
 
-        $this->paymentMethodRepository
+        $this->adyenPaymentMethodQuery
             ->expects($this->once())
             ->method('getOneAdyenForCode')
             ->with(

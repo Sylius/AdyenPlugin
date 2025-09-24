@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Provider;
 
 use Sylius\AdyenPlugin\Exception\AdyenPaymentMethodNotFoundException;
 use Sylius\AdyenPlugin\Exception\OrderWithoutBillingAddressException;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -28,7 +28,7 @@ final class DropinConfigurationProvider implements DropinConfigurationProviderIn
     ];
 
     public function __construct(
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
         private readonly CurrentShopUserProviderInterface $currentShopUserProvider,
         private readonly UrlGeneratorInterface $urlGenerator,
@@ -38,7 +38,7 @@ final class DropinConfigurationProvider implements DropinConfigurationProviderIn
 
     public function getConfiguration(OrderInterface $order, string $paymentMethodCode): array
     {
-        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($paymentMethodCode);
+        $paymentMethod = $this->adyenPaymentMethodQuery->getOneAdyenForCode($paymentMethodCode);
         if (null === $paymentMethod) {
             throw new AdyenPaymentMethodNotFoundException($paymentMethodCode);
         }
