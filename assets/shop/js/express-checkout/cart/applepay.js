@@ -129,7 +129,7 @@ export class ApplePayHandler {
             if (data.redirect) {
                 window.location.replace(data.redirect);
             } else {
-                this.handleError('Payment response missing redirect URL', actions);
+                this.handleError('Payment failed. Please try again.', actions);
             }
         } catch (error) {
             this.handleError('Payment failed. Please try again.', actions);
