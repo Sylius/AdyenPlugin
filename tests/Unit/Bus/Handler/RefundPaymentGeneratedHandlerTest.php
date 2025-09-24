@@ -20,7 +20,6 @@ use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
 use Sylius\AdyenPlugin\Bus\Handler\RefundPaymentGeneratedHandler;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
-use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\Component\Core\Model\Order;
 use Sylius\Component\Core\Model\Payment;
 use Sylius\Component\Core\Model\PaymentInterface;
@@ -29,6 +28,7 @@ use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 use Sylius\RefundPlugin\Entity\RefundPayment;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Stamp\HandledStamp;
@@ -47,7 +47,7 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
 
     private MockObject|PaymentMethodRepositoryInterface $paymentMethodRepository;
 
-    private MockObject|RefundPaymentRepositoryInterface $refundPaymentRepository;
+    private MockObject|RepositoryInterface $refundPaymentRepository;
 
     private MessageBusInterface|MockObject $messageBus;
 
@@ -61,7 +61,7 @@ class RefundPaymentGeneratedHandlerTest extends TestCase
 
         $this->paymentRepository = $this->createMock(PaymentRepositoryInterface::class);
         $this->paymentMethodRepository = $this->createMock(PaymentMethodRepositoryInterface::class);
-        $this->refundPaymentRepository = $this->createMock(RefundPaymentRepositoryInterface::class);
+        $this->refundPaymentRepository = $this->createMock(RepositoryInterface::class);
         $this->messageBus = $this->createMock(MessageBusInterface::class);
 
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);

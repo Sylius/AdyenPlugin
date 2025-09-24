@@ -33,7 +33,7 @@ class TakeOverPaymentHandlerTest extends TestCase
 
     private const NEW_TEST_PAYMENT_CODE = 'Szczebrzeszyn';
 
-    private MockObject|AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery;
+    private AdyenPaymentMethodQueryInterface|MockObject $adyenPaymentMethodQuery;
 
     private MockObject|PaymentReferencesClearerInterface $paymentReferencesClearer;
 

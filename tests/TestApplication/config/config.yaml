@@ -31,12 +31,6 @@ sylius_product:
             classes:
                 model: Tests\Sylius\AdyenPlugin\Entity\ProductVariant
 
-sylius_resource:
-    resources:
-        sylius_refund.refund_payment:
-            classes:
-                repository: Tests\Sylius\AdyenPlugin\Repository\RefundPaymentRepository
-
 monolog:
     channels: ["app", "doctrine", "event", "php", "adyen"]
 
