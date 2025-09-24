@@ -34,8 +34,6 @@ use Symfony\Component\Config\Definition\ConfigurationInterface;
 
 final class Configuration implements ConfigurationInterface
 {
-    public const DEFAULT_LOGGER = 'logger';
-
     public function getConfigTreeBuilder(): TreeBuilder
     {
         $treeBuilder = new TreeBuilder('sylius_adyen');
@@ -45,7 +43,6 @@ final class Configuration implements ConfigurationInterface
         $this->addResourcesSection($rootNode);
         $this->addPaymentMethodsSection($rootNode);
         $this->addEsdSection($rootNode);
-        $this->addLoggerSection($rootNode);
         $this->addIntegratorNameSection($rootNode);
 
         return $treeBuilder;
@@ -79,18 +76,6 @@ final class Configuration implements ConfigurationInterface
                             ->performNoDeepMerging()
                         ->end()
                     ->end()
-                ->end()
-            ->end()
-        ;
-    }
-
-    private function addLoggerSection(ArrayNodeDefinition $rootNode): void
-    {
-        $rootNode
-            ->children()
-                ->scalarNode('logger')
-                    ->treatTrueLike(self::DEFAULT_LOGGER)
-                    ->defaultNull()
                 ->end()
             ->end()
         ;
