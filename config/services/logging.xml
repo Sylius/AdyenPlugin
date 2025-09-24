@@ -8,9 +8,5 @@
             <argument type="service" id="sylius_adyen.custom_factory.log"/>
             <argument type="service" id="sylius.repository.taxon"/>
         </service>
-
-        <service class="Sylius\AdyenPlugin\Provider\LoggerProvider" id="sylius_adyen.provider.logger">
-            <argument type="service" id="sylius_fixtures.logger.handler.console"/>
-        </service>
     </services>
 </container>
