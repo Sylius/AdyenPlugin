@@ -83,7 +83,7 @@ export class ApplePayHandler {
         }
     };
 
-    handleError = (message, actions = null) => {
+    handleError = (actions = null, message = 'Payment failed. Please try again.') => {
         showErrorMessage(message, SELECTORS.CART_CONTAINER);
         if (actions && actions.reject) {
             actions.reject();
@@ -115,24 +115,24 @@ export class ApplePayHandler {
             );
 
             if (!response.ok) {
-                this.handleError('Payment failed. Please try again.', actions);
+                this.handleError(actions);
                 return;
             }
 
             const data = await response.json();
 
             if (data.error) {
-                this.handleError('Payment failed. Please try again.', actions);
+                this.handleError(actions);
                 return;
             }
 
             if (data.redirect) {
                 window.location.replace(data.redirect);
             } else {
-                this.handleError('Payment failed. Please try again.', actions);
+                this.handleError(actions);
             }
         } catch (error) {
-            this.handleError('Payment failed. Please try again.', actions);
+            this.handleError(actions);
         }
     };
 
