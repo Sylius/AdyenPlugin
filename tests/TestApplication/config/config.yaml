@@ -1,6 +1,6 @@
 imports:
-    - { resource: "@SyliusRefundPlugin/Resources/config/app/config.yml" }
     - { resource: "@SyliusAdyenPlugin/config/config.yaml" }
+    - { resource: "@SyliusRefundPlugin/Resources/config/app/config.yml" }
     - { resource: "sylius_state_machine_abstraction.yaml" }
     - { resource: "services_test.php" }
 
