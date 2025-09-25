@@ -19,16 +19,14 @@ use Sylius\AdyenPlugin\Entity\AdyenReferenceInterface;
 use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class AdyenReferenceRepository extends EntityRepository implements AdyenReferenceRepositoryInterface
+class AdyenReferenceRepository extends EntityRepository implements AdyenReferenceRepositoryInterface
 {
     public function getOneByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface
     {
         return $this->getQueryBuilderForCodeAndReference($code, $pspReference)->getQuery()->getSingleResult();
     }
 
-    /**
-     * @throws NoResultException
-     */
+    /** @throws NoResultException */
     public function getOneForRefundByCodeAndReference(string $code, string $pspReference): AdyenReferenceInterface
     {
         $qb = $this->getQueryBuilderForCodeAndReference($code, $pspReference);

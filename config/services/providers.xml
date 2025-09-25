@@ -47,7 +47,7 @@
             id="sylius_adyen.provider.dropin_configuration"
             class="Sylius\AdyenPlugin\Provider\DropinConfigurationProvider"
         >
-            <argument type="service" id="sylius.repository.payment_method" />
+            <argument type="service" id="sylius_adyen.repository.query.adyen_payment_method" />
             <argument type="service" id="sylius_adyen.provider.payment_methods" />
             <argument type="service" id="sylius_adyen.provider.current_shop_user" />
             <argument type="service" id="router" />

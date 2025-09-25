@@ -19,7 +19,7 @@ use Sylius\AdyenPlugin\Client\AdyenTransportFactory;
 use Sylius\AdyenPlugin\Client\ClientPayloadFactoryInterface;
 use Sylius\AdyenPlugin\Exception\NonAdyenPaymentMethodException;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -30,7 +30,7 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
     use GatewayConfigFromPaymentTrait;
 
     public function __construct(
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         private readonly ChannelContextInterface $channelContext,
         private readonly AdyenTransportFactory $adyenTransportFactory,
         private readonly ClientPayloadFactoryInterface $clientPayloadFactory,
@@ -39,10 +39,9 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
 
     public function getDefaultClient(): AdyenClientInterface
     {
-        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel(
+        $paymentMethod = $this->adyenPaymentMethodQuery->findOneAdyenByChannel(
             $this->channelContext->getChannel(),
         );
-
         if (null === $paymentMethod) {
             throw new UpdateHandlingException('No Adyen provider is configured');
         }
@@ -73,8 +72,7 @@ final class AdyenClientProvider implements AdyenClientProviderInterface
 
     public function getClientForCode(string $code): AdyenClientInterface
     {
-        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
-
+        $paymentMethod = $this->adyenPaymentMethodQuery->getOneAdyenForCode($code);
         if (null === $paymentMethod) {
             throw new UnprocessablePaymentException();
         }

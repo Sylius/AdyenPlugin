@@ -17,17 +17,17 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Provider\Refund\OrderRefundedTotalProvider;
-use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Sylius\RefundPlugin\Provider\OrderRefundedTotalProviderInterface;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 
 final class OrderRefundedTotalProviderTest extends TestCase
 {
     private MockObject|OrderRefundedTotalProviderInterface $decoratedProvider;
 
-    private MockObject|RefundPaymentRepositoryInterface $refundPaymentRepository;
+    private MockObject|RepositoryInterface $refundPaymentRepository;
 
     private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
 
@@ -36,7 +36,7 @@ final class OrderRefundedTotalProviderTest extends TestCase
     protected function setUp(): void
     {
         $this->decoratedProvider = $this->createMock(OrderRefundedTotalProviderInterface::class);
-        $this->refundPaymentRepository = $this->createMock(RefundPaymentRepositoryInterface::class);
+        $this->refundPaymentRepository = $this->createMock(RepositoryInterface::class);
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
 
         $this->provider = new OrderRefundedTotalProvider(

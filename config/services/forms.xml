@@ -14,19 +14,17 @@
         </service>
 
         <service
-                class="Sylius\AdyenPlugin\Form\Extension\PaymentTypeExtension"
-                id="sylius_adyen.form.extension.payment_type"
+            id="sylius_adyen.form.extension.payment_type"
+            class="Sylius\AdyenPlugin\Form\Extension\PaymentTypeExtension"
         >
             <argument type="service" id="sylius_adyen.resolver.order.payment_checkout_order"/>
-            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="sylius_adyen.repository.query.adyen_payment_method"/>
             <argument type="service" id="sylius.context.shopper"/>
             <argument type="service" id="sylius_adyen.provider.payment_methods"/>
             <tag name="form.type_extension" />
         </service>
 
-        <service class="Sylius\AdyenPlugin\Grid\Filter\LoggerLevel"
-                 id="sylius_adyen.grid.filter.logger_level"
-        >
+        <service id="sylius_adyen.grid.filter.logger_level" class="Sylius\AdyenPlugin\Grid\Filter\LoggerLevel">
             <tag name="sylius.grid_filter" type="adyen_log_level" form_type="Sylius\AdyenPlugin\Form\Type\LoggerLevelFilterType" />
         </service>
 

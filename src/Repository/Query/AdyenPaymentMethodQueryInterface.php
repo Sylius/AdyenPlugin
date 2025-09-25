@@ -11,13 +11,12 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Repository;
+namespace Sylius\AdyenPlugin\Repository\Query;
 
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
-use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface as BasePaymentMethodRepositoryInterface;
 
-interface PaymentMethodRepositoryInterface extends BasePaymentMethodRepositoryInterface
+interface AdyenPaymentMethodQueryInterface
 {
     public function getOneAdyenForCode(string $code): ?PaymentMethodInterface;
 

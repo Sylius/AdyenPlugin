@@ -16,7 +16,7 @@ namespace Sylius\AdyenPlugin\Resolver\ExpressCheckout;
 use Doctrine\Persistence\ObjectManager;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityCheckerInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -28,7 +28,7 @@ final class CheckoutResolver implements CheckoutResolverInterface
     public function __construct(
         private readonly ObjectManager $orderManager,
         private readonly StateMachineInterface $stateMachine,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         private readonly OrderCheckoutCompleteIntegrityCheckerInterface $orderCheckoutCompleteIntegrityChecker,
     ) {
     }
@@ -41,7 +41,7 @@ final class CheckoutResolver implements CheckoutResolverInterface
             $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
         }
 
-        $paymentMethod = $this->paymentMethodRepository->findOneAdyenByChannel($order->getChannel());
+        $paymentMethod = $this->adyenPaymentMethodQuery->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
         $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);

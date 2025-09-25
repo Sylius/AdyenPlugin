@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Form\Extension;
 
 use Sylius\AdyenPlugin\Form\Type\PaymentMethodChoiceType;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
 use Sylius\Bundle\CoreBundle\Form\Type\Checkout\PaymentType;
 use Sylius\Component\Channel\Context\ChannelContextInterface;
@@ -27,7 +27,7 @@ final class PaymentTypeExtension extends AbstractTypeExtension
 {
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         private readonly ChannelContextInterface $channelContext,
         private readonly PaymentMethodsProviderInterface $paymentMethodsProvider,
     ) {
@@ -40,7 +40,7 @@ final class PaymentTypeExtension extends AbstractTypeExtension
             'mapped' => false,
         ]);
 
-        $paymentMethods = $this->paymentMethodRepository->findAllAdyenByChannel($this->channelContext->getChannel());
+        $paymentMethods = $this->adyenPaymentMethodQuery->findAllAdyenByChannel($this->channelContext->getChannel());
         foreach ($paymentMethods as $paymentMethod) {
             $order = $this->paymentCheckoutOrderResolver->resolve();
             $paymentMethodsData = $this->paymentMethodsProvider->provideForOrder($paymentMethod, $order);

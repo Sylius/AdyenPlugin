@@ -14,16 +14,17 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Provider\Refund;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
-use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Sylius\RefundPlugin\Provider\OrderRefundedTotalProviderInterface;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 
 final class OrderRefundedTotalProvider implements OrderRefundedTotalProviderInterface
 {
+    /** @param RepositoryInterface<RefundPaymentInterface> $refundPaymentRepository */
     public function __construct(
         private readonly OrderRefundedTotalProviderInterface $decorated,
-        private readonly RefundPaymentRepositoryInterface $refundPaymentRepository,
+        private readonly RepositoryInterface $refundPaymentRepository,
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
     }
@@ -41,7 +42,6 @@ final class OrderRefundedTotalProvider implements OrderRefundedTotalProviderInte
         $refundPayments = $this->refundPaymentRepository->findBy(['order' => $order]);
 
         $orderRefundedTotal = 0;
-        /** @var RefundPaymentInterface $refundPayment */
         foreach ($refundPayments as $refundPayment) {
             if ($refundPayment->getState() === RefundPaymentInterface::STATE_COMPLETED) {
                 $orderRefundedTotal += $refundPayment->getAmount();

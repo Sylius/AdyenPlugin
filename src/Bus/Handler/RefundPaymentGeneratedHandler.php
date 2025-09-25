@@ -16,13 +16,13 @@ namespace Sylius\AdyenPlugin\Bus\Handler;
 use Sylius\AdyenPlugin\Bus\Command\CreateReferenceForRefund;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
-use Sylius\AdyenPlugin\Repository\RefundPaymentRepositoryInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 use Sylius\Component\Core\Repository\PaymentRepositoryInterface;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Sylius\RefundPlugin\Event\RefundPaymentGenerated;
+use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Webmozart\Assert\Assert;
@@ -30,11 +30,12 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class RefundPaymentGeneratedHandler
 {
+    /** @param RepositoryInterface<RefundPaymentInterface> $refundPaymentRepository */
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
-        private readonly RefundPaymentRepositoryInterface $refundPaymentRepository,
+        private readonly RepositoryInterface $refundPaymentRepository,
         private readonly MessageBusInterface $messageBus,
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
@@ -44,6 +45,7 @@ final class RefundPaymentGeneratedHandler
     {
         /** @var PaymentInterface $payment */
         $payment = $this->paymentRepository->find($refundPaymentGenerated->paymentId());
+        /** @var PaymentMethodInterface $paymentMethod */
         $paymentMethod = $this->paymentMethodRepository->find($refundPaymentGenerated->paymentMethodId());
 
         if (
