@@ -22,7 +22,7 @@ jobs:
     tests:
         runs-on: ubuntu-latest
 
-        name: "Sylius ${{ matrix.sylius }}, PHP ${{ matrix.php }}, Symfony ${{ matrix.symfony }}, MySQL ${{ matrix.mysql }}, State Machine Adapter ${{ matrix.state_machine_adapter }}"
+        name: "Sylius ${{ matrix.sylius }}, PHP ${{ matrix.php }}, Symfony ${{ matrix.symfony }}, ${{ matrix.database == 'mysql' && format('MySQL {0}', matrix.mysql) || matrix.database == 'postgres' && format('PostgreSQL {0}', matrix.postgres) }}, State Machine Adapter ${{ matrix.state_machine_adapter }}"
 
         strategy:
             fail-fast: false
@@ -31,7 +31,8 @@ jobs:
                 symfony: [ "^5.4", "^6.4" ]
                 sylius: [ "~1.14.0" ]
                 node: [ "20.x" ]
-                mysql: [ "8.0" ]
+                database: [ "mysql" ]
+                mysql: [ "8.4" ]
                 state_machine_adapter: [ "symfony_workflow" ]
 
                 include:
@@ -41,12 +42,20 @@ jobs:
                         sylius: "~1.14.0"
                         node: "20.x"
                         database: "mysql"
-                        mysql: "8.0"
+                        mysql: "8.4"
                         state_machine_adapter: "winzou_state_machine"
+                    -
+                        php: "8.2"
+                        symfony: "~6.4"
+                        sylius: "~1.14.0"
+                        node: "20.x"
+                        database: "postgres"
+                        postgres: "15.8"
+                        state_machine_adapter: "symfony_workflow"
 
         env:
             APP_ENV: test
-            DATABASE_URL: "mysql://root:root@127.0.0.1/sylius?serverVersion=${{ matrix.mysql }}"
+            DATABASE_URL: ${{ matrix.database == 'mysql' && format('mysql://root:root@127.0.0.1/sylius?serverVersion={0}', matrix.mysql) || format('pgsql://postgres:postgres@127.0.0.1/sylius?serverVersion={0}', matrix.postgres) }}
             TEST_SYLIUS_STATE_MACHINE_ADAPTER: "${{ matrix.state_machine_adapter }}"
 
         steps:
@@ -69,15 +78,26 @@ jobs:
                     node-version: "${{ matrix.node }}"
 
             -
-                name: Shutdown default MySQL
-                run: sudo service mysql stop
+                name: Shutdown default database services
+                run: |
+                    sudo service mysql stop || true
+                    sudo service postgresql stop || true
 
             -
                 name: Setup MySQL
+                if: matrix.database == 'mysql'
                 uses: mirromutth/mysql-action@v1.1
                 with:
                     mysql version: "${{ matrix.mysql }}"
                     mysql root password: "root"
+
+            -
+                name: Setup PostgreSQL
+                if: matrix.database == 'postgres'
+                uses: harmon758/postgresql-action@v1
+                with:
+                    postgresql version: "${{ matrix.postgres }}"
+                    postgresql password: "postgres"
 
             -
                 name: Output PHP version for Symfony CLI
