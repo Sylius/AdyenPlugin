@@ -12,7 +12,7 @@ body .dropin-container .adyen-checkout__threeds2__challenge iframe {
     border: 2px solid rgba(34, 36, 38, 0.05);
     background: transparent;
     padding: 0.2em;
-    margin: 0.5em;
+    margin: 0.2em;
 }
 
 .adyen-method-grid img {

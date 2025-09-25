@@ -1,0 +1,17 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.order.show.content.sections.payments.refund_item.actions':
+            complete:
+                template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/refund_item/actions/complete.html.twig'
+                priority: 0
+
+        'sylius_admin.order.show.content.sections.payments.item.actions':
+            complete:
+                template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/complete.html.twig'
+                priority: 100
+            capture:
+                template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/capture.html.twig'
+                priority: 100
+            send_payment_link:
+                template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/send_payment_link.html.twig'
+                priority: 100

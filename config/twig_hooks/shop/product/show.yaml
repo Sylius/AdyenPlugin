@@ -1,0 +1,17 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_shop.product.show.content.info.summary.add_to_cart':
+            express_checkout:
+                template: '@SyliusAdyenPlugin/shop/product/show/content/info/summary/add_to_cart/express_checkout.html.twig'
+                priority: -100
+
+        'sylius_shop.product.show.content.info.summary.add_to_cart.express_checkout':
+            apple_pay:
+                template: '@SyliusAdyenPlugin/shop/shared/express_checkout/apple_pay.html.twig'
+                priority: 200
+            google_pay:
+                template: '@SyliusAdyenPlugin/shop/shared/express_checkout/google_pay.html.twig'
+                priority: 100
+            paypal:
+                template: '@SyliusAdyenPlugin/shop/shared/express_checkout/paypal.html.twig'
+                priority: 0

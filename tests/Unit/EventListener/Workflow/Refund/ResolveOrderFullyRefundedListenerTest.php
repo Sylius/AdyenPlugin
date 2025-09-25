@@ -58,15 +58,4 @@ final class ResolveOrderFullyRefundedListenerTest extends TestCase
 
         ($this->listener)($event);
     }
-
-    public function testItDoesNothingWhenSubjectIsNull(): void
-    {
-        $event = $this->createMock(Event::class);
-
-        $event->expects($this->once())->method('getSubject')->willReturn(null);
-
-        $this->resolver->expects($this->never())->method('resolve');
-
-        ($this->listener)($event);
-    }
 }

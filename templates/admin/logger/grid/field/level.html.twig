@@ -1,0 +1,15 @@
+{% if data %}
+    {% if data == constant('Monolog\\Level::Info').value %}
+        <div class="badge badge-pill text-bg-info">
+            <strong>{{'sylius_adyen.ui.logging.info'|trans}}</strong>
+        </div>
+    {% elseif data == constant('Monolog\\Level::Error').value %}
+        <div class="badge badge-pill text-bg-danger">
+            <strong>{{'sylius_adyen.ui.logging.error'|trans}}</strong>
+        </div>
+    {% elseif data == constant('Monolog\\Level::Debug').value %}
+        <div class="badge badge-pill text-bg-secondary">
+            <strong>{{'sylius_adyen.ui.logging.debug'|trans}}</strong>
+        </div>
+    {% endif %}
+{% endif %}
