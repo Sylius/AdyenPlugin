@@ -1,8 +1,10 @@
-import {createFetchOptions, createUrlWithToken} from '../utils.js';
+import {createFetchOptions, createUrlWithToken, showErrorMessage} from '../utils.js';
+import { SELECTORS } from '../constants.js';
 
 export class ApplePayHandler {
     constructor(configuration) {
         this.configuration = configuration;
+        this.orderToken = null;
     }
 
     handleShippingContactSelected = async (resolve, reject, event) => {
@@ -81,6 +83,13 @@ export class ApplePayHandler {
         }
     };
 
+    handleError = (actions = null, message = 'Payment failed. Please try again.') => {
+        showErrorMessage(message, SELECTORS.CART_CONTAINER);
+        if (actions && actions.reject) {
+            actions.reject();
+        }
+    };
+
     handleAuthorized = async (paymentData, actions) => {
         try {
             const { shippingContact } = paymentData.authorizedEvent.payment;
@@ -91,6 +100,7 @@ export class ApplePayHandler {
 
             const data = await response.json();
 
+            this.orderToken = data.orderToken;
             actions.resolve(data);
         } catch (error) {
             actions.reject(error.message);
@@ -99,12 +109,30 @@ export class ApplePayHandler {
 
     handleSubmit = async (state, component, actions) => {
         try {
-            const response = await fetch(this.configuration.applePay.path.payments, createFetchOptions(state.data));
+            const response = await fetch(
+                createUrlWithToken(this.configuration.applePay.path.payments, this.orderToken),
+                createFetchOptions(state.data)
+            );
+
+            if (!response.ok) {
+                this.handleError(actions);
+                return;
+            }
+
             const data = await response.json();
 
-            window.location.replace(data.redirect);
+            if (data.error) {
+                this.handleError(actions);
+                return;
+            }
+
+            if (data.redirect) {
+                window.location.replace(data.redirect);
+            } else {
+                this.handleError(actions);
+            }
         } catch (error) {
-            console.error('Payment submission failed:', error);
+            this.handleError(actions);
         }
     };
 

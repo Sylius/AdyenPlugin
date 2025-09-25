@@ -14,7 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\EventSubscriber;
 
 use Psr\Log\LoggerInterface;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,7 +31,7 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
     public const ROUTE_NAME = 'sylius_adyen_shop_process_notifications';
 
     public function __construct(
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
         private readonly LoggerInterface $logger,
     ) {
     }
@@ -61,7 +61,7 @@ final class FilterHttpAuthenticationForNotificationProcessor implements EventSub
 
     private function getConfiguration(string $code): array
     {
-        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
+        $paymentMethod = $this->adyenPaymentMethodQuery->getOneAdyenForCode($code);
         if (null === $paymentMethod) {
             throw new NotFoundHttpException();
         }

@@ -1,6 +1,6 @@
 imports:
-    - { resource: "@SyliusRefundPlugin/config/config.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/config.yaml" }
+    - { resource: "@SyliusRefundPlugin/config/config.yaml" }
     - { resource: "sylius_state_machine_abstraction.yaml" }
     - { resource: "services_test.php" }
 
@@ -27,22 +27,12 @@ sylius_state_machine_abstraction:
 sylius_refund:
     pdf_generator:
         enabled: false
-    resources:
-        refund_payment:
-            classes:
-                repository: Tests\Sylius\AdyenPlugin\Repository\RefundPaymentRepository
 
 sylius_product:
     resources:
         product_variant:
             classes:
                 model: Tests\Sylius\AdyenPlugin\Entity\ProductVariant
-
-sylius_payment:
-    resources:
-        payment_method:
-            classes:
-                repository: Tests\Sylius\AdyenPlugin\Repository\PaymentMethodRepository
 
 monolog:
     channels: ["app", "doctrine", "event", "php", "adyen"]

@@ -18,7 +18,7 @@ use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
 
-final class ShopperReferenceRepository extends EntityRepository implements ShopperReferenceRepositoryInterface
+class ShopperReferenceRepository extends EntityRepository implements ShopperReferenceRepositoryInterface
 {
     public function findOneByPaymentMethodAndCustomer(
         PaymentMethodInterface $paymentMethod,

@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Provider;
 
 use Sylius\AdyenPlugin\Client\SignatureValidator;
 use Sylius\AdyenPlugin\Exception\AdyenNotConfiguredException;
-use Sylius\AdyenPlugin\Repository\PaymentMethodRepositoryInterface;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\AdyenPlugin\Traits\GatewayConfigFromPaymentTrait;
 
 final class SignatureValidatorProvider implements SignatureValidatorProviderInterface
@@ -23,14 +23,13 @@ final class SignatureValidatorProvider implements SignatureValidatorProviderInte
     use GatewayConfigFromPaymentTrait;
 
     public function __construct(
-        private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
+        private readonly AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
     ) {
     }
 
     public function getValidatorForCode(string $code): SignatureValidator
     {
-        $paymentMethod = $this->paymentMethodRepository->getOneAdyenForCode($code);
-
+        $paymentMethod = $this->adyenPaymentMethodQuery->getOneAdyenForCode($code);
         if (null === $paymentMethod) {
             throw new AdyenNotConfiguredException($code);
         }

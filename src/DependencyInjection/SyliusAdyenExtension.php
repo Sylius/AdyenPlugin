@@ -13,42 +13,40 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\DependencyInjection;
 
+use Sylius\Bundle\CoreBundle\DependencyInjection\PrependDoctrineMigrationsTrait;
+use Sylius\Bundle\ResourceBundle\DependencyInjection\Extension\AbstractResourceExtension;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
-use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
-final class SyliusAdyenExtension extends ConfigurableExtension implements PrependExtensionInterface
+final class SyliusAdyenExtension extends AbstractResourceExtension implements PrependExtensionInterface
 {
-    public function prepend(ContainerBuilder $container): void
-    {
-        $container->prependExtensionConfig('doctrine_migrations', [
-            'migrations_paths' => [
-                'Sylius\AdyenPlugin\Migrations' => __DIR__ . '/../Migrations',
-            ],
-        ]);
+    use PrependDoctrineMigrationsTrait;
 
-        $container->prependExtensionConfig('sylius_labs_doctrine_migrations_extra', [
-            'migrations' => [
-                'Sylius\AdyenPlugin\Migrations' => [
-                    'Sylius\Bundle\CoreBundle\Migrations',
-                    'Sylius\RefundPlugin\Migrations',
-                ],
-            ],
-        ]);
-    }
-
-    protected function loadInternal(array $mergedConfig, ContainerBuilder $container): void
+    public function load(array $configs, ContainerBuilder $container): void
     {
+        $configuration = $this->getConfiguration([], $container);
+
+        $configs = $this->processConfiguration($configuration, $configs);
+
         $loader = new XmlFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
         $loader->load('services.xml');
 
-        $this->setPaymentMethodsParameters($mergedConfig, $container);
-        $this->setEsdParameters($mergedConfig, $container);
+        $this->setPaymentMethodsParameters($configs, $container);
+        $this->setEsdParameters($configs, $container);
 
-        $container->setParameter('sylius_adyen.integrator_name', $mergedConfig['integrator_name']);
+        $container->setParameter('sylius_adyen.integrator_name', $configs['integrator_name']);
+    }
+
+    public function prepend(ContainerBuilder $container): void
+    {
+        $config = $this->getCurrentConfiguration($container);
+
+        $this->registerResources('sylius_adyen', 'doctrine/orm', $config['resources'], $container);
+
+        $this->prependDoctrineMigrations($container);
     }
 
     public function getConfiguration(array $config, ContainerBuilder $container): ConfigurationInterface
@@ -59,6 +57,34 @@ final class SyliusAdyenExtension extends ConfigurableExtension implements Prepen
     public function getAlias(): string
     {
         return 'sylius_adyen';
+    }
+
+    protected function getMigrationsNamespace(): string
+    {
+        return 'Sylius\AdyenPlugin\Migrations';
+    }
+
+    protected function getMigrationsDirectory(): string
+    {
+        return '@SyliusAdyenPlugin/src/Migrations';
+    }
+
+    /** @return string[] */
+    protected function getNamespacesOfMigrationsExecutedBefore(): array
+    {
+        return [
+            'Sylius\Bundle\CoreBundle\Migrations',
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    private function getCurrentConfiguration(ContainerBuilder $container): array
+    {
+        $configuration = $this->getConfiguration([], $container);
+
+        $configs = $container->getExtensionConfig($this->getAlias());
+
+        return $this->processConfiguration($configuration, $configs);
     }
 
     private function setPaymentMethodsParameters(array $config, ContainerBuilder $container): void

@@ -1,4 +1,5 @@
-import {createFetchOptions, createUrlWithToken} from '../utils.js';
+import {createFetchOptions, createUrlWithToken, showErrorMessage} from '../utils.js';
+import { SELECTORS } from '../constants.js';
 
 export class ApplePayHandler {
     constructor(configuration) {
@@ -125,18 +126,35 @@ export class ApplePayHandler {
                 createUrlWithToken(this.configuration.applePay.path.payments, this.orderToken),
                 createFetchOptions(state.data)
             );
+
             const data = await response.json();
 
-            window.location.replace(data.redirect);
+            if (!response.ok || data.error) {
+                this.handleError(actions);
+
+                return;
+            }
+
+            if (data.redirect) {
+                window.location.replace(data.redirect);
+            } else {
+                this.handleError(actions);
+            }
         } catch (error) {
-            console.error('Payment submission failed:', error);
+            this.handleError(actions);
         }
     };
 
-    handleError = (error) => {
+    handleError = (actions = null, message = 'Payment failed. Please try again.') => {
+        showErrorMessage(message, SELECTORS.PRODUCT_CONTAINER);
+
         if (this.orderToken !== null) {
             fetch(this.configuration.path.removeCart.replace('_TOKEN_VALUE_', this.orderToken), { method: 'DELETE' });
             this.orderToken = null;
+        }
+
+        if (actions && actions.reject) {
+            actions.reject();
         }
     };
 
@@ -158,7 +176,7 @@ export class ApplePayHandler {
             onAuthorized: this.handleAuthorized,
             onSubmit: this.handleSubmit,
             onClick: this.handleClick,
-            onError: this.handleError,
+            onError: (error) => this.handleError(null, typeof error === 'string' ? error : 'Payment failed. Please try again.'),
         };
     }
 }

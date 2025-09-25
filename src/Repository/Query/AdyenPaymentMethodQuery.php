@@ -11,18 +11,26 @@
 
 declare(strict_types=1);
 
-namespace Sylius\AdyenPlugin\Repository;
+namespace Sylius\AdyenPlugin\Repository\Query;
 
 use Doctrine\ORM\QueryBuilder;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
+use Sylius\Bundle\ResourceBundle\Doctrine\ORM\EntityRepository;
 use Sylius\Component\Channel\Model\ChannelInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 
-trait PaymentMethodRepositoryTrait
+final class AdyenPaymentMethodQuery implements AdyenPaymentMethodQueryInterface
 {
+    /** @param PaymentMethodRepositoryInterface&EntityRepository $repository */
+    public function __construct(
+        private PaymentMethodRepositoryInterface $repository,
+    ) {
+    }
+
     public function getOneAdyenForCode(string $code): ?PaymentMethodInterface
     {
-        return $this->createQueryBuilder('o')
+        return $this->repository->createQueryBuilder('o')
             ->innerJoin('o.gatewayConfig', 'gatewayConfig')
             ->where('o.code = :code')
             ->andWhere('gatewayConfig.factoryName = :factoryName')
@@ -54,7 +62,7 @@ trait PaymentMethodRepositoryTrait
 
     private function getQueryForChannel(ChannelInterface $channel): QueryBuilder
     {
-        return $this->createQueryBuilder('o')
+        return $this->repository->createQueryBuilder('o')
             ->innerJoin('o.gatewayConfig', 'gatewayConfig')
             ->andWhere('o.enabled = :enabled')
             ->andWhere(':channel MEMBER OF o.channels')
