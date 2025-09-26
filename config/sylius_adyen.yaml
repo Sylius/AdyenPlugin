@@ -27,6 +27,7 @@ sylius_adyen:
             - 'twint'            # TWINT                  https://docs.adyen.com/payment-methods/twint/
             - 'wechatpayWeb'     # WeChat Pay             https://docs.adyen.com/payment-methods/wechat-pay/
             - 'wechatpayQR'      # WeChat Pay             https://docs.adyen.com/payment-methods/wechat-pay/
+
         manual_capture_supporting_types:
             - 'ach'
             - 'alma'

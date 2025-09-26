@@ -12,9 +12,8 @@
         "php": "^8.2",
         "adyen/php-api-library": "^28.0",
         "composer/package-versions-deprecated": "^1.11",
-        "nyholm/psr7": "^1.4",
         "sylius/refund-plugin": "^2.0",
-        "sylius/sylius": "^2.0 || ^2.1",
+        "sylius/sylius": "^2.0",
         "symfony/messenger": "^6.4 || ^7.2",
         "symfony/serializer": "^6.4 || ^7.2",
         "symfony/webpack-encore-bundle": "^2.2"
@@ -31,6 +30,7 @@
         "friends-of-behat/symfony-extension": "^2.1",
         "friends-of-behat/variadic-extension": "^1.3",
         "lakion/mink-debug-extension": "^2.0.0",
+        "nyholm/psr7": "^1.8",
         "phpstan/extension-installer": "^1.0",
         "phpstan/phpstan": "^1.4",
         "phpstan/phpstan-doctrine": "^1.0",
@@ -39,7 +39,6 @@
         "phpunit/phpunit": "^10.5",
         "polishsymfonycommunity/symfony-mocker-container": "^1.0",
         "sylius-labs/coding-standard": "^4.0",
-        "slevomat/coding-standard": "~8.22.1",
         "sylius/test-application": "^2.0.0@alpha || ^2.1.0@alpha",
         "symfony/browser-kit": "^6.4 || ^7.2",
         "symfony/debug-bundle": "^6.4 || ^7.2",
@@ -60,7 +59,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-master": "1.0-dev"
+            "dev-1.0": "1.0-dev"
         },
         "public-dir": "vendor/sylius/test-application/public"
     },
