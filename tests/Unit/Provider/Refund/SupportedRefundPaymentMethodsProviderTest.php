@@ -17,7 +17,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\Provider\Refund\SupportedRefundPaymentMethodsProvider;
-use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -25,7 +24,7 @@ use Sylius\RefundPlugin\Provider\RefundPaymentMethodsProviderInterface;
 
 final class SupportedRefundPaymentMethodsProviderTest extends TestCase
 {
-    private MockObject|MockRefundPaymentMethodsProvider $decoratedProvider;
+    private MockObject|RefundPaymentMethodsProviderInterface $decoratedProvider;
 
     private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
 
@@ -33,28 +32,12 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->decoratedProvider = $this->createMock(MockRefundPaymentMethodsProvider::class);
+        $this->decoratedProvider = $this->createMock(RefundPaymentMethodsProviderInterface::class);
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
         $this->provider = new SupportedRefundPaymentMethodsProvider($this->decoratedProvider, $this->adyenPaymentMethodChecker);
     }
 
-    public function test_it_delegates_find_for_channel_to_decorated_provider(): void
-    {
-        $channel = $this->createMock(ChannelInterface::class);
-        $expectedMethods = [$this->createMock(PaymentMethodInterface::class)];
-
-        $this->decoratedProvider
-            ->expects($this->once())
-            ->method('findForChannel')
-            ->with($channel)
-            ->willReturn($expectedMethods);
-
-        $result = $this->provider->findForChannel($channel);
-
-        self::assertSame($expectedMethods, $result);
-    }
-
-    public function test_it_returns_empty_array_when_order_has_no_completed_payment(): void
+    public function test_it_returns_all_methods_when_order_has_no_completed_payment(): void
     {
         $order = $this->createMock(OrderInterface::class);
 
@@ -237,19 +220,5 @@ final class SupportedRefundPaymentMethodsProviderTest extends TestCase
         self::assertContains($nonAdyenMethod, $result);
         self::assertNotContains($adyenMethod1, $result);
         self::assertNotContains($adyenMethod2, $result);
-    }
-}
-
-// Necessary since the interface does not describe all methods
-class MockRefundPaymentMethodsProvider implements RefundPaymentMethodsProviderInterface
-{
-    public function findForChannel(ChannelInterface $channel): array
-    {
-        return [];
-    }
-
-    public function findForOrder(OrderInterface $order): array
-    {
-        return [];
     }
 }

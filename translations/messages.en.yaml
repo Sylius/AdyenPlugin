@@ -46,7 +46,6 @@ sylius_adyen:
         merchant_account: Merchant account
         merchant_category_code: Merchant Category Code (MCC)
         merchant_category_code_help: Your 4-digit MCC code to automatically determine ESD type
-        notification_endpoint: Notifications endpoint
         notification_endpoint_description: In order to configure Adyen payment, head to merchant panel and use following URL as target
         payment_failed: Payment failed, try again
         payment_processing: Payment is being processed, please watch the notifications on your e-mail

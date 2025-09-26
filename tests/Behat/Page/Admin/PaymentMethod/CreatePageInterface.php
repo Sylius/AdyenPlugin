@@ -17,7 +17,7 @@ use Sylius\Behat\Page\Admin\Crud\CreatePageInterface as BaseCreatePageInterface;
 
 interface CreatePageInterface extends BaseCreatePageInterface
 {
-    public function setAdyenPlatform(string $environment): void;
+    public function setAdyenPlatform(string $platform): void;
 
     public function setValue(string $name, $value): void;
 }

@@ -1,12 +1,13 @@
 imports:
     - { resource: "@SyliusAdyenPlugin/config/grids/*/*.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/twig_hooks/**/*.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius/blocks.yml" }
-    - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine/**.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/workflow/**.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/sylius_adyen.yaml" }
+    - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine.php" }
 
 parameters:
-    sylius_adyen_api_platform_mapping_path: '%kernel.project_dir%/vendor/sylius/adyen-plugin/config/api_resources/'
+    sylius_adyen_api_platform_mapping_path: '%kernel.project_dir%/vendor/sylius/adyen-plugin/config/api_platform/'
 
 api_platform:
     mapping:
@@ -17,7 +18,7 @@ sylius_mailer:
     emails:
         adyen_payment_link:
             subject: Payment link
-            template: "@SyliusAdyenPlugin/Shop/Email/paymentLink.html.twig"
+            template: "@SyliusAdyenPlugin/email/payment_link.html.twig"
 
 monolog:
     channels: ['adyen']
