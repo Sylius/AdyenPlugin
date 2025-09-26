@@ -29,11 +29,11 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
     use NormalizerAwareTrait;
 
     public function denormalize(
-        $data,
+        mixed $data,
         string $type,
         ?string $format = null,
         array $context = [],
-    ) {
+    ): mixed {
         if (!isset($data[self::DENORMALIZATION_PROCESSED_FLAG]) && is_array($data)) {
             $data['eventCode'] = strtolower((string) $data['eventCode']);
             $data['success'] = 'true' === $data['success'];
@@ -45,8 +45,9 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
 
     public function supportsDenormalization(
         mixed $data,
-        ?string $type,
+        string $type,
         ?string $format = null,
+        array $context = [],
     ): bool {
         return
             NotificationItemData::class === $type &&
@@ -87,6 +88,11 @@ final class NotificationItemNormalizer implements DenormalizerAwareInterface, De
             $data instanceof NotificationItemData &&
             !isset($context[$this->getNormalizationMarking($data)])
         ;
+    }
+
+    public function getSupportedTypes(?string $format): array
+    {
+        return [NotificationItemData::class => true];
     }
 
     /**

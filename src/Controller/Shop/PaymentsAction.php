@@ -103,7 +103,7 @@ final class PaymentsAction
 
             $result = $client->submitPayment(
                 $url,
-                $paymentRequest,
+                json_decode($request->getContent(), true),
                 $order,
                 $this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::MANUAL),
                 $shopperReference,

@@ -1,0 +1,10 @@
+{% set method = hookable_metadata.context.method %}
+
+{% set path_parameters = {
+    code: method.code,
+    orderToken: hookable_metadata.context.order.tokenValue,
+} %}
+
+<div data-code="{{ method.code }}">
+    <div class="dropin-container" data-config-url="{{ path('sylius_adyen_shop_config', path_parameters) }}"></div>
+</div>

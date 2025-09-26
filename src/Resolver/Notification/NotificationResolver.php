@@ -62,7 +62,7 @@ final class NotificationResolver implements NotificationResolverInterface
      */
     private function denormalizeRequestData(Request $request): array
     {
-        $payload = $request->request->all();
+        $payload = json_decode($request->getContent(), true);
 
         /** @var array $notificationItems */
         $notificationItems = $payload['notificationItems'];

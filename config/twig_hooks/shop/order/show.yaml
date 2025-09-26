@@ -1,0 +1,6 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_shop.order.show.content.form.select_payment.payment.choice.adyen.details':
+            dropin:
+                template: '@SyliusAdyenPlugin/shop/order/show/content/form/select_payment/payment/choice/details/dropin.html.twig'
+                priority: -100
