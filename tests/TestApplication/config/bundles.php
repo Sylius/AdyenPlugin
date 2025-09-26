@@ -11,7 +11,10 @@ $bundles = [
     SyliusAdyenPlugin::class => ['all' => true],
     SyliusRefundPlugin::class => ['all' => true],
     KnpSnappyBundle::class => ['all' => true],
-    winzouStateMachineBundle::class => ['all' => true],
 ];
+
+if (class_exists(winzouStateMachineBundle::class)) {
+    $bundles[winzouStateMachineBundle::class] = ['all' => true];
+}
 
 return $bundles;
