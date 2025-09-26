@@ -18,3 +18,11 @@ sylius_mailer:
         adyen_payment_link:
             subject: Payment link
             template: "@SyliusAdyenPlugin/Shop/Email/paymentLink.html.twig"
+
+monolog:
+    channels: ['adyen']
+    handlers:
+        adyen_doctrine:
+            type: service
+            id: sylius_adyen.logging.monolog.doctrine_handler
+            channels: ['adyen']
