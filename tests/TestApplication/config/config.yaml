@@ -32,7 +32,7 @@ sylius_product:
                 model: Tests\Sylius\AdyenPlugin\Entity\ProductVariant
 
 monolog:
-    channels: ["app", "doctrine", "event", "php", "adyen"]
+    channels: ["app", "doctrine", "event", "php"]
 
     handlers:
         adyen_file:
@@ -42,11 +42,6 @@ monolog:
             level: info
             channels: ["adyen"]
             formatter: monolog.formatter.line
-
-        adyen_doctrine:
-            type: service
-            id: sylius_adyen.logging.monolog.doctrine_handler
-            channels: ["adyen"]
 
         console:
             type: console
