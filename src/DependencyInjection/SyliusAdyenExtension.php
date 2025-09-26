@@ -74,6 +74,7 @@ final class SyliusAdyenExtension extends AbstractResourceExtension implements Pr
     {
         return [
             'Sylius\Bundle\CoreBundle\Migrations',
+            'Sylius\RefundPlugin\Migrations',
         ];
     }
 
