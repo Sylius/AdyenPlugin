@@ -1,0 +1,16 @@
+sylius_grid:
+    grids:
+        sylius_admin_payment_method:
+            actions:
+                main:
+                    adyen:
+                        type: links
+                        label: sylius_adyen.ui.adyen_gateway_label
+                        position: -100
+                        options:
+                            class: primary
+                            icon: "tabler:credit-card"
+                            links:
+                                logs:
+                                    label: sylius_adyen.ui.logs
+                                    route: sylius_adyen_admin_log_index
