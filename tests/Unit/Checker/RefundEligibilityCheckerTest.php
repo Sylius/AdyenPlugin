@@ -25,7 +25,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 
 final class RefundEligibilityCheckerTest extends TestCase
 {
-    private MockObject|AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker;
+    private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
 
     private MockObject|StateMachineInterface $stateMachine;
 
