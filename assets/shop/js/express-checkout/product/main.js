@@ -43,18 +43,35 @@ const initExpressCheckout = async ($container) => {
     }
 
     if (isPaymentMethodAvailable(configuration.paymentMethods, 'googlepay')) {
-        try {
-            const googlePayHandler = new GooglePayHandler(configuration);
-            const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
+        let currentGooglePay = null;
+        const initGooglePay = () => {
+            try {
+                if (currentGooglePay) {
+                    currentGooglePay.unmount();
+                }
 
-            googlePay
-                .isAvailable()
-                .then(() => {
-                    googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
-                });
-        } catch (e) {
-            console.error('Google Pay is not available');
-        }
+                const googlePayHandler = new GooglePayHandler(configuration);
+                const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
+
+                googlePay
+                    .isAvailable()
+                    .then(() => {
+                        googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
+                        currentGooglePay = googlePay;
+                    });
+            } catch (e) {
+                console.error('Google Pay is not available', e);
+            }
+        };
+
+        initGooglePay();
+
+        const variantSelect = document.querySelectorAll('[name*="sylius_add_to_cart[cartItem][variant]"]');
+        variantSelect.forEach(select => {
+            select.addEventListener('change', () => {
+                initGooglePay();
+            });
+        });
     }
 
     if (isPaymentMethodAvailable(configuration.paymentMethods, 'paypal')) {
