@@ -4,6 +4,12 @@ import { ApplePayHandler } from './applepay.js';
 import { GooglePayHandler } from './googlepay.js';
 import { PayPalHandler } from "./paypal.js";
 
+const isPaymentMethodAvailable = (paymentMethodData, type) => {
+    if (!paymentMethodData || !paymentMethodData.paymentMethods) return false;
+
+    return paymentMethodData.paymentMethods.some(method => method.type === type);
+};
+
 const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
     const productId = $container.getAttribute('data-product-id');
@@ -21,43 +27,49 @@ const initExpressCheckout = async ($container) => {
         countryCode: configuration.allowedCountryCodes[0],
     });
 
-    try {
-        const applePayHandler = new ApplePayHandler(configuration);
-        const applePay = new ApplePay(checkout, applePayHandler.getConfig(productId));
+    if (isPaymentMethodAvailable(configuration.paymentMethods, 'applepay')) {
+        try {
+            const applePayHandler = new ApplePayHandler(configuration);
+            const applePay = new ApplePay(checkout, applePayHandler.getConfig(productId));
 
-        applePay
-            .isAvailable()
-            .then(() => {
-                applePay.mount(SELECTORS.APPLEPAY_MOUNT);
-            });
-    } catch (e) {
-        console.error('Apple Pay is not available');
+            applePay
+                .isAvailable()
+                .then(() => {
+                    applePay.mount(SELECTORS.APPLEPAY_MOUNT);
+                });
+        } catch (e) {
+            console.error('Apple Pay is not available');
+        }
     }
 
-    try {
-        const googlePayHandler = new GooglePayHandler(configuration);
-        const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
+    if (isPaymentMethodAvailable(configuration.paymentMethods, 'googlepay')) {
+        try {
+            const googlePayHandler = new GooglePayHandler(configuration);
+            const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
 
-        googlePay
-            .isAvailable()
-            .then(() => {
-                googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
-            });
-    } catch (e) {
-        console.error('Google Pay is not available');
+            googlePay
+                .isAvailable()
+                .then(() => {
+                    googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
+                });
+        } catch (e) {
+            console.error('Google Pay is not available');
+        }
     }
 
-    try {
-        const paypalHandler = new PayPalHandler(configuration);
-        const payPal = new PayPal(checkout, paypalHandler.getConfig(productId));
+    if (isPaymentMethodAvailable(configuration.paymentMethods, 'paypal')) {
+        try {
+            const paypalHandler = new PayPalHandler(configuration);
+            const payPal = new PayPal(checkout, paypalHandler.getConfig(productId));
 
-        payPal
-            .isAvailable()
-            .then(() => {
-                payPal.mount(SELECTORS.PAYPAL_MOUNT);
-            });
-    } catch (e) {
-        console.error('PayPal is not available');
+            payPal
+                .isAvailable()
+                .then(() => {
+                    payPal.mount(SELECTORS.PAYPAL_MOUNT);
+                });
+        } catch (e) {
+            console.error('PayPal is not available');
+        }
     }
 };
 
