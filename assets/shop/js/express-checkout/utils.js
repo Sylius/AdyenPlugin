@@ -1,8 +1,20 @@
-export const createFetchOptions = (data) => ({
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-});
+export const createFetchOptions = (data) => {
+    // If data is FormData, send it directly without Content-Type header
+    // (browser will set it automatically with boundary)
+    if (data instanceof FormData) {
+        return {
+            method: 'POST',
+            body: data
+        };
+    }
+
+    // Otherwise, send as JSON
+    return {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    };
+};
 
 export const loadConfiguration = async (url) => {
     const response = await fetch(url);

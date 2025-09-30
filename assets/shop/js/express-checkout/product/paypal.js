@@ -1,5 +1,6 @@
 import { createFetchOptions, showErrorMessage, createUrlWithToken } from '../utils.js';
 import {SELECTORS} from "../constants";
+import { getSelectedVariant } from './main.js';
 
 export class PayPalHandler {
     constructor(configuration) {
@@ -12,12 +13,10 @@ export class PayPalHandler {
         const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
         const response = await fetch(
             this.configuration.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
-            createFetchOptions({
-                formData,
-            })
+            createFetchOptions(formData)
         );
         const result = await response.json();
-        if (data.error) {
+        if (result.error) {
             return actions.reject(result.message);
         }
 

@@ -1,23 +1,19 @@
 import {createFetchOptions, createUrlWithToken} from '../utils.js';
 import {SELECTORS} from "../constants";
+import { getSelectedVariant } from './main.js';
 
 export class GooglePayHandler {
     constructor(configuration) {
         this.configuration = configuration;
         this.orderToken = null;
         this.productId = null;
-
-        const $container = document.getElementById(SELECTORS.PRODUCT_CONTAINER);
-        this.shippingRequired = $container.getAttribute('data-shipping-required') === '1';
     }
 
     handleClick = async (resolve, reject) => {
         const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
         const response = await fetch(
             this.configuration.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
-            createFetchOptions({
-                formData,
-            })
+            createFetchOptions(formData)
         );
         const data = await response.json();
         if (data.error) {
@@ -116,8 +112,11 @@ export class GooglePayHandler {
 
     getConfig(productId) {
         this.productId = productId;
+        const selectedVariant = getSelectedVariant();
+        const shippingRequired = selectedVariant ? selectedVariant.shippingRequired : true;
+
         let callbackIntents = ['SHIPPING_ADDRESS'];
-        if (this.shippingRequired) {
+        if (shippingRequired) {
             callbackIntents.push('SHIPPING_OPTION');
         }
 
@@ -131,7 +130,7 @@ export class GooglePayHandler {
                 allowedCountryCodes: this.configuration.allowedCountryCodes,
                 phoneNumberRequired: false,
             },
-            shippingOptionRequired: this.shippingRequired,
+            shippingOptionRequired: shippingRequired,
             transactionInfo: this.configuration.googlePay.transactionInfo,
             paymentDataCallbacks: {
                 onPaymentDataChanged: this.handlePaymentDataChanged,
