@@ -42,17 +42,19 @@ const initExpressCheckout = async ($container) => {
         }
     }
 
-    try {
-        const googlePayHandler = new GooglePayHandler(configuration);
-        const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
+    if (isPaymentMethodAvailable(configuration.paymentMethods, 'googlepay')) {
+        try {
+            const googlePayHandler = new GooglePayHandler(configuration);
+            const googlePay = new GooglePay(checkout, googlePayHandler.getConfig(productId));
 
-        googlePay
-            .isAvailable()
-            .then(() => {
-                googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
-            });
-    } catch (e) {
-        console.error('Google Pay is not available');
+            googlePay
+                .isAvailable()
+                .then(() => {
+                    googlePay.mount(SELECTORS.GOOGLEPAY_MOUNT);
+                });
+        } catch (e) {
+            console.error('Google Pay is not available');
+        }
     }
 
     if (isPaymentMethodAvailable(configuration.paymentMethods, 'paypal')) {
