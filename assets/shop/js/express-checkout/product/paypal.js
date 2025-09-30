@@ -1,6 +1,5 @@
 import { createFetchOptions, showErrorMessage, createUrlWithToken } from '../utils.js';
 import {SELECTORS} from "../constants";
-import { getSelectedVariant } from './main.js';
 
 export class PayPalHandler {
     constructor(configuration) {
