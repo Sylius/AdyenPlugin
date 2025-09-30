@@ -1,6 +1,5 @@
 import {createFetchOptions, createUrlWithToken, showErrorMessage} from '../utils.js';
 import { SELECTORS } from '../constants.js';
-import { getSelectedVariant } from './main.js';
 
 export class ApplePayHandler {
     constructor(configuration) {

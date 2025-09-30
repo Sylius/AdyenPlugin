@@ -1,6 +1,6 @@
-{% set variantsData = [] %}
+{% set variants_data = [] %}
 {% for variant in resource.variants %}
-    {% set variantsData = variantsData|merge([{
+    {% set variants_data = variants_data|merge([{
         'id': variant.id,
         'shippingRequired': variant.shippingRequired
     }]) %}
@@ -11,7 +11,7 @@
     class="ui segment"
     data-config-url="{{ path('sylius_adyen_shop_express_checkout_product_configuration', {'productId': resource.id}) }}"
     data-product-id="{{ resource.id }}"
-    data-variants="{{ variantsData|json_encode|e('html_attr') }}"
+    data-variants="{{ variants_data|json_encode|e('html_attr') }}"
 >
     {{ sylius_template_event('sylius.shop.product.show.right_sidebar.adyen_express_checkout') }}
 </div>

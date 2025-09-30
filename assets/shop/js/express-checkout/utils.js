@@ -1,6 +1,4 @@
 export const createFetchOptions = (data) => {
-    // If data is FormData, send it directly without Content-Type header
-    // (browser will set it automatically with boundary)
     if (data instanceof FormData) {
         return {
             method: 'POST',
@@ -8,7 +6,6 @@ export const createFetchOptions = (data) => {
         };
     }
 
-    // Otherwise, send as JSON
     return {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

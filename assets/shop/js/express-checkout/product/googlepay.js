@@ -1,6 +1,13 @@
 import {createFetchOptions, createUrlWithToken} from '../utils.js';
-import {SELECTORS} from "../constants";
-import { getSelectedVariant } from './main.js';
+import { SELECTORS } from '../constants.js';
+
+const getSelectedVariant = () => {
+    const $container = document.getElementById(SELECTORS.PRODUCT_CONTAINER);
+    const variantsData = JSON.parse($container.getAttribute('data-variants') || '[]');
+
+    // Temporary solution, will be replaced with proper variant selection logic
+    return variantsData[0];
+};
 
 export class GooglePayHandler {
     constructor(configuration) {
