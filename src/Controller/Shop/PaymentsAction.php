@@ -30,7 +30,6 @@ use Sylius\AdyenPlugin\Resolver\ShopperReferenceResolverInterface;
 use Sylius\AdyenPlugin\Traits\PayableOrderPaymentTrait;
 use Sylius\Component\Core\Model\CustomerInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
-use Sylius\Component\Core\OrderCheckoutStates;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -64,15 +63,13 @@ final class PaymentsAction
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
 
-        if (OrderCheckoutStates::STATE_COMPLETED !== $order->getCheckoutState()) {
-            try {
-                $this->orderCheckoutCompleteIntegrityChecker->check($order);
-            } catch (CheckoutValidationException $exception) {
-                return new JsonResponse([
-                    'error' => true,
-                    'message' => $exception->getMessage(),
-                ], Response::HTTP_BAD_REQUEST);
-            }
+        try {
+            $this->orderCheckoutCompleteIntegrityChecker->check($order);
+        } catch (CheckoutValidationException $exception) {
+            return new JsonResponse([
+                'error' => true,
+                'message' => $exception->getMessage(),
+            ], Response::HTTP_BAD_REQUEST);
         }
 
         $this->messageBus->dispatch(new PrepareOrderForPayment($order));
