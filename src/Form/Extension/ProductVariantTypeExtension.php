@@ -13,7 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Form\Extension;
 
-use Sylius\Bundle\ProductBundle\Form\Type\ProductVariantType;
+use Sylius\Bundle\AdminBundle\Form\Type\ProductVariantType;
 use Symfony\Component\Form\AbstractTypeExtension;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
