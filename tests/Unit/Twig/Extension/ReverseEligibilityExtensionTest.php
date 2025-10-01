@@ -15,21 +15,21 @@ namespace Tests\Sylius\AdyenPlugin\Unit\Twig\Extension;
 
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Sylius\AdyenPlugin\Checker\RefundEligibilityCheckerInterface;
-use Sylius\AdyenPlugin\Twig\Extension\RefundEligibilityExtension;
+use Sylius\AdyenPlugin\Checker\ReverseEligibilityCheckerInterface;
+use Sylius\AdyenPlugin\Twig\Extension\ReverseEligibilityExtension;
 use Sylius\Component\Core\Model\OrderInterface;
 use Twig\TwigFunction;
 
-final class RefundEligibilityExtensionTest extends TestCase
+final class ReverseEligibilityExtensionTest extends TestCase
 {
-    private MockObject|RefundEligibilityCheckerInterface $refundEligibilityChecker;
+    private MockObject|ReverseEligibilityCheckerInterface $reverseEligibilityChecker;
 
-    private RefundEligibilityExtension $extension;
+    private ReverseEligibilityExtension $extension;
 
     protected function setUp(): void
     {
-        $this->refundEligibilityChecker = $this->createMock(RefundEligibilityCheckerInterface::class);
-        $this->extension = new RefundEligibilityExtension($this->refundEligibilityChecker);
+        $this->reverseEligibilityChecker = $this->createMock(ReverseEligibilityCheckerInterface::class);
+        $this->extension = new ReverseEligibilityExtension($this->reverseEligibilityChecker);
     }
 
     public function testRegisteredFunctionsAreCorrect(): void
@@ -38,39 +38,39 @@ final class RefundEligibilityExtensionTest extends TestCase
 
         $this->assertCount(1, $functions);
         $this->assertInstanceOf(TwigFunction::class, $functions[0]);
-        $this->assertEquals('sylius_adyen_can_refund', $functions[0]->getName());
+        $this->assertEquals('sylius_adyen_can_reverse', $functions[0]->getName());
 
         $callable = $functions[0]->getCallable();
         $this->assertIsArray($callable);
         $this->assertSame($this->extension, $callable[0]);
-        $this->assertSame('canRefund', $callable[1]);
+        $this->assertSame('canReverse', $callable[1]);
     }
 
-    public function testCanRefundReturnsTrue(): void
+    public function testCanReverseReturnsTrue(): void
     {
         $order = $this->createMock(OrderInterface::class);
 
-        $this->refundEligibilityChecker
+        $this->reverseEligibilityChecker
             ->expects($this->once())
-            ->method('canRefund')
+            ->method('canReverse')
             ->with($order)
             ->willReturn(true)
         ;
 
-        $this->assertTrue($this->extension->canRefund($order));
+        $this->assertTrue($this->extension->canReverse($order));
     }
 
-    public function testCanRefundReturnsFalse(): void
+    public function testCanReverseReturnsFalse(): void
     {
         $order = $this->createMock(OrderInterface::class);
 
-        $this->refundEligibilityChecker
+        $this->reverseEligibilityChecker
             ->expects($this->once())
-            ->method('canRefund')
+            ->method('canReverse')
             ->with($order)
             ->willReturn(false)
         ;
 
-        $this->assertFalse($this->extension->canRefund($order));
+        $this->assertFalse($this->extension->canReverse($order));
     }
 }

@@ -17,26 +17,26 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
-use Sylius\AdyenPlugin\Checker\RefundEligibilityChecker;
+use Sylius\AdyenPlugin\Checker\ReverseEligibilityChecker;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 
-final class RefundEligibilityCheckerTest extends TestCase
+final class ReverseEligibilityCheckerTest extends TestCase
 {
     private AdyenPaymentMethodCheckerInterface|MockObject $adyenPaymentMethodChecker;
 
     private MockObject|StateMachineInterface $stateMachine;
 
-    private RefundEligibilityChecker $checker;
+    private ReverseEligibilityChecker $checker;
 
     protected function setUp(): void
     {
         $this->adyenPaymentMethodChecker = $this->createMock(AdyenPaymentMethodCheckerInterface::class);
         $this->stateMachine = $this->createMock(StateMachineInterface::class);
 
-        $this->checker = new RefundEligibilityChecker(
+        $this->checker = new ReverseEligibilityChecker(
             $this->adyenPaymentMethodChecker,
             $this->stateMachine,
         );
@@ -51,7 +51,7 @@ final class RefundEligibilityCheckerTest extends TestCase
             ->willReturn(OrderInterface::STATE_NEW)
         ;
 
-        $this->assertFalse($this->checker->canRefund($order));
+        $this->assertFalse($this->checker->canReverse($order));
     }
 
     public function testReturnsFalseWhenPaymentIsNull(): void
@@ -68,7 +68,7 @@ final class RefundEligibilityCheckerTest extends TestCase
             ->willReturn(null)
         ;
 
-        $this->assertFalse($this->checker->canRefund($order));
+        $this->assertFalse($this->checker->canReverse($order));
     }
 
     public function testReturnsFalseWhenPaymentIsNotAdyen(): void
@@ -94,7 +94,7 @@ final class RefundEligibilityCheckerTest extends TestCase
             ->willReturn(false)
         ;
 
-        $this->assertFalse($this->checker->canRefund($order));
+        $this->assertFalse($this->checker->canReverse($order));
     }
 
     public function testReturnsFalseWhenCaptureModeIsNotAutomatic(): void
@@ -127,7 +127,7 @@ final class RefundEligibilityCheckerTest extends TestCase
             ->willReturn(false)
         ;
 
-        $this->assertFalse($this->checker->canRefund($order));
+        $this->assertFalse($this->checker->canReverse($order));
     }
 
     public function testReturnsFalseWhenStateMachineCannotTransition(): void
@@ -167,7 +167,7 @@ final class RefundEligibilityCheckerTest extends TestCase
             ->willReturn(false)
         ;
 
-        $this->assertFalse($this->checker->canRefund($order));
+        $this->assertFalse($this->checker->canReverse($order));
     }
 
     public function testReturnsTrueWhenAllConditionsAreMet(): void
@@ -207,6 +207,6 @@ final class RefundEligibilityCheckerTest extends TestCase
             ->willReturn(true)
         ;
 
-        $this->assertTrue($this->checker->canRefund($order));
+        $this->assertTrue($this->checker->canReverse($order));
     }
 }

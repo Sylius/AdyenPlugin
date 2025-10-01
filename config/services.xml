@@ -113,10 +113,10 @@
         </service>
 
         <service
-            id="sylius_adyen.twig.extension.refund_eligibility"
-            class="Sylius\AdyenPlugin\Twig\Extension\RefundEligibilityExtension"
+            id="sylius_adyen.twig.extension.reverse_eligibility"
+            class="Sylius\AdyenPlugin\Twig\Extension\ReverseEligibilityExtension"
         >
-            <argument type="service" id="sylius_adyen.checker.refund_eligibility" />
+            <argument type="service" id="sylius_adyen.checker.reverse_eligibility" />
 
             <tag name="twig.extension" />
         </service>

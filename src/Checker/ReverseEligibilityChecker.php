@@ -18,7 +18,7 @@ use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 
-final readonly class RefundEligibilityChecker implements RefundEligibilityCheckerInterface
+final readonly class ReverseEligibilityChecker implements ReverseEligibilityCheckerInterface
 {
     public function __construct(
         private AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
@@ -26,7 +26,7 @@ final readonly class RefundEligibilityChecker implements RefundEligibilityChecke
     ) {
     }
 
-    public function canRefund(OrderInterface $order): bool
+    public function canReverse(OrderInterface $order): bool
     {
         if ($order->getState() !== OrderInterface::STATE_FULFILLED) {
             return false;

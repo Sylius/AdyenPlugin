@@ -13,15 +13,15 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Twig\Extension;
 
-use Sylius\AdyenPlugin\Checker\RefundEligibilityCheckerInterface;
+use Sylius\AdyenPlugin\Checker\ReverseEligibilityCheckerInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Twig\Extension\AbstractExtension;
 use Twig\TwigFunction;
 
-final class RefundEligibilityExtension extends AbstractExtension
+final class ReverseEligibilityExtension extends AbstractExtension
 {
     public function __construct(
-        private readonly RefundEligibilityCheckerInterface $refundEligibilityChecker,
+        private readonly ReverseEligibilityCheckerInterface $reverseEligibilityChecker,
     ) {
     }
 
@@ -30,15 +30,15 @@ final class RefundEligibilityExtension extends AbstractExtension
     {
         return [
             new TwigFunction(
-                'sylius_adyen_can_refund',
-                [$this, 'canRefund'],
+                'sylius_adyen_can_reverse',
+                [$this, 'canReverse'],
                 ['is_safe' => ['html']],
             ),
         ];
     }
 
-    public function canRefund(OrderInterface $order): bool
+    public function canReverse(OrderInterface $order): bool
     {
-        return $this->refundEligibilityChecker->canRefund($order);
+        return $this->reverseEligibilityChecker->canReverse($order);
     }
 }

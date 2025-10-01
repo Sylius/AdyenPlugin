@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Checker;
 
 use Sylius\Component\Core\Model\OrderInterface;
 
-interface RefundEligibilityCheckerInterface
+interface ReverseEligibilityCheckerInterface
 {
-    public function canRefund(OrderInterface $order): bool;
+    public function canReverse(OrderInterface $order): bool;
 }
