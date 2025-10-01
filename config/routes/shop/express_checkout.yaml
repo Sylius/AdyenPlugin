@@ -20,7 +20,7 @@ sylius_adyen_shop_express_checkout_add_to_new_cart:
                 method: createForProduct
                 arguments: [ expr:notFoundOnNull(service('sylius.repository.product').find($productId)) ]
             form:
-                type: Sylius\Bundle\CoreBundle\Form\Type\Order\AddToCartType
+                type: Sylius\Bundle\ShopBundle\Form\Type\AddToCartType
                 options:
                     product: expr:notFoundOnNull(service('sylius.repository.product').find($productId))
 
