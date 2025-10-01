@@ -63,6 +63,10 @@ final class PaymentsAction
     {
         $order = $this->paymentCheckoutOrderResolver->resolve();
 
+        if ($code !== null) {
+            $this->messageBus->dispatch(new TakeOverPayment($order, $code));
+        }
+
         try {
             $this->orderCheckoutCompleteIntegrityChecker->check($order);
         } catch (CheckoutValidationException $exception) {
@@ -73,10 +77,6 @@ final class PaymentsAction
         }
 
         $this->messageBus->dispatch(new PrepareOrderForPayment($order));
-
-        if ($code !== null) {
-            $this->messageBus->dispatch(new TakeOverPayment($order, $code));
-        }
 
         $payment = $this->getPayablePayment($order);
         /** @var PaymentMethodInterface $paymentMethod */

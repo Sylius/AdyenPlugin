@@ -76,5 +76,14 @@
             <argument type="service" id=".inner" />
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
         </service>
+
+        <service
+            id="sylius_adyen.order_processing.order_payment_processor.after_checkout"
+            class="Sylius\AdyenPlugin\Processor\Order\OrderPaymentProcessor"
+            decorates="sylius.order_processing.order_payment_processor.after_checkout"
+        >
+            <argument type="service" id=".inner" />
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
     </services>
 </container>
