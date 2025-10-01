@@ -1,8 +1,14 @@
 {% set variants_data = [] %}
 {% for variant in resource.variants %}
+    {% set option_values = {} %}
+    {% for option_value in variant.optionValues %}
+        {% set option_values = option_values|merge({(option_value.optionCode): option_value.code}) %}
+    {% endfor %}
     {% set variants_data = variants_data|merge([{
         'id': variant.id,
-        'shippingRequired': variant.shippingRequired
+        'code': variant.code,
+        'shippingRequired': variant.shippingRequired,
+        'optionValues': option_values
     }]) %}
 {% endfor %}
 

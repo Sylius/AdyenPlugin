@@ -5,8 +5,39 @@ const getSelectedVariant = () => {
     const $container = document.getElementById(SELECTORS.PRODUCT_CONTAINER);
     const variantsData = JSON.parse($container.getAttribute('data-variants') || '[]');
 
-    // Temporary solution, will be replaced with proper variant selection logic
-    return variantsData[0];
+    const variantSelect = document.querySelector('[name="sylius_add_to_cart[cartItem][variant]"]:checked');
+    if (variantSelect) {
+        return variantsData.find(v => v.code === variantSelect.value) || variantsData[0];
+    }
+
+    const form = document.getElementsByName('sylius_add_to_cart')[0];
+    if (!form) {
+        return variantsData[0];
+    }
+
+    const optionSelects = form.querySelectorAll('[name*="sylius_add_to_cart[cartItem][variant]"]');
+    if (optionSelects.length === 0) {
+        return variantsData[0];
+    }
+
+    const selectsWithOption = document.querySelectorAll('#sylius-product-adding-to-cart select[data-option]');
+    const selectedOptions = {};
+
+    selectsWithOption.forEach(select => {
+        selectedOptions[select.getAttribute('data-option')] = select.value;
+    });
+
+    const matchedVariant = variantsData.find(variant => {
+        if (!variant.optionValues) {
+            return false;
+        }
+
+        return Object.keys(selectedOptions).every(optionKey => {
+            return variant.optionValues[optionKey] === selectedOptions[optionKey];
+        });
+    });
+
+    return matchedVariant || variantsData[0];
 };
 
 export class GooglePayHandler {
@@ -59,7 +90,7 @@ export class GooglePayHandler {
                 }
             }
 
-            if (shippingOptionData) {
+            if (data.shippingOptionParameters && Object.keys(data.shippingOptionParameters).length > 0) {
                 paymentDataRequestUpdate.newShippingOptionParameters = data.shippingOptionParameters;
             }
             paymentDataRequestUpdate.newTransactionInfo = data.transactionInfo;
