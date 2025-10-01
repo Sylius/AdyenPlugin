@@ -113,13 +113,12 @@
         </service>
 
         <service
-            id="sylius_adyen.listener.order_show_menu"
-            class="Sylius\AdyenPlugin\Menu\AdminOrderShowMenuListener"
+            id="sylius_adyen.twig.extension.reverse_eligibility"
+            class="Sylius\AdyenPlugin\Twig\Extension\ReverseEligibilityExtension"
         >
-            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
-            <argument type="service" id="sylius_abstraction.state_machine" />
+            <argument type="service" id="sylius_adyen.checker.reverse_eligibility" />
 
-            <tag name="kernel.event_listener" event="sylius.menu.admin.order.show" method="addRefundButton" />
+            <tag name="twig.extension" />
         </service>
     </services>
 </container>

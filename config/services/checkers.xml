@@ -41,6 +41,18 @@
         />
 
         <service
+            id="sylius_adyen.checker.reverse_eligibility"
+            class="Sylius\AdyenPlugin\Checker\ReverseEligibilityChecker"
+        >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+        </service>
+        <service
+            id="Sylius\AdyenPlugin\Checker\ReverseEligibilityCheckerInterface"
+            alias="sylius_adyen.checker.reverse_eligibility"
+        />
+
+        <service
             id="sylius_adyen.checker.payment_pay_by_link_availability"
             class="Sylius\AdyenPlugin\Checker\PaymentPayByLinkAvailabilityChecker"
         >
