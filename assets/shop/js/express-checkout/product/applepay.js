@@ -12,9 +12,7 @@ export class ApplePayHandler {
         const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
         const response = await fetch(
             this.configuration.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
-            createFetchOptions({
-                formData,
-            })
+            createFetchOptions(formData)
         );
         const data = await response.json();
         if (data.error) {
