@@ -18,7 +18,7 @@
     id="adyen-product-express-checkout"
     class="ui segment"
     data-config-url="{{ path('sylius_adyen_shop_express_checkout_product_configuration', {'productId': product.id}) }}"
-    data-product-id="{{ resource.id }}"
+    data-product-id="{{ product.id }}"
     data-variants="{{ variants_data|json_encode|e('html_attr') }}"
 >
     {% hook 'express_checkout' %}
