@@ -1,0 +1,6 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_shop.base#javascripts':
+            adyen_analytics:
+                template: '@SyliusAdyenPlugin/shop/shared/layout/base/analytics.html.twig'
+                priority: 0

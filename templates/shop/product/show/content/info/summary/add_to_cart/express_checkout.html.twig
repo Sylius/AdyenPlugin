@@ -1,0 +1,25 @@
+{% set product = hookable_metadata.context.product %}
+
+{% set variants_data = [] %}
+{% for variant in product.variants %}
+    {% set option_values = {} %}
+    {% for option_value in variant.optionValues %}
+        {% set option_values = option_values|merge({(option_value.optionCode): option_value.code}) %}
+    {% endfor %}
+    {% set variants_data = variants_data|merge([{
+        'id': variant.id,
+        'code': variant.code,
+        'shippingRequired': variant.shippingRequired,
+        'optionValues': option_values
+    }]) %}
+{% endfor %}
+
+<div
+    id="adyen-product-express-checkout"
+    class="ui segment"
+    data-config-url="{{ path('sylius_adyen_shop_express_checkout_product_configuration', {'productId': product.id}) }}"
+    data-product-id="{{ resource.id }}"
+    data-variants="{{ variants_data|json_encode|e('html_attr') }}"
+>
+    {% hook 'express_checkout' %}
+</div>

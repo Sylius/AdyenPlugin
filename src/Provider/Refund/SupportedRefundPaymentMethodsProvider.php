@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Provider\Refund;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
-use Sylius\Component\Core\Model\ChannelInterface;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethodInterface;
@@ -26,11 +25,6 @@ final class SupportedRefundPaymentMethodsProvider implements RefundPaymentMethod
         private readonly RefundPaymentMethodsProviderInterface $decoratedProvider,
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
     ) {
-    }
-
-    public function findForChannel(ChannelInterface $channel): array
-    {
-        return $this->decoratedProvider->findForChannel($channel);
     }
 
     public function findForOrder(OrderInterface $order): array
