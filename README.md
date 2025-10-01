@@ -20,7 +20,7 @@ Official integration of [Adyen](https://www.adyen.com/) with [Sylius](https://sy
 This plugin enables multiple local and international payment methods and secure processing with Adyen’s infrastructure.
 
 📖 Full documentation is available here:  
-👉 [Sylius Adyen Plugin Documentation](https://docs.sylius.com/sylius-plugins/payments-plugins/sylius-adyen-plugin)
+👉 [Sylius Adyen Plugin Documentation](https://docs.sylius.com/adyen-plugin)
 
 ## License
 
