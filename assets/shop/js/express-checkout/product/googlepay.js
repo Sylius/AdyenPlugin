@@ -5,17 +5,17 @@ const getSelectedVariant = () => {
     const $container = document.getElementById(SELECTORS.PRODUCT_CONTAINER);
     const variantsData = JSON.parse($container.getAttribute('data-variants') || '[]');
 
-    const variantSelect = document.querySelector('[name="sylius_add_to_cart[cartItem][variant]"]:checked');
+    const variantSelect = document.querySelector('[name="sylius_shop_add_to_cart[cartItem][variant]"]:checked');
     if (variantSelect) {
         return variantsData.find(v => v.code === variantSelect.value) || variantsData[0];
     }
 
-    const form = document.getElementsByName('sylius_add_to_cart')[0];
+    const form = document.getElementsByName('sylius_shop_add_to_cart')[0];
     if (!form) {
         return variantsData[0];
     }
 
-    const optionSelects = form.querySelectorAll('[name*="sylius_add_to_cart[cartItem][variant]"]');
+    const optionSelects = form.querySelectorAll('[name*="sylius_shop_add_to_cart[cartItem][variant]"]');
     if (optionSelects.length === 0) {
         return variantsData[0];
     }
@@ -48,7 +48,7 @@ export class GooglePayHandler {
     }
 
     handleClick = async (resolve, reject) => {
-        const formData = new FormData(document.getElementsByName('sylius_add_to_cart')[0]);
+        const formData = new FormData(document.getElementsByName('sylius_shop_add_to_cart')[0]);
         const response = await fetch(
             this.configuration.path.addToNewCart.replace('_PRODUCT_ID_', this.productId),
             createFetchOptions(formData)

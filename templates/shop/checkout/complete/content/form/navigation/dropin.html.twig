@@ -1,0 +1,8 @@
+{% set order = hookable_metadata.context.order %}
+{% set path_parameters = {code: order.payments.last.method.code} %}
+
+{% if order.tokenValue is not empty %}
+    {% set path_parameters = path_parameters|merge({orderToken: order.tokenValue}) %}
+{% endif %}
+
+<div class="dropin-container" data-config-url="{{ path('sylius_adyen_shop_config', path_parameters) }}"></div>
