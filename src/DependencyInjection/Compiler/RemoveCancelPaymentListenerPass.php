@@ -22,9 +22,9 @@ final class RemoveCancelPaymentListenerPass implements CompilerPassInterface
     {
         if (
             $container->hasDefinition('state_machine.sylius_order.definition') &&
-            $container->hasDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener')
+            $container->hasDefinition('sylius.listener.workflow.order.cancel_payment')
         ) {
-            $container->removeDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener');
+            $container->removeDefinition('sylius.listener.workflow.order.cancel_payment');
         }
     }
 }
