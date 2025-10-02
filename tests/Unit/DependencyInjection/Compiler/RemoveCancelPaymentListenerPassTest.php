@@ -20,6 +20,8 @@ use Symfony\Component\DependencyInjection\Definition;
 
 final class RemoveCancelPaymentListenerPassTest extends TestCase
 {
+    private const CANCEL_PAYMENT_LISTENER_SERVICE_ID = 'sylius.listener.workflow.order.cancel_payment';
+
     private RemoveCancelPaymentListenerPass $compilerPass;
 
     private ContainerBuilder $container;
@@ -33,11 +35,11 @@ final class RemoveCancelPaymentListenerPassTest extends TestCase
     public function testItDoesNothingWhenOrderWorkflowDefinitionDoesNotExist(): void
     {
         $listenerDefinition = new Definition();
-        $this->container->setDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener', $listenerDefinition);
+        $this->container->setDefinition(self::CANCEL_PAYMENT_LISTENER_SERVICE_ID, $listenerDefinition);
 
         $this->compilerPass->process($this->container);
 
-        $this->assertTrue($this->container->hasDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener'));
+        $this->assertTrue($this->container->hasDefinition(self::CANCEL_PAYMENT_LISTENER_SERVICE_ID));
     }
 
     public function testItDoesNothingWhenCancelPaymentListenerDoesNotExist(): void
@@ -47,7 +49,7 @@ final class RemoveCancelPaymentListenerPassTest extends TestCase
 
         $this->compilerPass->process($this->container);
 
-        $this->assertFalse($this->container->hasDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener'));
+        $this->assertFalse($this->container->hasDefinition(self::CANCEL_PAYMENT_LISTENER_SERVICE_ID));
     }
 
     public function testItRemovesListenerWhenBothDefinitionsExist(): void
@@ -56,12 +58,12 @@ final class RemoveCancelPaymentListenerPassTest extends TestCase
         $this->container->setDefinition('state_machine.sylius_order.definition', $orderDefinition);
 
         $listenerDefinition = new Definition();
-        $this->container->setDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener', $listenerDefinition);
+        $this->container->setDefinition(self::CANCEL_PAYMENT_LISTENER_SERVICE_ID, $listenerDefinition);
 
-        $this->assertTrue($this->container->hasDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener'));
+        $this->assertTrue($this->container->hasDefinition(self::CANCEL_PAYMENT_LISTENER_SERVICE_ID));
 
         $this->compilerPass->process($this->container);
 
-        $this->assertFalse($this->container->hasDefinition('Sylius\Bundle\CoreBundle\EventListener\Workflow\Order\CancelPaymentListener'));
+        $this->assertFalse($this->container->hasDefinition(self::CANCEL_PAYMENT_LISTENER_SERVICE_ID));
     }
 }
