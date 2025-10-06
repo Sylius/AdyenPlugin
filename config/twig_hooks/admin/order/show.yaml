@@ -5,11 +5,6 @@ sylius_twig_hooks:
                 template: '@SyliusAdyenPlugin/admin/order/content/header/title_block/actions/refund.html.twig'
                 priority: -100
 
-        'sylius_admin.order.show.content.sections.payments.refund_item.actions':
-            complete:
-                template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/refund_item/actions/complete.html.twig'
-                priority: 0
-
         'sylius_admin.order.show.content.sections.payments.item.actions':
             complete:
                 template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/complete.html.twig'
