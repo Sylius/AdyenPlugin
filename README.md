@@ -11,12 +11,17 @@
 <h1 align="center">Adyen Plugin</h1>
 
 <p align="center">
-  <a href="https://sylius.com/plugins/" target="_blank">
-    <img src="https://sylius.com/assets/badge-official-sylius-plugin.png" width="200" alt="Official Sylius Plugin">
-  </a>
+    <a href="https://sylius.com/plugins/" target="_blank">
+        <img src="https://sylius.com/assets/badge-official-sylius-plugin.png" width="200" alt="Official Sylius Plugin">
+    </a>
 </p>
 
-<p align="center">Official integration of [Adyen](https://www.adyen.com/) with [Sylius](https://sylius.com).</p>
+<p align="center">
+    Official integration of 
+    <a href="https://www.adyen.com/" target="_blank">Adyen</a> 
+    with 
+    <a href="https://sylius.com" target="_blank">Sylius</a>.
+</p>
 
 <p align="center">This plugin enables multiple local and international payment methods and secure processing with Adyen’s infrastructure.</p>
 
