@@ -25,7 +25,7 @@
 ## Documentation
 
 📖 Full documentation is available here:
-👉 [Adyen Plugin Documentation](https://docs.sylius.com/adyen-plugin/v1.0)
+👉 [Adyen Plugin Documentation](https://docs.sylius.com/adyen-plugin)
 
 ## Security issues
 
