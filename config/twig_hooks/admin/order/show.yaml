@@ -1,8 +1,8 @@
 sylius_twig_hooks:
     hooks:
         'sylius_admin.order.show.content.header.title_block.actions.list':
-            adyen_refunds:
-                template: '@SyliusAdyenPlugin/admin/order/content/header/title_block/actions/refunds.html.twig'
+            adyen_refund:
+                template: '@SyliusAdyenPlugin/admin/order/content/header/title_block/actions/refund.html.twig'
                 priority: -100
 
         'sylius_admin.order.show.content.sections.payments.refund_item.actions':

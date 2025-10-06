@@ -3,8 +3,8 @@
 {% if sylius_adyen_can_reverse(order) %}
     {% set path = path('sylius_adyen_admin_order_payment_reverse', {'id': order.id, 'paymentId': order.lastPayment.id}) %}
 
-    <a class="dropdown-item" href="{{ path }}" {{ sylius_test_html_attribute('refunds') }}>
+    <a class="dropdown-item" href="{{ path }}" {{ sylius_test_html_attribute('adyen-refund') }}>
         {{ ux_icon('tabler:repeat', {'class': 'icon dropdown-item-icon'}) }}
-        {{ 'sylius_refund.ui.refunds'|trans }}
+        {{ 'sylius.ui.refund'|trans }}
     </a>
 {% endif %}
