@@ -8,7 +8,7 @@
     </a>
 </p>
 
-<h1 align="center">Sylius Adyen Plugin</h1>
+<h1 align="center">Adyen Plugin</h1>
 
 <p align="center">
   <a href="https://sylius.com/plugins/" target="_blank">
@@ -16,11 +16,25 @@
   </a>
 </p>
 
-Official integration of [Adyen](https://www.adyen.com/) with [Sylius](https://sylius.com).  
-This plugin enables multiple local and international payment methods and secure processing with Adyen’s infrastructure.
+<p align="center">Official integration of [Adyen](https://www.adyen.com/) with [Sylius](https://sylius.com).</p>
 
-📖 Full documentation is available here:  
-👉 [Sylius Adyen Plugin Documentation](https://docs.sylius.com/adyen-plugin)
+<p align="center">This plugin enables multiple local and international payment methods and secure processing with Adyen’s infrastructure.</p>
+
+---
+
+## Documentation
+
+📖 Full documentation is available here:
+👉 [Adyen Plugin Documentation](https://docs.sylius.com/adyen-plugin/v1.0)
+
+## Security issues
+
+If you think that you have found a security issue, please do not use the issue tracker and do not post it publicly.
+Instead, all security issues must be sent to `security@sylius.com`
+
+## Community
+
+For online communication, we invite you to chat with us and other users on [Sylius Slack](https://sylius.com/slack).
 
 ## License
 
