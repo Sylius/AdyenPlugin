@@ -15,7 +15,17 @@ namespace Sylius\AdyenPlugin\Client;
 
 use Adyen\AdyenException;
 use Adyen\Client;
+use Adyen\Model\Checkout\PaymentCancelRequest;
+use Adyen\Model\Checkout\PaymentCaptureRequest;
+use Adyen\Model\Checkout\PaymentDetailsRequest;
+use Adyen\Model\Checkout\PaymentLinkRequest;
+use Adyen\Model\Checkout\PaymentMethodsRequest;
 use Adyen\Model\Checkout\PaymentMethodsResponse;
+use Adyen\Model\Checkout\PaymentRefundRequest;
+use Adyen\Model\Checkout\PaymentRequest;
+use Adyen\Model\Checkout\PaymentReversalRequest;
+use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
+use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Adyen\Service\Checkout\ModificationsApi;
 use Adyen\Service\Checkout\PaymentLinksApi;
 use Adyen\Service\Checkout\PaymentsApi;
@@ -58,26 +68,26 @@ final class AdyenClient implements AdyenClientInterface
         ?ShopperReferenceInterface $shopperReference = null,
         bool $manualCapture = false,
     ): PaymentMethodsResponse {
-        return $this->getPaymentsApi()->paymentMethods(
-            $this->clientPayloadFactory->createForAvailablePaymentMethods(
-                $this->options,
-                $order,
-                $shopperReference,
-                $manualCapture,
-            ),
+        $payload = $this->clientPayloadFactory->createForAvailablePaymentMethods(
+            $this->options,
+            $order,
+            $shopperReference,
+            $manualCapture,
         );
+
+        return $this->getPaymentsApi()->paymentMethods(new PaymentMethodsRequest($payload));
     }
 
     public function paymentDetails(
         array $receivedPayload,
         ?ShopperReferenceInterface $shopperReference = null,
     ): array {
-        $response = $this->getPaymentsApi()->paymentsDetails(
-            $this->clientPayloadFactory->createForPaymentDetails(
-                $receivedPayload,
-                $shopperReference,
-            ),
+        $payload = $this->clientPayloadFactory->createForPaymentDetails(
+            $receivedPayload,
+            $shopperReference,
         );
+
+        $response = $this->getPaymentsApi()->paymentsDetails(new PaymentDetailsRequest($payload));
 
         return $response->toArray();
     }
@@ -93,16 +103,16 @@ final class AdyenClient implements AdyenClientInterface
             throw new \InvalidArgumentException();
         }
 
-        $response = $this->getPaymentsApi()->payments(
-            $this->clientPayloadFactory->createForSubmitPayment(
-                $this->options,
-                $redirectUrl,
-                $receivedPayload,
-                $order,
-                $manualCapture,
-                $customerIdentifier,
-            ),
+        $payload = $this->clientPayloadFactory->createForSubmitPayment(
+            $this->options,
+            $redirectUrl,
+            $receivedPayload,
+            $order,
+            $manualCapture,
+            $customerIdentifier,
         );
+
+        $response = $this->getPaymentsApi()->payments(new PaymentRequest($payload));
 
         return $response->toArray();
     }
@@ -110,9 +120,11 @@ final class AdyenClient implements AdyenClientInterface
     public function requestCapture(
         PaymentInterface $payment,
     ): array {
+        $payload = $this->clientPayloadFactory->createForCapture($this->options, $payment);
+
         $response = $this->getModificationsApi()->captureAuthorisedPayment(
             $payment->getDetails()['pspReference'],
-            $this->clientPayloadFactory->createForCapture($this->options, $payment),
+            new PaymentCaptureRequest($payload),
         );
 
         return $response->toArray();
@@ -121,9 +133,11 @@ final class AdyenClient implements AdyenClientInterface
     public function requestCancellation(
         PaymentInterface $payment,
     ): array {
+        $payload = $this->clientPayloadFactory->createForCancel($this->options, $payment);
+
         $response = $this->getModificationsApi()->cancelAuthorisedPaymentByPspReference(
             $payment->getDetails()['pspReference'],
-            $this->clientPayloadFactory->createForCancel($this->options, $payment),
+            new PaymentCancelRequest($payload),
         );
 
         return $response->toArray();
@@ -147,9 +161,11 @@ final class AdyenClient implements AdyenClientInterface
         PaymentInterface $payment,
         RefundPaymentGenerated $refund,
     ): array {
+        $payload = $this->clientPayloadFactory->createForRefund($this->options, $payment, $refund);
+
         $response = $this->getModificationsApi()->refundCapturedPayment(
             $payment->getDetails()['pspReference'],
-            $this->clientPayloadFactory->createForRefund($this->options, $payment, $refund),
+            new PaymentRefundRequest($payload),
         );
 
         return $response->toArray();
@@ -157,9 +173,11 @@ final class AdyenClient implements AdyenClientInterface
 
     public function requestReversal(PaymentInterface $payment): array
     {
+        $payload = $this->clientPayloadFactory->createForReversal($this->options, $payment);
+
         $response = $this->getModificationsApi()->refundOrCancelPayment(
             $payment->getDetails()['pspReference'],
-            $this->clientPayloadFactory->createForReversal($this->options, $payment),
+            new PaymentReversalRequest($payload),
         );
 
         return $response->toArray();
@@ -167,18 +185,20 @@ final class AdyenClient implements AdyenClientInterface
 
     public function generatePaymentLink(PaymentInterface $payment): array
     {
-        $response = $this->getPaymentLinksApi()->paymentLinks(
-            $this->clientPayloadFactory->createForPaymentLink($this->options, $payment),
-        );
+        $payload = $this->clientPayloadFactory->createForPaymentLink($this->options, $payment);
+
+        $response = $this->getPaymentLinksApi()->paymentLinks(new PaymentLinkRequest($payload));
 
         return $response->toArray();
     }
 
     public function expirePaymentLink(string $paymentLinkId): array
     {
+        $payload = $this->clientPayloadFactory->createForPaymentLinkExpiration($this->options, $paymentLinkId);
+
         $response = $this->getPaymentLinksApi()->updatePaymentLink(
             $paymentLinkId,
-            $this->clientPayloadFactory->createForPaymentLinkExpiration($this->options, $paymentLinkId),
+            new UpdatePaymentLinkRequest($payload),
         );
 
         return $response->toArray();
@@ -186,14 +206,14 @@ final class AdyenClient implements AdyenClientInterface
 
     public function submitPaypalPayments(array $receivedPayload, OrderInterface $order, string $returnUrl = ''): array
     {
-        $response = $this->getPaymentsApi()->payments(
-            $this->clientPayloadFactory->createForPaypalPayments(
-                $this->options,
-                $receivedPayload,
-                $order,
-                $returnUrl,
-            ),
+        $payload = $this->clientPayloadFactory->createForPaypalPayments(
+            $this->options,
+            $receivedPayload,
+            $order,
+            $returnUrl,
         );
+
+        $response = $this->getPaymentsApi()->payments(new PaymentRequest($payload));
 
         return $response->toArray();
     }
@@ -203,12 +223,14 @@ final class AdyenClient implements AdyenClientInterface
         string $paymentData,
         OrderInterface $order,
     ): array {
+        $payload = $this->clientPayloadFactory->createPaypalUpdateOrderRequest(
+            $pspReference,
+            $paymentData,
+            $order,
+        );
+
         $response = $this->getCheckoutUtilityApi()->updatesOrderForPaypalExpressCheckout(
-            $this->clientPayloadFactory->createPaypalUpdateOrderRequest(
-                $pspReference,
-                $paymentData,
-                $order,
-            ),
+            new PaypalUpdateOrderRequest($payload),
         );
 
         return $response->toArray();

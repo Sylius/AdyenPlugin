@@ -13,16 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
-use Adyen\Model\Checkout\PaymentCancelRequest;
-use Adyen\Model\Checkout\PaymentCaptureRequest;
-use Adyen\Model\Checkout\PaymentDetailsRequest;
-use Adyen\Model\Checkout\PaymentLinkRequest;
-use Adyen\Model\Checkout\PaymentMethodsRequest;
-use Adyen\Model\Checkout\PaymentRefundRequest;
-use Adyen\Model\Checkout\PaymentRequest;
-use Adyen\Model\Checkout\PaymentReversalRequest;
-use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
-use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
 use Sylius\Component\Core\Model\OrderInterface;
@@ -38,12 +28,12 @@ interface ClientPayloadFactoryInterface
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
         bool $manualCapture = false,
-    ): PaymentMethodsRequest;
+    ): array;
 
     public function createForPaymentDetails(
         array $receivedPayload,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): PaymentDetailsRequest;
+    ): array;
 
     public function createForSubmitPayment(
         ArrayObject $options,
@@ -52,11 +42,11 @@ interface ClientPayloadFactoryInterface
         OrderInterface $order,
         bool $manualCapture = false,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): PaymentRequest;
+    ): array;
 
-    public function createForCapture(ArrayObject $options, PaymentInterface $payment): PaymentCaptureRequest;
+    public function createForCapture(ArrayObject $options, PaymentInterface $payment): array;
 
-    public function createForCancel(ArrayObject $options, PaymentInterface $payment): PaymentCancelRequest;
+    public function createForCancel(ArrayObject $options, PaymentInterface $payment): array;
 
     public function createForTokenRemove(
         ArrayObject $options,
@@ -68,20 +58,20 @@ interface ClientPayloadFactoryInterface
         ArrayObject $options,
         PaymentInterface $payment,
         RefundPaymentGenerated $refund,
-    ): PaymentRefundRequest;
+    ): array;
 
-    public function createForReversal(ArrayObject $options, PaymentInterface $payment): PaymentReversalRequest;
+    public function createForReversal(ArrayObject $options, PaymentInterface $payment): array;
 
-    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): PaymentLinkRequest;
+    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): array;
 
-    public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest;
+    public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): array;
 
     public function createForPaypalPayments(
         ArrayObject $options,
         array $receivedPayload,
         OrderInterface $order,
         string $returnUrl = '',
-    ): PaymentRequest;
+    ): array;
 
-    public function createPaypalUpdateOrderRequest(string $pspReference, string $paymentData, OrderInterface $order): PaypalUpdateOrderRequest;
+    public function createPaypalUpdateOrderRequest(string $pspReference, string $paymentData, OrderInterface $order): array;
 }
