@@ -16,3 +16,8 @@ winzou_state_machine:
                     on: ["complete", "confirm"]
                     do: ["@sylius_adyen.refund.state_resolver.order_fully_refunded", "resolve"]
                     args: ["object.getOrder().getNumber()"]
+            guard:
+                guard_confirm:
+                    on: ["complete"]
+                    do: ["@sylius_adyen.checker.refund_payment.completion_eligibility", "canBeCompleted"]
+                    args: ["object"]

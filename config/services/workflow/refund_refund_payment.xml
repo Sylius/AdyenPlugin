@@ -33,5 +33,13 @@
             <tag name="kernel.event_listener" event="workflow.sylius_refund_refund_payment.completed.complete" priority="100" />
             <tag name="kernel.event_listener" event="workflow.sylius_refund_refund_payment.completed.confirm" priority="100" />
         </service>
+
+        <service
+            id="sylius_adyen.listener.workflow.refund.refund_payment.guard_complete"
+            class="Sylius\AdyenPlugin\EventListener\Workflow\Refund\GuardRefundPaymentCompletionListener"
+        >
+            <argument type="service" id="sylius_adyen.checker.refund_payment.completion_eligibility" />
+            <tag name="kernel.event_listener" event="workflow.sylius_refund_refund_payment.guard.complete" priority="100" />
+        </service>
     </services>
 </container>
