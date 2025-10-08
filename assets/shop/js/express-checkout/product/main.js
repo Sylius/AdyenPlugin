@@ -1,3 +1,4 @@
+import { AdyenCheckout, ApplePay, GooglePay, PayPal } from '@adyen/adyen-web';
 import { SELECTORS } from '../constants.js';
 import { loadConfiguration } from '../utils.js';
 import { ApplePayHandler } from './applepay.js';
@@ -14,8 +15,6 @@ const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
     const productId = $container.getAttribute('data-product-id');
     if (!configUrl) return;
-
-    const { AdyenCheckout, ApplePay, GooglePay, PayPal } = window.AdyenWeb;
 
     const configuration = await loadConfiguration(configUrl);
 
@@ -66,7 +65,7 @@ const initExpressCheckout = async ($container) => {
 
         initGooglePay();
 
-        const variantSelect = document.querySelectorAll('[name*="sylius_add_to_cart[cartItem][variant]"]');
+        const variantSelect = document.querySelectorAll('[name*="sylius_shop_add_to_cart[cartItem][variant]"]');
         variantSelect.forEach(select => {
             select.addEventListener('change', () => {
                 initGooglePay();

@@ -25,6 +25,7 @@ use Sylius\Component\Core\Model\PaymentInterface;
 use Sylius\Component\Core\Model\PaymentMethod;
 use Sylius\Component\Core\OrderCheckoutStates;
 use Sylius\Component\Core\OrderPaymentStates;
+use Sylius\Component\Order\OrderTransitions;
 use Sylius\RefundPlugin\Entity\RefundPaymentInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -151,6 +152,34 @@ final class PaymentReversalTest extends AdyenTestCase
         self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
     }
 
+    public function testPaymentStateChangesToProcessingReversalOnCancelWithAutomaticCapture(): void
+    {
+        $this->setupOrderWithAdyenPayment();
+
+        $payment = $this->testOrder->getLastPayment();
+        $payment->setState(PaymentInterface::STATE_COMPLETED);
+        $this->testOrder->setState(OrderInterface::STATE_NEW);
+        $this->testOrder->setPaymentState(OrderPaymentStates::STATE_PAID);
+
+        $this->getEntityManager()->flush();
+
+        $initialDetails = $payment->getDetails();
+        self::assertArrayHasKey('pspReference', $initialDetails);
+        self::assertEquals('TEST_PSP_REF_123', $initialDetails['pspReference']);
+
+        $this->adyenClientStub->setReversalResponse([
+            'paymentPspReference' => 'TEST_PSP_REF_123',
+            'pspReference' => 'REVERSAL_PSP_REF_999',
+            'status' => ResponseStatus::RECEIVED,
+        ]);
+
+        $this->stateMachine->apply($this->testOrder, OrderTransitions::GRAPH, OrderTransitions::TRANSITION_CANCEL);
+
+        self::assertEquals(OrderInterface::STATE_CANCELLED, $this->testOrder->getState());
+        self::assertEquals(OrderPaymentStates::STATE_PAID, $this->testOrder->getPaymentState());
+        self::assertEquals(PaymentGraph::STATE_PROCESSING_REVERSAL, $payment->getState());
+    }
+
     public function testCancellationWebhookAfterReversalInitiatedWithAutomaticCapture(): void
     {
         $this->setupOrderWithAdyenPayment();
@@ -234,7 +263,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
         /** @var RefundPaymentInterface $refundPayment */
         $refundPayment = $refundPayments[0];
-        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrderNumber());
+        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrder()->getNumber());
         self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
         self::assertEquals($payment->getCurrencyCode(), $refundPayment->getCurrencyCode());
         self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());
@@ -358,7 +387,7 @@ final class PaymentReversalTest extends AdyenTestCase
 
         /** @var RefundPaymentInterface $refundPayment */
         $refundPayment = $refundPayments[0];
-        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrderNumber());
+        self::assertEquals($this->testOrder->getNumber(), $refundPayment->getOrder()->getNumber());
         self::assertEquals($payment->getAmount(), $refundPayment->getAmount());
         self::assertEquals($payment->getCurrencyCode(), $refundPayment->getCurrencyCode());
         self::assertEquals($payment->getMethod(), $refundPayment->getPaymentMethod());

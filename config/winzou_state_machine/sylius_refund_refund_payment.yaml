@@ -14,5 +14,10 @@ winzou_state_machine:
                     priority: 100
                 resolve_order_payment_state:
                     on: ["complete", "confirm"]
-                    do: ["@sylius_refund.state_resolver.order_fully_refunded", "resolve"]
+                    do: ["@sylius_adyen.refund.state_resolver.order_fully_refunded", "resolve"]
                     args: ["object.getOrder().getNumber()"]
+            guard:
+                guard_confirm:
+                    on: ["complete"]
+                    do: ["@sylius_adyen.checker.refund_payment.completion_eligibility", "canBeCompleted"]
+                    args: ["object"]
