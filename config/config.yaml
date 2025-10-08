@@ -5,14 +5,6 @@ imports:
     - { resource: "@SyliusAdyenPlugin/config/sylius_adyen.yaml" }
     - { resource: "@SyliusAdyenPlugin/config/winzou_state_machine.php" }
 
-parameters:
-    sylius_adyen_api_platform_mapping_path: '%kernel.project_dir%/vendor/sylius/adyen-plugin/config/api_platform/'
-
-api_platform:
-    mapping:
-        paths:
-            - '%sylius_adyen_api_platform_mapping_path%'
-
 sylius_mailer:
     emails:
         adyen_payment_link:
