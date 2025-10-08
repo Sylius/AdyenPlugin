@@ -183,6 +183,35 @@
                                                             </attribute>
                                                         </attribute>
                                                     </attribute>
+                                                    <attribute name="storedPaymentMethods">
+                                                        <attribute name="type">array</attribute>
+                                                        <attribute name="items">
+                                                            <attribute name="type">object</attribute>
+                                                            <attribute name="properties">
+                                                                <attribute name="id">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                                <attribute name="type">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                                <attribute name="brand">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                                <attribute name="expiryMonth">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                                <attribute name="expiryYear">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                                <attribute name="lastFour">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                                <attribute name="holderName">
+                                                                    <attribute name="type">string</attribute>
+                                                                </attribute>
+                                                            </attribute>
+                                                        </attribute>
+                                                    </attribute>
                                                 </attribute>
                                             </attribute>
                                             <attribute name="clientKey">
