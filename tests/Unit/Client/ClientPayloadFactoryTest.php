@@ -13,8 +13,6 @@ declare(strict_types=1);
 
 namespace Tests\Sylius\AdyenPlugin\Unit\Client;
 
-use Adyen\Model\Checkout\Amount;
-use Adyen\Model\Checkout\PaymentLinkRequest;
 use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
 use Doctrine\Common\Collections\ArrayCollection;
 use Payum\Core\Bridge\Spl\ArrayObject;
@@ -102,15 +100,12 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $payload = $this->factory->createForAvailablePaymentMethods($options, $order);
 
-        $expected = [
-            'amount' => ['value' => 10000, 'currency' => 'USD'],
-            'channel' => 'Web',
-            'countryCode' => 'US',
-            'merchantAccount' => 'TestMerchant',
-            'shopperLocale' => '',
-        ];
-
-        self::assertSame($expected, $payload->toArray());
+        self::assertIsArray($payload);
+        self::assertEquals(['value' => 10000, 'currency' => 'USD'], $payload['amount']);
+        self::assertEquals('Web', $payload['channel']);
+        self::assertEquals('US', $payload['countryCode']);
+        self::assertEquals('TestMerchant', $payload['merchantAccount']);
+        self::assertEquals('', $payload['shopperLocale']);
     }
 
     public function testItAddsEsdForCardPaymentsInSubmitPayment(): void
@@ -335,16 +330,15 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $result = $this->factory->createForPaymentLink($options, $payment);
 
-        self::assertInstanceOf(PaymentLinkRequest::class, $result);
-        $resultArray = $result->toArray();
+        self::assertIsArray($result);
 
-        self::assertEquals('000005', $resultArray['reference']);
-        self::assertEquals('TestMerchant', $resultArray['merchantAccount']);
-        self::assertEquals('US', $resultArray['countryCode']);
-        self::assertEquals(['value' => 10000, 'currency' => 'USD'], $resultArray['amount']);
-        self::assertEquals('test@example.com', $resultArray['shopperEmail']);
-        self::assertArrayNotHasKey('shopperIp', $resultArray);
-        self::assertArrayNotHasKey('shopperLocale', $resultArray);
+        self::assertEquals('000005', $result['reference']);
+        self::assertEquals('TestMerchant', $result['merchantAccount']);
+        self::assertEquals('US', $result['countryCode']);
+        self::assertEquals(['value' => 10000, 'currency' => 'USD'], $result['amount']);
+        self::assertEquals('test@example.com', $result['shopperEmail']);
+        self::assertArrayNotHasKey('shopperIp', $result);
+        self::assertArrayNotHasKey('shopperLocale', $result);
     }
 
     public function testItCreatesPaymentLinkWithLocaleCode(): void
@@ -374,15 +368,14 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $result = $this->factory->createForPaymentLink($options, $payment);
 
-        self::assertInstanceOf(PaymentLinkRequest::class, $result);
-        $resultArray = $result->toArray();
+        self::assertIsArray($result);
 
-        self::assertEquals('000006', $resultArray['reference']);
-        self::assertEquals('TestMerchant', $resultArray['merchantAccount']);
-        self::assertEquals('FR', $resultArray['countryCode']);
-        self::assertEquals(['value' => 20000, 'currency' => 'EUR'], $resultArray['amount']);
-        self::assertEquals('test@example.fr', $resultArray['shopperEmail']);
-        self::assertEquals('fr-FR', $resultArray['shopperLocale']);
+        self::assertEquals('000006', $result['reference']);
+        self::assertEquals('TestMerchant', $result['merchantAccount']);
+        self::assertEquals('FR', $result['countryCode']);
+        self::assertEquals(['value' => 20000, 'currency' => 'EUR'], $result['amount']);
+        self::assertEquals('test@example.fr', $result['shopperEmail']);
+        self::assertEquals('fr-FR', $result['shopperLocale']);
     }
 
     public function testItCreatesPaymentLinkWithoutBillingAddress(): void
@@ -409,15 +402,14 @@ final class ClientPayloadFactoryTest extends TestCase
 
         $result = $this->factory->createForPaymentLink($options, $payment);
 
-        self::assertInstanceOf(PaymentLinkRequest::class, $result);
-        $resultArray = $result->toArray();
+        self::assertIsArray($result);
 
-        self::assertEquals('000007', $resultArray['reference']);
-        self::assertEquals('TestMerchant', $resultArray['merchantAccount']);
-        self::assertEquals('ZZ', $resultArray['countryCode']); // NO_COUNTRY_AVAILABLE_PLACEHOLDER
-        self::assertEquals(['value' => 15000, 'currency' => 'GBP'], $resultArray['amount']);
-        self::assertEquals('test@example.uk', $resultArray['shopperEmail']);
-        self::assertArrayNotHasKey('shopperLocale', $resultArray);
+        self::assertEquals('000007', $result['reference']);
+        self::assertEquals('TestMerchant', $result['merchantAccount']);
+        self::assertEquals('ZZ', $result['countryCode']); // NO_COUNTRY_AVAILABLE_PLACEHOLDER
+        self::assertEquals(['value' => 15000, 'currency' => 'GBP'], $result['amount']);
+        self::assertEquals('test@example.uk', $result['shopperEmail']);
+        self::assertArrayNotHasKey('shopperLocale', $result);
     }
 
     public function testItCreatesPayloadForPaypalPayments(): void
@@ -445,9 +437,9 @@ final class ClientPayloadFactoryTest extends TestCase
         );
 
         $this->assertEquals('TestMerchant', $result['merchantAccount']);
-        $this->assertInstanceOf(Amount::class, $result['amount']);
-        $this->assertEquals('USD', $result['amount']->getCurrency());
-        $this->assertEquals(5000, $result['amount']->getValue());
+        $this->assertIsArray($result['amount']);
+        $this->assertEquals('USD', $result['amount']['currency']);
+        $this->assertEquals(5000, $result['amount']['value']);
         $this->assertEquals('000001', $result['reference']);
         $this->assertEquals('', $result['returnUrl']);
         $this->assertEquals('paypal', $result['paymentMethod']['type']);
@@ -462,6 +454,9 @@ final class ClientPayloadFactoryTest extends TestCase
         $order = $this->createMock(OrderInterface::class);
 
         $expectedRequest = $this->createMock(PaypalUpdateOrderRequest::class);
+        $expectedRequest->expects($this->once())
+            ->method('toArray')
+            ->willReturn(['pspReference' => $pspReference, 'paymentData' => $paymentData]);
 
         $this->paypalUpdateOrderRequestFactory->expects($this->once())
             ->method('create')
@@ -474,6 +469,7 @@ final class ClientPayloadFactoryTest extends TestCase
             $order,
         );
 
-        $this->assertSame($expectedRequest, $result);
+        $this->assertIsArray($result);
+        $this->assertEquals(['pspReference' => $pspReference, 'paymentData' => $paymentData], $result);
     }
 }

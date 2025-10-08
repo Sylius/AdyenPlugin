@@ -13,17 +13,6 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Client;
 
-use Adyen\Model\Checkout\Amount;
-use Adyen\Model\Checkout\PaymentCancelRequest;
-use Adyen\Model\Checkout\PaymentCaptureRequest;
-use Adyen\Model\Checkout\PaymentDetailsRequest;
-use Adyen\Model\Checkout\PaymentLinkRequest;
-use Adyen\Model\Checkout\PaymentMethodsRequest;
-use Adyen\Model\Checkout\PaymentRefundRequest;
-use Adyen\Model\Checkout\PaymentRequest;
-use Adyen\Model\Checkout\PaymentReversalRequest;
-use Adyen\Model\Checkout\PaypalUpdateOrderRequest;
-use Adyen\Model\Checkout\UpdatePaymentLinkRequest;
 use Payum\Core\Bridge\Spl\ArrayObject;
 use Sylius\AdyenPlugin\Collector\CompositeEsdCollectorInterface;
 use Sylius\AdyenPlugin\Entity\ShopperReferenceInterface;
@@ -52,7 +41,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         OrderInterface $order,
         ?ShopperReferenceInterface $shopperReference = null,
         bool $manualCapture = false,
-    ): PaymentMethodsRequest {
+    ): array {
         $address = $order->getBillingAddress();
         $countryCode = $address?->getCountryCode() ?? '';
         $request = $this->requestStack->getCurrentRequest();
@@ -74,18 +63,18 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->addManualCaptureIfApplicable($payload, $manualCapture);
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return new PaymentMethodsRequest($payload);
+        return $payload;
     }
 
     public function createForPaymentDetails(
         array $receivedPayload,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): PaymentDetailsRequest {
+    ): array {
         $payload = $this->injectShopperReference($receivedPayload, $shopperReference);
         $payload = $this->enableOneOffPaymentIfApplicable($payload, $shopperReference);
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return new PaymentDetailsRequest($payload);
+        return $payload;
     }
 
     public function createForSubmitPayment(
@@ -95,7 +84,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         OrderInterface $order,
         bool $manualCapture = false,
         ?ShopperReferenceInterface $shopperReference = null,
-    ): PaymentRequest {
+    ): array {
         $billingAddress = $order->getBillingAddress();
         $countryCode = null !== $billingAddress
             ? (string) $billingAddress->getCountryCode()
@@ -138,13 +127,13 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         $payload = $this->addManualCaptureIfApplicable($payload, $manualCapture);
         $payload = $this->addEsdIfApplicable($payload, $options, $order);
 
-        return new PaymentRequest($payload);
+        return $payload;
     }
 
     public function createForCapture(
         ArrayObject $options,
         PaymentInterface $payment,
-    ): PaymentCaptureRequest {
+    ): array {
         $order = $payment->getOrder();
         Assert::notNull($order);
 
@@ -159,13 +148,13 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return new PaymentCaptureRequest($payload);
+        return $payload;
     }
 
     public function createForCancel(
         ArrayObject $options,
         PaymentInterface $payment,
-    ): PaymentCancelRequest {
+    ): array {
         $order = $payment->getOrder();
         Assert::notNull($order);
 
@@ -176,7 +165,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $params = $this->versionResolver->appendVersionConstraints($params);
 
-        return new PaymentCancelRequest($params);
+        return $params;
     }
 
     public function createForTokenRemove(
@@ -201,7 +190,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         ArrayObject $options,
         PaymentInterface $payment,
         RefundPaymentGenerated $refund,
-    ): PaymentRefundRequest {
+    ): array {
         $order = $payment->getOrder();
         Assert::notNull($order);
 
@@ -216,10 +205,10 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $params = $this->versionResolver->appendVersionConstraints($params);
 
-        return new PaymentRefundRequest($params);
+        return $params;
     }
 
-    public function createForReversal(ArrayObject $options, PaymentInterface $payment): PaymentReversalRequest
+    public function createForReversal(ArrayObject $options, PaymentInterface $payment): array
     {
         $order = $payment->getOrder();
         Assert::notNull($order);
@@ -231,10 +220,10 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return new PaymentReversalRequest($payload);
+        return $payload;
     }
 
-    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): PaymentLinkRequest
+    public function createForPaymentLink(ArrayObject $options, PaymentInterface $payment): array
     {
         $order = $payment->getOrder();
         Assert::notNull($order);
@@ -258,15 +247,14 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return new PaymentLinkRequest($payload);
+        return $payload;
     }
 
-    public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): UpdatePaymentLinkRequest
+    public function createForPaymentLinkExpiration(ArrayObject $options, string $paymentLinkId): array
     {
-        $request = new UpdatePaymentLinkRequest();
-        $request->setStatus('expired');
-
-        return $request;
+        return [
+            'status' => 'expired',
+        ];
     }
 
     public function createForPaypalPayments(
@@ -274,32 +262,34 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
         array $receivedPayload,
         OrderInterface $order,
         string $returnUrl = '',
-    ): PaymentRequest {
+    ): array {
         $payload = [
             'merchantAccount' => $options['merchantAccount'],
-            'amount' => new Amount([
+            'amount' => [
                 'currency' => $order->getCurrencyCode(),
                 'value' => $order->getItemsSubtotal(),
-            ]),
+            ],
             'reference' => (string) $order->getNumber(),
             'returnUrl' => $returnUrl,
         ];
 
         $payload = $this->versionResolver->appendVersionConstraints($payload);
 
-        return new PaymentRequest(array_merge($payload, $receivedPayload));
+        return array_merge($payload, $receivedPayload);
     }
 
     public function createPaypalUpdateOrderRequest(
         string $pspReference,
         string $paymentData,
         OrderInterface $order,
-    ): PaypalUpdateOrderRequest {
-        return $this->paypalUpdateOrderRequestFactory->create(
+    ): array {
+        $request = $this->paypalUpdateOrderRequestFactory->create(
             $pspReference,
             $paymentData,
             $order,
         );
+
+        return $request->toArray();
     }
 
     private function filterArray(array $payload, array $keysWhitelist): array
