@@ -38,8 +38,7 @@ final readonly class AdyenDropinConfigurationDocumentationModifier implements Do
 
         return $docs
             ->withPaths($paths)
-            ->withComponents($docs->getComponents()->withSchemas($schemas))
-        ;
+            ->withComponents($docs->getComponents()->withSchemas($schemas));
     }
 
     private function addShopDropinConfigurationSchema(array|\ArrayObject $schemas): array|\ArrayObject
@@ -104,6 +103,21 @@ final readonly class AdyenDropinConfigurationDocumentationModifier implements Do
                                     ],
                                 ],
                             ]],
+                        ],
+                        'storedPaymentMethods' => [
+                            'type' => 'array',
+                            'items' => [
+                                'type' => 'object',
+                                'properties' => [
+                                    'id' => ['type' => 'string'],
+                                    'type' => ['type' => 'string'],
+                                    'brand' => ['type' => 'string'],
+                                    'expiryMonth' => ['type' => 'string'],
+                                    'expiryYear' => ['type' => 'string'],
+                                    'lastFour' => ['type' => 'string'],
+                                    'holderName' => ['type' => 'string'],
+                                ],
+                            ],
                         ],
                     ],
                 ],
