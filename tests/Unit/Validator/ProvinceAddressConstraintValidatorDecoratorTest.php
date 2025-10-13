@@ -14,9 +14,13 @@ declare(strict_types=1);
 namespace Tests\Sylius\AdyenPlugin\Unit\Validator;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\AdyenPlugin\Validator\Constraint\ProvinceAddressConstraintValidatorDecorator;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraint;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraintValidator;
+use Sylius\Component\Channel\Context\ChannelContextInterface;
+use Sylius\Component\Channel\Model\ChannelInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Symfony\Component\Validator\ConstraintValidatorInterface;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 use Tests\Sylius\AdyenPlugin\Unit\AddressMother;
@@ -79,5 +83,139 @@ class ProvinceAddressConstraintValidatorDecoratorTest extends ConstraintValidato
 
         $this->validator->validate($address, $constraint);
         $this->assertCount($expectedCount, $this->context->getViolations());
+    }
+
+    public function testRelatedCountryAndEmptyProvinceWithProvidedDependenciesWhenNoAdyenMethodIsEnabled(): void
+    {
+        $constraint = new ProvinceAddressConstraint();
+        $address = AddressMother::createAddressWithSpecifiedCountryAndEmptyProvince('US');
+
+        $channel = $this->createMock(ChannelInterface::class);
+        $channelContext = $this->createMock(ChannelContextInterface::class);
+        $channelContext->method('getChannel')->willReturn($channel);
+
+        $adyenPaymentMethodQuery = $this->createMock(AdyenPaymentMethodQueryInterface::class);
+        $adyenPaymentMethodQuery
+            ->method('findAllAdyenByChannel')
+            ->with($channel)
+            ->willReturn([])
+        ;
+
+        $validator = $this->createValidatorWithDependencies($channelContext, $adyenPaymentMethodQuery);
+        $validator->validate($address, $constraint);
+
+        $this->assertNoViolation();
+    }
+
+    public function testRelatedCountryAndEmptyProvinceWithProvidedDependenciesWhenAdyenMethodIsEnabled(): void
+    {
+        $constraint = new ProvinceAddressConstraint();
+        $address = AddressMother::createAddressWithSpecifiedCountryAndEmptyProvince('US');
+
+        $channel = $this->createMock(ChannelInterface::class);
+        $channelContext = $this->createMock(ChannelContextInterface::class);
+        $channelContext->method('getChannel')->willReturn($channel);
+
+        $enabledPaymentMethod = $this->createMock(PaymentMethodInterface::class);
+        $enabledPaymentMethod->method('isEnabled')->willReturn(true);
+
+        $adyenPaymentMethodQuery = $this->createMock(AdyenPaymentMethodQueryInterface::class);
+        $adyenPaymentMethodQuery
+            ->method('findAllAdyenByChannel')
+            ->with($channel)
+            ->willReturn([$enabledPaymentMethod])
+        ;
+
+        $validator = $this->createValidatorWithDependencies($channelContext, $adyenPaymentMethodQuery);
+        $validator->validate($address, $constraint);
+
+        $this->buildViolation($constraint->message)
+            ->assertRaised()
+        ;
+    }
+
+    public function testRelatedCountryAndEmptyProvinceWithProvidedDependenciesWhenAllMethodsDisabled(): void
+    {
+        $constraint = new ProvinceAddressConstraint();
+        $address = AddressMother::createAddressWithSpecifiedCountryAndEmptyProvince('US');
+
+        $channel = $this->createMock(ChannelInterface::class);
+        $channelContext = $this->createMock(ChannelContextInterface::class);
+        $channelContext->method('getChannel')->willReturn($channel);
+
+        $disabledPaymentMethod = $this->createMock(PaymentMethodInterface::class);
+        $disabledPaymentMethod->method('isEnabled')->willReturn(false);
+
+        $adyenPaymentMethodQuery = $this->createMock(AdyenPaymentMethodQueryInterface::class);
+        $adyenPaymentMethodQuery
+            ->method('findAllAdyenByChannel')
+            ->with($channel)
+            ->willReturn([$disabledPaymentMethod])
+        ;
+
+        $validator = $this->createValidatorWithDependencies($channelContext, $adyenPaymentMethodQuery);
+        $validator->validate($address, $constraint);
+
+        $this->assertNoViolation();
+    }
+
+    public function testRelatedCountryWithProvinceWhenAdyenMethodIsEnabled(): void
+    {
+        $constraint = new ProvinceAddressConstraint();
+        $address = AddressMother::createAddressWithSpecifiedCountryAndEmptyProvince('US');
+        $address->setProvinceCode('US-TX');
+
+        $channel = $this->createMock(ChannelInterface::class);
+        $channelContext = $this->createMock(ChannelContextInterface::class);
+        $channelContext->method('getChannel')->willReturn($channel);
+
+        $enabledPaymentMethod = $this->createMock(PaymentMethodInterface::class);
+        $enabledPaymentMethod->method('isEnabled')->willReturn(true);
+
+        $adyenPaymentMethodQuery = $this->createMock(AdyenPaymentMethodQueryInterface::class);
+        $adyenPaymentMethodQuery
+            ->method('findAllAdyenByChannel')
+            ->with($channel)
+            ->willReturn([$enabledPaymentMethod])
+        ;
+
+        $validator = $this->createValidatorWithDependencies($channelContext, $adyenPaymentMethodQuery);
+        $validator->validate($address, $constraint);
+
+        $this->assertNoViolation();
+    }
+
+    public function testCustomRequiredCountryListAddsViolation(): void
+    {
+        $constraint = new ProvinceAddressConstraint();
+        $address = AddressMother::createAddressWithSpecifiedCountryAndEmptyProvince('PL');
+
+        $validator = $this->createValidatorWithDependencies(
+            null,
+            null,
+            ['PL'],
+        );
+        $validator->validate($address, $constraint);
+
+        $this->buildViolation($constraint->message)
+            ->assertRaised()
+        ;
+    }
+
+    private function createValidatorWithDependencies(
+        ?ChannelContextInterface $channelContext,
+        ?AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery,
+        ?array $countryList = null,
+    ): ProvinceAddressConstraintValidatorDecorator {
+        $this->validator = new ProvinceAddressConstraintValidatorDecorator(
+            $this->decorated,
+            $countryList ?? ProvinceAddressConstraintValidatorDecorator::PROVINCE_REQUIRED_COUNTRIES_DEFAULT_LIST,
+            $channelContext,
+            $adyenPaymentMethodQuery,
+        );
+
+        $this->validator->initialize($this->context);
+
+        return $this->validator;
     }
 }

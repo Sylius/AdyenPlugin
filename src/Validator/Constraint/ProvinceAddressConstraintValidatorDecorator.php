@@ -13,8 +13,10 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Validator\Constraint;
 
+use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraint;
 use Sylius\Bundle\AddressingBundle\Validator\Constraints\ProvinceAddressConstraintValidator;
+use Sylius\Component\Channel\Context\ChannelContextInterface;
 use Sylius\Component\Core\Model\AddressInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -30,6 +32,8 @@ class ProvinceAddressConstraintValidatorDecorator extends ConstraintValidator
         private readonly ProvinceAddressConstraintValidator $decorated,
         /** @var array|string[] */
         private readonly array $provinceRequiredCountriesList = self::PROVINCE_REQUIRED_COUNTRIES_DEFAULT_LIST,
+        private readonly ?ChannelContextInterface $channelContext = null,
+        private readonly ?AdyenPaymentMethodQueryInterface $adyenPaymentMethodQuery = null,
     ) {
     }
 
@@ -41,6 +45,10 @@ class ProvinceAddressConstraintValidatorDecorator extends ConstraintValidator
     {
         $this->decorated->initialize($this->context);
         $this->decorated->validate($value, $constraint);
+
+        if (!$this->isAnyAdyenMethodAvailable()) {
+            return;
+        }
 
         Assert::isInstanceOf($value, AddressInterface::class);
         Assert::isInstanceOf($constraint, ProvinceAddressConstraint::class);
@@ -71,5 +79,22 @@ class ProvinceAddressConstraintValidatorDecorator extends ConstraintValidator
         }
 
         return false;
+    }
+
+    private function isAnyAdyenMethodAvailable(): bool
+    {
+        if (null === $this->channelContext || null === $this->adyenPaymentMethodQuery) {
+            return true;
+        }
+
+        $channel = $this->channelContext->getChannel();
+        $paymentMethods = $this->adyenPaymentMethodQuery->findAllAdyenByChannel($channel);
+        foreach ($paymentMethods as $key => $paymentMethod) {
+            if (!$paymentMethod->isEnabled()) {
+                unset($paymentMethods[$key]);
+            }
+        }
+
+        return 0 !== count($paymentMethods);
     }
 }
