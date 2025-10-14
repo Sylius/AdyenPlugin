@@ -21,6 +21,7 @@ use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\AdyenPlugin\StateMachine\Guard\OrderPaymentGuard;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\OrderPaymentStates;
 
 final class OrderPaymentGuardTest extends TestCase
 {
@@ -81,6 +82,7 @@ final class OrderPaymentGuardTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn($payment);
+        $order->method('getPaymentState')->willReturn(OrderPaymentStates::STATE_AWAITING_PAYMENT);
 
         $this->adyenPaymentMethodChecker->expects($this->once())
             ->method('isAdyenPayment')
@@ -94,8 +96,18 @@ final class OrderPaymentGuardTest extends TestCase
     {
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn(null);
+        $order->method('getPaymentState')->willReturn(OrderPaymentStates::STATE_AWAITING_PAYMENT);
 
         self::assertTrue($this->guard->canBeCancelled($order));
+    }
+
+    public function testItDeniesCancellationWhenPaymentIsNullAndOrderIsPaid(): void
+    {
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn(null);
+        $order->method('getPaymentState')->willReturn(OrderPaymentStates::STATE_PAID);
+
+        self::assertFalse($this->guard->canBeCancelled($order));
     }
 
     public function testItAllowsCancellationWhenPaymentMethodIsNull(): void
@@ -103,6 +115,7 @@ final class OrderPaymentGuardTest extends TestCase
         $payment = $this->createMock(PaymentInterface::class);
         $order = $this->createMock(OrderInterface::class);
         $order->method('getLastPayment')->willReturn($payment);
+        $order->method('getPaymentState')->willReturn(OrderPaymentStates::STATE_AWAITING_PAYMENT);
 
         $this->adyenPaymentMethodChecker->expects($this->once())
             ->method('isAdyenPayment')
@@ -110,6 +123,63 @@ final class OrderPaymentGuardTest extends TestCase
             ->willReturn(false);
 
         self::assertTrue($this->guard->canBeCancelled($order));
+    }
+
+    public function testItDeniesCancellationForNonAdyenPaymentWhenOrderIsPaid(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn($payment);
+        $order->method('getPaymentState')->willReturn(OrderPaymentStates::STATE_PAID);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(false);
+
+        self::assertFalse($this->guard->canBeCancelled($order));
+    }
+
+    public function testItDeniesCancellationForAdyenPaymentInManualCaptureModeWhenProcessing(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->method('getState')->willReturn(PaymentInterface::STATE_PROCESSING);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(false);
+
+        self::assertFalse($this->guard->canBeCancelled($order));
+    }
+
+    public function testItDeniesCancellationForAdyenPaymentInManualCaptureModeWhenCompleted(): void
+    {
+        $payment = $this->createMock(PaymentInterface::class);
+        $payment->method('getState')->willReturn(PaymentInterface::STATE_COMPLETED);
+
+        $order = $this->createMock(OrderInterface::class);
+        $order->method('getLastPayment')->willReturn($payment);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isAdyenPayment')
+            ->with($payment)
+            ->willReturn(true);
+
+        $this->adyenPaymentMethodChecker->expects($this->once())
+            ->method('isCaptureMode')
+            ->with($payment, PaymentCaptureMode::AUTOMATIC)
+            ->willReturn(false);
+
+        self::assertFalse($this->guard->canBeCancelled($order));
     }
 
     public function testItAllowsRequestPaymentForNonAdyenPayment(): void
