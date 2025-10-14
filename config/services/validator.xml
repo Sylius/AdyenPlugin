@@ -34,6 +34,7 @@
             <argument>%sylius_adyen.checkout.addressing.countries_requiring_province%</argument>
             <argument type="service" id="sylius.context.channel" />
             <argument type="service" id="sylius_adyen.repository.query.adyen_payment_method"/>
+            <argument type="service" id="sylius.context.cart" />
         </service>
 
     </services>
