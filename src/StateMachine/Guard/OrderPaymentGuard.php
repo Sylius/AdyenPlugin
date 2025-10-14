@@ -18,6 +18,7 @@ use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\AdyenPlugin\PaymentGraph;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\OrderPaymentStates;
 
 final class OrderPaymentGuard
 {
@@ -33,7 +34,7 @@ final class OrderPaymentGuard
             null === $payment ||
             false === $this->adyenPaymentMethodChecker->isAdyenPayment($payment)
         ) {
-            return true;
+            return $order->getPaymentState() !== OrderPaymentStates::STATE_PAID;
         }
 
         if ($this->adyenPaymentMethodChecker->isCaptureMode($payment, PaymentCaptureMode::AUTOMATIC)) {
