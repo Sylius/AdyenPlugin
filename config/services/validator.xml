@@ -1,7 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 
-<container xmlns="http://symfony.com/schema/dic/services" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+<container
+    xmlns="http://symfony.com/schema/dic/services"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd"
+>
+    <parameters>
+        <parameter key="sylius_adyen.checkout.addressing.countries_requiring_province" type="collection">
+            <parameter>CA</parameter>
+            <parameter>US</parameter>
+        </parameter>
+    </parameters>
+
     <services>
         <defaults public="true"/>
 
@@ -20,7 +30,11 @@
             id="sylius_adyen.validator.province_address_constraint_decorator"
             decorates="sylius.validator.valid_province_address"
         >
-            <argument type="service" id=".inner"/>
+            <argument type="service" id=".inner" />
+            <argument>%sylius_adyen.checkout.addressing.countries_requiring_province%</argument>
+            <argument type="service" id="sylius.context.channel" />
+            <argument type="service" id="sylius_adyen.repository.query.adyen_payment_method"/>
+            <argument type="service" id="sylius.context.cart" />
         </service>
 
     </services>
