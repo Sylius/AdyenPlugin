@@ -37,14 +37,20 @@ final class CheckoutResolver implements CheckoutResolverInterface
     {
         $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_ADDRESS);
 
-        if ($order->isShippingRequired()) {
+        if (
+            $order->isShippingRequired() &&
+            $this->stateMachine->can($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING)
+        ) {
             $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_SHIPPING);
         }
 
         $paymentMethod = $this->adyenPaymentMethodQuery->findOneAdyenByChannel($order->getChannel());
         Assert::isInstanceOf($paymentMethod, PaymentMethodInterface::class);
         $order->getLastPayment(PaymentInterface::STATE_CART)->setMethod($paymentMethod);
-        $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
+
+        if ($this->stateMachine->can($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT)) {
+            $this->stateMachine->apply($order, OrderCheckoutTransitions::GRAPH, OrderCheckoutTransitions::TRANSITION_SELECT_PAYMENT);
+        }
 
         $this->orderCheckoutCompleteIntegrityChecker->check($order);
 
