@@ -1,4 +1,4 @@
-{% if hookable_metadata.context.order.payments.last.method.gatewayConfig.factoryName is constant('Sylius\\AdyenPlugin\\Provider\\AdyenClientProviderInterface::FACTORY_NAME') %}
+{% if hookable_metadata.context.order.payments.last.method.gatewayConfig.factoryName|default(null) is constant('Sylius\\AdyenPlugin\\Provider\\AdyenClientProviderInterface::FACTORY_NAME') %}
     {% hook 'navigation#adyen' %}
 {% else %}
     {% hook 'navigation#base' %}
