@@ -2,7 +2,7 @@ parameters:
     reportUnmatchedIgnoredErrors: false
     treatPhpDocTypesAsCertain: false
 
-    level: 5
+    level: 6
     paths:
         - src
 
@@ -11,10 +11,5 @@ parameters:
         - 'src/DependencyInjection/Configuration.php'
         - 'src/DependencyInjection/SyliusAdyenExtension.php'
 
-        # Test dependencies
-        - 'tests/Application/app/**.php'
-        - 'tests/Application/src/**.php'
-
     ignoreErrors:
-        - '/Parameter #1 \$configuration of method Symfony\\Component\\DependencyInjection\\Extension\\Extension::processConfiguration\(\) expects Symfony\\Component\\Config\\Definition\\ConfigurationInterface, Symfony\\Component\\Config\\Definition\\ConfigurationInterface\|null given\./'
-        - '/Parameter \$record of method Sylius\\AdyenPlugin\\Logging\\Monolog\\DoctrineHandler::write\(\) has invalid typehint type Monolog\\Handler\\FormattedRecord\./'
+        - '/.* no value type specified in iterable type array\./'

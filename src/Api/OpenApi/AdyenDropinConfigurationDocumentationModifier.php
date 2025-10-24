@@ -41,6 +41,11 @@ final readonly class AdyenDropinConfigurationDocumentationModifier implements Do
             ->withComponents($docs->getComponents()->withSchemas($schemas));
     }
 
+    /**
+     * @param array<string, string[]|string>|\ArrayObject<string, string[]|string> $schemas
+     *
+     * @return array<string, string[]|string>|\ArrayObject<string, string[]|string>
+     */
     private function addShopDropinConfigurationSchema(array|\ArrayObject $schemas): array|\ArrayObject
     {
         $schemas['AdyenShopDropinConfiguration'] = [

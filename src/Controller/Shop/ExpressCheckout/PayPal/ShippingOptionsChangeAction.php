@@ -17,6 +17,7 @@ use Doctrine\Persistence\ObjectManager;
 use Sylius\AdyenPlugin\Bus\Command\CreatePaymentDetailForPayment;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,6 +28,7 @@ use Webmozart\Assert\Assert;
 
 final class ShippingOptionsChangeAction
 {
+    /** @param ShippingMethodRepositoryInterface<ShippingMethodInterface> $shippingMethodRepository */
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly AdyenClientProviderInterface $adyenClientProvider,

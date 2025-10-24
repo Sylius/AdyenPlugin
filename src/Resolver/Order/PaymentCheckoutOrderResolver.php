@@ -22,6 +22,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 
 final class PaymentCheckoutOrderResolver implements PaymentCheckoutOrderResolverInterface
 {
+    /** @param OrderRepositoryInterface<OrderInterface> $orderRepository */
     public function __construct(
         private readonly RequestStack $requestStack,
         private readonly CartContextInterface $cartContext,

@@ -30,7 +30,11 @@ use Webmozart\Assert\Assert;
 #[AsMessageHandler]
 final class RefundPaymentGeneratedHandler
 {
-    /** @param RepositoryInterface<RefundPaymentInterface> $refundPaymentRepository */
+    /**
+     * @param PaymentRepositoryInterface<PaymentInterface> $paymentRepository
+     * @param PaymentMethodRepositoryInterface<PaymentMethodInterface> $paymentMethodRepository
+     * @param RepositoryInterface<RefundPaymentInterface> $refundPaymentRepository
+     */
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentRepositoryInterface $paymentRepository,

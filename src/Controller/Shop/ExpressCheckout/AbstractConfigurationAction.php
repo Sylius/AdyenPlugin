@@ -29,6 +29,7 @@ abstract class AbstractConfigurationAction
     /** @var array<ConfigurationProviderInterface> */
     protected readonly array $configurationProviders;
 
+    /** @param iterable<ConfigurationProviderInterface> $configurationProviders */
     public function __construct(
         iterable $configurationProviders,
         protected readonly CartContextInterface $cartContext,

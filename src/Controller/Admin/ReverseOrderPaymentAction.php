@@ -30,6 +30,7 @@ final class ReverseOrderPaymentAction
 {
     use FlashHelperTrait;
 
+    /** @param PaymentRepositoryInterface<PaymentInterface> $paymentRepository */
     public function __construct(
         private readonly PaymentRepositoryInterface $paymentRepository,
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,

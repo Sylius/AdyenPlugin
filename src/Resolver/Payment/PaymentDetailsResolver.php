@@ -17,14 +17,15 @@ use Doctrine\ORM\EntityManagerInterface;
 use Sylius\AdyenPlugin\Exception\PaymentMethodForReferenceNotFoundException;
 use Sylius\AdyenPlugin\Exception\UnprocessablePaymentException;
 use Sylius\AdyenPlugin\Provider\AdyenClientProviderInterface;
-use Sylius\Bundle\OrderBundle\Doctrine\ORM\OrderRepository;
 use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface;
+use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 
 final class PaymentDetailsResolver implements PaymentDetailsResolverInterface
 {
+    /** @param OrderRepositoryInterface<OrderInterface> $orderRepository */
     public function __construct(
-        private readonly OrderRepository $orderRepository,
+        private readonly OrderRepositoryInterface $orderRepository,
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly EntityManagerInterface $entityManager,
     ) {
