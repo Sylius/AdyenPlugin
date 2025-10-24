@@ -45,7 +45,7 @@ final class AdyenPaymentGuard
 
         if (
             PaymentInterface::STATE_PROCESSING === $payment->getState() &&
-            ($payment->getDetails()[CancelPayment::PROCESSING_CANCELLATION] ?? false)
+            (bool) ($payment->getDetails()[CancelPayment::PROCESSING_CANCELLATION] ?? false)
         ) {
             return true;
         }
