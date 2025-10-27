@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Repository\OrderRepositoryInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class RemoveCartAction
 {
+    /** @param OrderRepositoryInterface<OrderInterface> $orderRepository */
     public function __construct(
         private readonly OrderRepositoryInterface $orderRepository,
     ) {

@@ -19,14 +19,12 @@ use Sylius\Resource\Doctrine\Persistence\RepositoryInterface;
 
 final class CountryProvider implements CountryProviderInterface
 {
+    /** @param RepositoryInterface<CountryInterface> $countryRepository */
     public function __construct(
         private readonly RepositoryInterface $countryRepository,
     ) {
     }
 
-    /**
-     * @return string[]
-     */
     public function getAllowedCountryCodes(ChannelInterface $channel): array
     {
         $countries = $channel->getCountries();

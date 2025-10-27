@@ -33,6 +33,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class AddToNewCartAction
 {
+    /** @param FactoryInterface<OrderItemInterface> $factory */
     public function __construct(
         private readonly AddToCartCommandFactoryInterface $addToCartCommandFactory,
         private readonly CartContextInterface $cartContext,

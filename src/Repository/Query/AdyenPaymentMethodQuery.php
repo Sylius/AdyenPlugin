@@ -22,7 +22,7 @@ use Sylius\Component\Core\Repository\PaymentMethodRepositoryInterface;
 
 final class AdyenPaymentMethodQuery implements AdyenPaymentMethodQueryInterface
 {
-    /** @param PaymentMethodRepositoryInterface&EntityRepository $repository */
+    /** @param PaymentMethodRepositoryInterface<PaymentMethodInterface>&EntityRepository $repository */
     public function __construct(
         private PaymentMethodRepositoryInterface $repository,
     ) {

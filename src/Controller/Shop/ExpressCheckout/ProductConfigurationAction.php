@@ -13,11 +13,13 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout;
 
+use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ConfigurationProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\CountryProviderInterface;
 use Sylius\AdyenPlugin\Provider\PaymentMethodsProviderInterface;
 use Sylius\AdyenPlugin\Repository\Query\AdyenPaymentMethodQueryInterface;
 use Sylius\Component\Core\Factory\CartItemFactoryInterface;
 use Sylius\Component\Core\Model\OrderInterface;
+use Sylius\Component\Core\Model\OrderItemInterface;
 use Sylius\Component\Core\Model\ProductInterface;
 use Sylius\Component\Core\Repository\ProductRepositoryInterface;
 use Sylius\Component\Order\Context\CartContextInterface;
@@ -29,6 +31,11 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 final class ProductConfigurationAction extends AbstractConfigurationAction
 {
+    /**
+     * @param iterable<ConfigurationProviderInterface> $configurationProviders
+     * @param ProductRepositoryInterface<ProductInterface> $productRepository
+     * @param CartItemFactoryInterface<OrderItemInterface> $cartItemFactory
+     */
     public function __construct(
         iterable $configurationProviders,
         CartContextInterface $cartContext,

@@ -31,6 +31,7 @@ class PaymentDetailsAction
 {
     use PayableOrderPaymentTrait;
 
+    /** @param RepositoryInterface<AdyenPaymentDetailInterface> $adyenPaymentDetailRepository */
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,

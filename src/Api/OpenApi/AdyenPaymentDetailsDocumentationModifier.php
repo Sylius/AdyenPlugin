@@ -86,6 +86,11 @@ final readonly class AdyenPaymentDetailsDocumentationModifier implements Documen
         $paths->addPath($path, $paymentDetailsItem);
     }
 
+    /**
+     * @param array<string, string[]|string>|\ArrayObject<string, string[]|string> $schemas
+     *
+     * @return array<string, string[]|string>|\ArrayObject<string, string[]|string>
+     */
     private function addPaymentDetailsSchema(array|\ArrayObject $schemas): array|\ArrayObject
     {
         $schemas['AdyenPaymentDetails'] = [

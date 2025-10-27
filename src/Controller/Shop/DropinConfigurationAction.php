@@ -25,6 +25,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 class DropinConfigurationAction
 {
+    /** @param OrderRepositoryInterface<OrderInterface> $orderRepository */
     public function __construct(
         private readonly DropinConfigurationProviderInterface $dropinConfigurationProvider,
         private readonly CartContextInterface $cartContext,

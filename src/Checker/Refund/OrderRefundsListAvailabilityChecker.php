@@ -23,6 +23,7 @@ use Sylius\RefundPlugin\Checker\OrderRefundingAvailabilityCheckerInterface;
 
 final class OrderRefundsListAvailabilityChecker implements OrderRefundingAvailabilityCheckerInterface
 {
+    /** @param OrderRepositoryInterface<OrderInterface> $orderRepository */
     public function __construct(
         private readonly OrderRefundingAvailabilityCheckerInterface $decoratedChecker,
         private readonly OrderRepositoryInterface $orderRepository,

@@ -19,6 +19,7 @@ use Sylius\Component\Core\Model\OrderInterface;
 
 final class OrderAddressModifier implements OrderAddressModifierInterface
 {
+    /** @param AddressFactoryInterface<AddressInterface> $addressFactory */
     public function __construct(
         private readonly AddressFactoryInterface $addressFactory,
     ) {
@@ -38,7 +39,6 @@ final class OrderAddressModifier implements OrderAddressModifierInterface
         array $addressData,
     ): void {
         if (null === $order->getBillingAddress()) {
-            /** @var AddressInterface $address */
             $address = $this->addressFactory->createNew();
             $address->setFirstName('temp');
             $address->setLastName('temp');

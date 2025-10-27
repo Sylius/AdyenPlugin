@@ -43,6 +43,7 @@ final class PaymentFinalizationHandler
         $this->updatePaymentState($payment, $command->getPaymentTransition());
 
         if (is_a($command, PaymentCancelledCommand::class, true)) {
+            /** @var array<string, > $details */
             $details = $payment->getDetails();
             unset($details[CancelPayment::PROCESSING_CANCELLATION]);
             $payment->setDetails($details);
@@ -68,7 +69,7 @@ final class PaymentFinalizationHandler
             $payment->getState() === PaymentGraph::STATE_PROCESSING_REVERSAL ||
             (
                 $payment->getState() === PaymentInterface::STATE_PROCESSING &&
-                ($payment->getDetails()[CancelPayment::PROCESSING_CANCELLATION] ?? false)
+                (bool) ($payment->getDetails()[CancelPayment::PROCESSING_CANCELLATION] ?? false)
             )
         ;
     }
