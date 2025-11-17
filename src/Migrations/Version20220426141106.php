@@ -20,7 +20,7 @@ final class Version20220426141106 extends AbstractMigration
 {
     public function up(Schema $schema): void
     {
-        if ($this->tableExists('bitbag_adyen_reference')) {
+        if ($schema->hasTable('bitbag_adyen_reference')) {
             $this->addSql('RENAME TABLE bitbag_adyen_log TO sylius_adyen_log');
             $this->addSql('RENAME TABLE bitbag_adyen_reference TO sylius_adyen_reference');
             $this->addSql('RENAME TABLE bitbag_adyen_token TO sylius_adyen_token');
@@ -42,13 +42,5 @@ final class Version20220426141106 extends AbstractMigration
         $this->addSql('DROP TABLE sylius_adyen_log');
         $this->addSql('DROP TABLE sylius_adyen_reference');
         $this->addSql('DROP TABLE sylius_adyen_token');
-    }
-
-    private function tableExists(string $tableName): bool
-    {
-        return (bool) $this->connection->fetchOne(
-            'SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?',
-            [$tableName]
-        );
     }
 }
