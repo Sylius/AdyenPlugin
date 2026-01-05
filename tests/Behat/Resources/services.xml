@@ -16,7 +16,7 @@
 
         <service
             id="tests.sylius_adyen.behat.context.api_mock_client"
-            class="Tests\Sylius\AdyenPlugin\HttpClientStub"
+            class="Tests\Sylius\AdyenPlugin\Behat\Service\HttpClientStub"
         />
 
         <service
