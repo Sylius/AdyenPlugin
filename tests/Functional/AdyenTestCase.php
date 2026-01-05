@@ -199,6 +199,7 @@ abstract class AdyenTestCase extends WebTestCase
             $product->setCurrentLocale('en_US');
             $product->setName('test product name');
             $product->setSlug('test product name');
+            $product->addChannel($channel);
             $this->getEntityManager()->persist($product);
 
             $variant = new ProductVariant();
