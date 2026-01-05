@@ -68,7 +68,7 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-1.0": "1.0-dev"
+            "dev-2.0": "2.0-dev"
         },
         "public-dir": "vendor/sylius/test-application/public"
     },
