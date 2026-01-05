@@ -63,6 +63,9 @@
             "symfony/thanks": true
         }
     },
+    "conflict": {
+        "liip/imagine-bundle": "2.17.0"
+    },
     "extra": {
         "branch-alias": {
             "dev-1.0": "1.0-dev"
