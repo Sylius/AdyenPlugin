@@ -25,10 +25,9 @@ return static function (ECSConfig $config): void {
     $config->paths([
         'src',
         'tests/Behat',
-        'tests/Unit',
         'tests/Functional',
-        'tests/HttpClientStub.php',
         'tests/TestApplication/src',
+        'tests/Unit',
     ]);
     $config->skip([
         InlineDocCommentDeclarationSniff::class . '.MissingVariable',

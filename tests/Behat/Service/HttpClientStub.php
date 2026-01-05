@@ -11,7 +11,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Sylius\AdyenPlugin;
+namespace Tests\Sylius\AdyenPlugin\Behat\Service;
 
 use Adyen\HttpClient\ClientInterface;
 use Adyen\HttpClient\CurlClient;
