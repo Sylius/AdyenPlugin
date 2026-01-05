@@ -31,6 +31,7 @@ class PaymentDetailsAction
 {
     use PayableOrderPaymentTrait;
 
+    /** @param RepositoryInterface<AdyenPaymentDetailInterface> $adyenPaymentDetailRepository */
     public function __construct(
         private readonly AdyenClientProviderInterface $adyenClientProvider,
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
@@ -69,7 +70,7 @@ class PaymentDetailsAction
         $paymentMethod = $payment->getMethod();
 
         $client = $this->adyenClientProvider->getForPaymentMethod($paymentMethod);
-        $result = $client->paymentDetails($request->request->all());
+        $result = $client->paymentDetails(json_decode($request->getContent(), true));
 
         $payment->setDetails($result);
 

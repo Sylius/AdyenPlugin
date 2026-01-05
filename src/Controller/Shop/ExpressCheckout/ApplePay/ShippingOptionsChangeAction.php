@@ -18,6 +18,7 @@ use Sylius\AdyenPlugin\Exception\NoShippingMethodsAvailableException;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,6 +28,7 @@ use Webmozart\Assert\Assert;
 
 final class ShippingOptionsChangeAction
 {
+    /** @param ShippingMethodRepositoryInterface<ShippingMethodInterface> $shippingMethodRepository */
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly ObjectManager $orderManager,

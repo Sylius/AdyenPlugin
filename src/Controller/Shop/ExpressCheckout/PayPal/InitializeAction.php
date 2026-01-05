@@ -29,6 +29,7 @@ use Webmozart\Assert\Assert;
 
 final class InitializeAction
 {
+    /** @param PaymentRepositoryInterface<PaymentInterface> $paymentRepository */
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly MessageBusInterface $messageBus,

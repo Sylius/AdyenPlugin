@@ -1,0 +1,10 @@
+{% set form = hookable_metadata.context.form %}
+
+<div class="card-header">
+    <h2 class="card-title">{{ 'sylius_adyen.ui.esd'|trans }}</h2>
+</div>
+<div class="card-body">
+    <div class="col-12 cold-md-6">
+        {{ form_row(form.commodityCode, sylius_test_form_attribute('commodity-code')) }}
+    </div>
+</div>

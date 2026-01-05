@@ -1,0 +1,17 @@
+sylius_adyen_api_shop_custom_thank_you:
+    path: /payment/adyen/thank-you/{code}
+    methods: ['GET']
+    defaults:
+        _controller: sylius_adyen.controller.shop.redirect_target
+
+sylius_adyen_api_shop_adyen_details:
+    path: /payment/adyen/details/{code}
+    methods: ['GET']
+    defaults:
+        _controller: sylius_adyen.controller.shop.adyen_details
+
+sylius_adyen_api_shop_dropin_configuration:
+    path: /payment/adyen/configuration/{code}/{orderToken}
+    methods: ['GET']
+    defaults:
+        _controller: sylius_adyen.controller.shop.dropin_configuration

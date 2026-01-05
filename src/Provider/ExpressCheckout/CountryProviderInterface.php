@@ -17,8 +17,6 @@ use Sylius\Component\Core\Model\ChannelInterface;
 
 interface CountryProviderInterface
 {
-    /**
-     * @return string[]
-     */
+    /** @return string[] */
     public function getAllowedCountryCodes(ChannelInterface $channel): array;
 }

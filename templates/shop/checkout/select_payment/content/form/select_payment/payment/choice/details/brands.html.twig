@@ -1,0 +1,28 @@
+{% set form = hookable_metadata.context.form %}
+{% set available_methods = form.parent.parent.channels[form.vars.value] %}
+
+<div data-code="{{ available_methods.vars.name }}">
+    <div class="adyen-method-grid">
+        {% for method in available_methods.vars.payment_methods -%}
+
+            {% set to_render = [] %}
+
+            {% if method.brands is defined and method.type == constant('Sylius\\AdyenPlugin\\Client\\AdyenClientInterface::CREDIT_CARD_TYPE') %}
+                {% for sub_brand in method.brands %}
+                    {% set to_render = to_render|merge([["https://checkoutshopper-" ~ available_methods.vars.environment ~ ".adyen.com/checkoutshopper/images/logos/medium/" ~ sub_brand ~ ".png"]]) %}
+                {% endfor %}
+            {% endif %}
+
+            {% if to_render is empty %}
+                {% set to_render = [["https://checkoutshopper-" ~ available_methods.vars.environment ~ ".adyen.com/checkoutshopper/images/logos/medium/" ~ method.type ~ ".png"]] %}
+            {% endif %}
+
+            {% for item in to_render %}
+                {% set title = item[1] is defined ? item[1] : method.name %}
+                <div class="online-payment__item online-payment__item--{{ method.type }}" title="{{ title }}">
+                    <img class="online-payment__image" src="{{ item[0] }}" alt="{{ title }}">
+                </div>
+            {% endfor %}
+        {%- endfor %}
+    </div>
+</div>

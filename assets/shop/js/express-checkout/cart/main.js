@@ -1,3 +1,4 @@
+import { AdyenCheckout, ApplePay, GooglePay, PayPal } from '@adyen/adyen-web';
 import { SELECTORS } from '../constants.js';
 import { loadConfiguration } from '../utils.js';
 import { ApplePayHandler } from './applepay.js';
@@ -13,8 +14,6 @@ const isPaymentMethodAvailable = (paymentMethodData, type) => {
 const initExpressCheckout = async ($container) => {
     const configUrl = $container.getAttribute('data-config-url');
     if (!configUrl) return;
-
-    const { AdyenCheckout, ApplePay, GooglePay, PayPal } = window.AdyenWeb;
 
     const configuration = await loadConfiguration(configUrl);
 

@@ -41,6 +41,18 @@
         />
 
         <service
+            id="sylius_adyen.checker.reverse_eligibility"
+            class="Sylius\AdyenPlugin\Checker\ReverseEligibilityChecker"
+        >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_abstraction.state_machine" />
+        </service>
+        <service
+            id="Sylius\AdyenPlugin\Checker\ReverseEligibilityCheckerInterface"
+            alias="sylius_adyen.checker.reverse_eligibility"
+        />
+
+        <service
             id="sylius_adyen.checker.payment_pay_by_link_availability"
             class="Sylius\AdyenPlugin\Checker\PaymentPayByLinkAvailabilityChecker"
         >
@@ -88,5 +100,13 @@
             <argument type="service" id="translator"/>
         </service>
         <service id="Sylius\AdyenPlugin\Checker\OrderCheckoutCompleteIntegrityCheckerInterface" alias="sylius_adyen.checker.order_checkout_complete_integrity"/>
+
+        <service
+            id="sylius_adyen.checker.refund_payment.completion_eligibility"
+            class="Sylius\AdyenPlugin\Checker\Refund\RefundPaymentCompletionEligibilityChecker"
+        >
+            <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+        </service>
+        <service id="Sylius\AdyenPlugin\Checker\Refund\RefundPaymentCompletionEligibilityCheckerInterface" alias="sylius_adyen.checker.refund_payment.completion_eligibility" />
     </services>
 </container>

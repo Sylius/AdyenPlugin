@@ -52,6 +52,7 @@ final class FailedOrderPaymentStateResolver implements StateResolverInterface
         }
     }
 
+    /** @return Collection<array-key, PaymentInterface> */
     private function getPaymentsWithState(OrderInterface $order, string $state, bool $onlyAdyen = false): Collection
     {
         /** @var Collection<array-key, PaymentInterface> $payments */

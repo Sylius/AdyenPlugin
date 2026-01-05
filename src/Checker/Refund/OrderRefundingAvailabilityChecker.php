@@ -24,6 +24,7 @@ use Webmozart\Assert\Assert;
 
 final class OrderRefundingAvailabilityChecker implements OrderRefundingAvailabilityCheckerInterface
 {
+    /** @param OrderRepositoryInterface<OrderInterface> $orderRepository */
     public function __construct(
         private readonly OrderRefundingAvailabilityCheckerInterface $decoratedChecker,
         private readonly OrderRepositoryInterface $orderRepository,

@@ -19,6 +19,7 @@ use Sylius\AdyenPlugin\Modifier\ExpressCheckout\GooglePay\OrderAddressModifierIn
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\ShippingOptionParametersProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\GooglePay\TransactionInfoProviderInterface;
 use Sylius\AdyenPlugin\Resolver\Order\PaymentCheckoutOrderResolverInterface;
+use Sylius\Component\Core\Model\ShippingMethodInterface;
 use Sylius\Component\Core\Repository\ShippingMethodRepositoryInterface;
 use Sylius\Component\Order\Processor\OrderProcessorInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,6 +31,7 @@ final class ShippingOptionsAction
 {
     public const SHIPPING_OPTION_UNSELECTED = 'shipping_option_unselected';
 
+    /** @param ShippingMethodRepositoryInterface<ShippingMethodInterface> $shippingMethodsRepository */
     public function __construct(
         private readonly PaymentCheckoutOrderResolverInterface $paymentCheckoutOrderResolver,
         private readonly ObjectManager $orderManager,

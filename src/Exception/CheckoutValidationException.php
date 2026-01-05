@@ -15,7 +15,7 @@ namespace Sylius\AdyenPlugin\Exception;
 
 final class CheckoutValidationException extends \InvalidArgumentException
 {
-    public function __construct(string $message = 'Order validation failed during checkout complete step.', $code = 0, $previous = null)
+    public function __construct(string $message = 'Order validation failed during checkout complete step.', int $code = 0, ?\Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
