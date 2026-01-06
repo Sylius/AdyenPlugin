@@ -68,7 +68,10 @@
     },
     "extra": {
         "branch-alias": {
-            "dev-1.0": "1.0-dev"
+            "dev-2.0": "2.0-dev"
+        },
+        "symfony": {
+            "require": "^7.4"
         },
         "public-dir": "vendor/sylius/test-application/public"
     },
