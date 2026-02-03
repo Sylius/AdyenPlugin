@@ -14,6 +14,7 @@
         "composer/package-versions-deprecated": "^1.11",
         "sylius/refund-plugin": "^2.0",
         "sylius/sylius": "^2.0",
+        "sylius/telemetry": "^1.0",
         "symfony/messenger": "^6.4 || ^7.2",
         "symfony/serializer": "^6.4 || ^7.2",
         "symfony/webpack-encore-bundle": "^2.2"
@@ -82,7 +83,10 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Tests\\Sylius\\AdyenPlugin\\": ["tests/", "tests/TestApplication/src/"]
+            "Tests\\Sylius\\AdyenPlugin\\": [
+                "tests/",
+                "tests/TestApplication/src/"
+            ]
         }
     }
 }
