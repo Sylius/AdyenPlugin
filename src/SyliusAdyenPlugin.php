@@ -17,6 +17,7 @@ use Sylius\AdyenPlugin\DependencyInjection\Compiler\AddOrderPaymentWorkflowTrans
 use Sylius\AdyenPlugin\DependencyInjection\Compiler\AddPaymentWorkflowTransitionPass;
 use Sylius\AdyenPlugin\DependencyInjection\Compiler\RemoveCancelPaymentListenerPass;
 use Sylius\Bundle\CoreBundle\Application\SyliusPluginTrait;
+use Sylius\Telemetry\TelemetryCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
@@ -31,6 +32,7 @@ final class SyliusAdyenPlugin extends Bundle
         $container->addCompilerPass(new AddOrderPaymentWorkflowTransitionPass());
         $container->addCompilerPass(new AddPaymentWorkflowTransitionPass());
         $container->addCompilerPass(new RemoveCancelPaymentListenerPass());
+        $container->addCompilerPass(new TelemetryCompilerPass());
     }
 
     public function getPath(): string
