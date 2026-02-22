@@ -31,6 +31,16 @@ class AdyenPaymentDetail implements ResourceInterface, TimestampableInterface, A
 
     protected PaymentInterface $payment;
 
+    public function setCreatedAtValue(): void
+    {
+        $this->setCreatedAt(new \DateTime());
+    }
+
+    public function setUpdatedAtValue(): void
+    {
+        $this->setUpdatedAt(new \DateTime());
+    }
+
     public function getId(): ?int
     {
         return $this->id;
