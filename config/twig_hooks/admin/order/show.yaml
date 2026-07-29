@@ -6,12 +6,12 @@ sylius_twig_hooks:
                 priority: -100
 
         'sylius_admin.order.show.content.sections.payments.item.actions':
-            complete:
+            adyen_complete:
                 template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/complete.html.twig'
                 priority: 100
-            capture:
+            adyen_capture:
                 template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/capture.html.twig'
                 priority: 100
-            send_payment_link:
+            adyen_send_payment_link:
                 template: '@SyliusAdyenPlugin/admin/order/content/sections/payments/item/actions/send_payment_link.html.twig'
                 priority: 100
