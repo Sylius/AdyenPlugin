@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\DependencyInjection\Compiler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Workflow\Transition;
 
 abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
@@ -30,7 +31,7 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
         $definition = $container->getDefinition($definitionId);
         $transitions = $definition->getArgument(1);
 
-        $existingTransitions = $this->extractExistingTransitions($transitions);
+        $existingTransitions = $this->extractExistingTransitions($container, $transitions);
         $updatedTransitions = $this->addMissingTransitions($transitions, $existingTransitions);
 
         $definition->setArgument(1, $updatedTransitions);
@@ -42,15 +43,24 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
     abstract protected function getRequiredTransitions(): array;
 
     /**
-     * @param array<Definition> $transitions
+     * @param array<Definition|Reference> $transitions
      *
      * @return array<string>
      */
-    private function extractExistingTransitions(array $transitions): array
+    private function extractExistingTransitions(ContainerBuilder $container, array $transitions): array
     {
         $existingTransitions = [];
 
         foreach ($transitions as $transition) {
+            if ($transition instanceof Reference) {
+                $transitionId = (string) $transition;
+                if (!$container->hasDefinition($transitionId)) {
+                    continue;
+                }
+
+                $transition = $container->getDefinition($transitionId);
+            }
+
             if (!$transition instanceof Definition) {
                 continue;
             }
@@ -72,10 +82,10 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
     }
 
     /**
-     * @param array<Definition> $transitions
+     * @param array<Definition|Reference> $transitions
      * @param array<string> $existingTransitions
      *
-     * @return array<Definition>
+     * @return array<Definition|Reference>
      */
     private function addMissingTransitions(array $transitions, array $existingTransitions): array
     {

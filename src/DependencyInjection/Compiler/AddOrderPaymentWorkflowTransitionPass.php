@@ -23,7 +23,6 @@ final class AddOrderPaymentWorkflowTransitionPass extends AbstractWorkflowTransi
     protected function getRequiredTransitions(): array
     {
         return [
-            ['name' => 'request_payment', 'from' => 'authorized', 'to' => 'awaiting_payment'],
             ['name' => 'request_payment', 'from' => 'paid', 'to' => 'awaiting_payment'],
             ['name' => 'cancel', 'from' => 'paid', 'to' => 'cancelled'],
         ];
