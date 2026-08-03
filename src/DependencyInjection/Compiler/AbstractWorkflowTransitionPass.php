@@ -17,11 +17,12 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\Workflow\Arc;
 use Symfony\Component\Workflow\Transition;
 
 abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
 {
+    private const WEIGHTED_ARC_CLASS = 'Symfony\\Component\\Workflow\\Arc';
+
     public function process(ContainerBuilder $container): void
     {
         $definitionId = $this->getWorkflowDefinitionId();
@@ -104,7 +105,7 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
             return $place;
         }
 
-        if ($place instanceof Definition && Arc::class === $place->getClass()) {
+        if ($place instanceof Definition && self::WEIGHTED_ARC_CLASS === $place->getClass()) {
             return (string) $place->getArgument(0);
         }
 
