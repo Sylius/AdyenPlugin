@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Workflow\Arc;
 use Symfony\Component\Workflow\Transition;
 
 abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
@@ -52,16 +53,8 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
         $existingTransitions = [];
 
         foreach ($transitions as $transition) {
-            if ($transition instanceof Reference) {
-                $transitionId = (string) $transition;
-                if (!$container->hasDefinition($transitionId)) {
-                    continue;
-                }
-
-                $transition = $container->getDefinition($transitionId);
-            }
-
-            if (!$transition instanceof Definition) {
+            $transition = $this->resolveTransitionDefinition($container, $transition);
+            if (null === $transition) {
                 continue;
             }
 
@@ -71,14 +64,51 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
             }
 
             [$name, $froms, $tos] = $arguments;
-            foreach ($froms as $from) {
-                foreach ($tos as $to) {
+            foreach ((array) $froms as $from) {
+                $from = $this->resolvePlaceName($from);
+                if (null === $from) {
+                    continue;
+                }
+
+                foreach ((array) $tos as $to) {
+                    $to = $this->resolvePlaceName($to);
+                    if (null === $to) {
+                        continue;
+                    }
+
                     $existingTransitions[] = $this->createTransitionKey($name, $from, $to);
                 }
             }
         }
 
         return $existingTransitions;
+    }
+
+    private function resolveTransitionDefinition(ContainerBuilder $container, mixed $transition): ?Definition
+    {
+        if ($transition instanceof Reference) {
+            $transitionId = (string) $transition;
+            if (!$container->hasDefinition($transitionId)) {
+                return null;
+            }
+
+            $transition = $container->getDefinition($transitionId);
+        }
+
+        return $transition instanceof Definition ? $transition : null;
+    }
+
+    private function resolvePlaceName(mixed $place): ?string
+    {
+        if (is_string($place)) {
+            return $place;
+        }
+
+        if ($place instanceof Definition && Arc::class === $place->getClass()) {
+            return (string) $place->getArgument(0);
+        }
+
+        return null;
     }
 
     /**

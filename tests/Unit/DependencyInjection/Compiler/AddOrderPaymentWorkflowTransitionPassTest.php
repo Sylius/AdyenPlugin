@@ -18,6 +18,7 @@ use Sylius\AdyenPlugin\DependencyInjection\Compiler\AddOrderPaymentWorkflowTrans
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Workflow\Arc;
 use Symfony\Component\Workflow\Transition;
 
 final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
@@ -107,6 +108,62 @@ final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
         }
 
         $this->assertSame(0, $requestPaymentTransitionsCount);
+    }
+
+    public function testItDoesNotAddDuplicateTransitionsWhenExistingTransitionUsesScalarFromAndTo(): void
+    {
+        $existingTransition = new Definition(Transition::class);
+        $existingTransition->setArguments(['request_payment', 'paid', 'awaiting_payment']);
+
+        $workflowDefinition = new Definition();
+        $workflowDefinition->setArguments(['places', [$existingTransition]]);
+        $this->container->setDefinition('state_machine.sylius_order_payment.definition', $workflowDefinition);
+
+        $this->compilerPass->process($this->container);
+
+        $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
+        $transitions = $definition->getArgument(1);
+
+        $this->assertCount(2, $transitions);
+
+        $requestPaymentTransitionsCount = 0;
+        foreach ($transitions as $transition) {
+            if ($transition instanceof Definition && $transition->getArgument(0) === 'request_payment') {
+                ++$requestPaymentTransitionsCount;
+            }
+        }
+
+        $this->assertSame(1, $requestPaymentTransitionsCount);
+    }
+
+    public function testItDoesNotAddDuplicateTransitionsWhenExistingTransitionUsesArcDefinitions(): void
+    {
+        $existingTransition = new Definition(Transition::class);
+        $existingTransition->setArguments([
+            'request_payment',
+            [new Definition(Arc::class, ['paid', 1])],
+            [new Definition(Arc::class, ['awaiting_payment', 1])],
+        ]);
+
+        $workflowDefinition = new Definition();
+        $workflowDefinition->setArguments(['places', [$existingTransition]]);
+        $this->container->setDefinition('state_machine.sylius_order_payment.definition', $workflowDefinition);
+
+        $this->compilerPass->process($this->container);
+
+        $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
+        $transitions = $definition->getArgument(1);
+
+        $this->assertCount(2, $transitions);
+
+        $requestPaymentTransitionsCount = 0;
+        foreach ($transitions as $transition) {
+            if ($transition instanceof Definition && $transition->getArgument(0) === 'request_payment') {
+                ++$requestPaymentTransitionsCount;
+            }
+        }
+
+        $this->assertSame(1, $requestPaymentTransitionsCount);
     }
 
     public function testItIgnoresReferenceToNonExistentDefinition(): void
