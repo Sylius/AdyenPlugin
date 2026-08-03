@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Api\OpenApi;
 
+use ApiPlatform\OpenApi\Model\MediaType;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\PathItem;
 use ApiPlatform\OpenApi\Model\Paths;
+use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use ApiPlatform\OpenApi\OpenApi;
 use Sylius\Bundle\ApiBundle\OpenApi\Documentation\DocumentationModifierInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -50,16 +52,16 @@ final readonly class AdyenPaymentDetailsDocumentationModifier implements Documen
                 operationId: 'sylius_adyen_api_shop_adyen_details',
                 tags: ['Adyen'],
                 responses: [
-                    Response::HTTP_OK => [
-                        'description' => 'Adyen payment details',
-                        'content' => [
-                            'application/json' => [
-                                'schema' => [
+                    Response::HTTP_OK => new OpenApiResponse(
+                        description: 'Adyen payment details',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(
+                                schema: new \ArrayObject([
                                     '$ref' => '#/components/schemas/AdyenPaymentDetails',
-                                ],
-                            ],
-                        ],
-                    ],
+                                ]),
+                            ),
+                        ]),
+                    ),
                 ],
                 summary: 'Adyen payment details',
                 description: 'Retrieves payment details from Adyen for the specified payment code and reference ID',

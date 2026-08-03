@@ -13,8 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\DependencyInjection\Compiler;
 
+use Sylius\Bundle\CoreBundle\SyliusCoreBundle;
+
 final class AddOrderPaymentWorkflowTransitionPass extends AbstractWorkflowTransitionPass
 {
+    private const SYLIUS_VERSION_WITH_NATIVE_AUTHORIZED_TRANSITION = '2.2.7';
+
     protected function getWorkflowDefinitionId(): string
     {
         return 'state_machine.sylius_order_payment.definition';
@@ -22,10 +26,15 @@ final class AddOrderPaymentWorkflowTransitionPass extends AbstractWorkflowTransi
 
     protected function getRequiredTransitions(): array
     {
-        return [
-            ['name' => 'request_payment', 'from' => 'authorized', 'to' => 'awaiting_payment'],
+        $transitions = [
             ['name' => 'request_payment', 'from' => 'paid', 'to' => 'awaiting_payment'],
             ['name' => 'cancel', 'from' => 'paid', 'to' => 'cancelled'],
         ];
+
+        if (version_compare(SyliusCoreBundle::VERSION, self::SYLIUS_VERSION_WITH_NATIVE_AUTHORIZED_TRANSITION, '<')) {
+            $transitions[] = ['name' => 'request_payment', 'from' => 'authorized', 'to' => 'awaiting_payment'];
+        }
+
+        return $transitions;
     }
 }

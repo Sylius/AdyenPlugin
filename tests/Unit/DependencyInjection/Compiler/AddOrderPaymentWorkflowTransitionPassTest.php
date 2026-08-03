@@ -15,8 +15,10 @@ namespace Tests\Sylius\AdyenPlugin\Unit\DependencyInjection\Compiler;
 
 use PHPUnit\Framework\TestCase;
 use Sylius\AdyenPlugin\DependencyInjection\Compiler\AddOrderPaymentWorkflowTransitionPass;
+use Sylius\Bundle\CoreBundle\SyliusCoreBundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Workflow\Transition;
 
 final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
@@ -49,11 +51,15 @@ final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
         $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
         $transitions = $definition->getArgument(1);
 
-        $this->assertCount(3, $transitions);
+        $extra = self::isAuthorizedTransitionRequired() ? 1 : 0;
+        $this->assertCount(2 + $extra, $transitions);
 
-        $this->assertTransitionExists($transitions, 'request_payment', ['authorized'], ['awaiting_payment']);
         $this->assertTransitionExists($transitions, 'request_payment', ['paid'], ['awaiting_payment']);
         $this->assertTransitionExists($transitions, 'cancel', ['paid'], ['cancelled']);
+
+        if ($extra > 0) {
+            $this->assertTransitionExists($transitions, 'request_payment', ['authorized'], ['awaiting_payment']);
+        }
     }
 
     public function testItDoesNotAddDuplicateTransitions(): void
@@ -82,6 +88,84 @@ final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
         $this->assertSame(2, $requestPaymentTransitionsCount);
     }
 
+    public function testItAddsRequiredTransitionsWhenExistingTransitionIsAnUnresolvedReference(): void
+    {
+        $existingTransition = new Definition(Transition::class);
+        $existingTransition->setArguments(['request_payment', ['paid'], ['awaiting_payment']]);
+        $this->container->setDefinition('existing_transition_service', $existingTransition);
+
+        $workflowDefinition = new Definition();
+        $workflowDefinition->setArguments(['places', [new Reference('existing_transition_service')]]);
+        $this->container->setDefinition('state_machine.sylius_order_payment.definition', $workflowDefinition);
+
+        $this->compilerPass->process($this->container);
+
+        $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
+        $transitions = $definition->getArgument(1);
+
+        $extra = self::isAuthorizedTransitionRequired() ? 1 : 0;
+        $this->assertCount(3 + $extra, $transitions);
+
+        $requestPaymentTransitionsCount = 0;
+        foreach ($transitions as $transition) {
+            if ($transition instanceof Definition && $transition->getArgument(0) === 'request_payment') {
+                ++$requestPaymentTransitionsCount;
+            }
+        }
+
+        $this->assertSame(1 + $extra, $requestPaymentTransitionsCount);
+    }
+
+    public function testItAddsRequiredTransitionsWhenExistingTransitionUsesScalarFromAndTo(): void
+    {
+        $existingTransition = new Definition(Transition::class);
+        $existingTransition->setArguments(['request_payment', 'paid', 'awaiting_payment']);
+
+        $workflowDefinition = new Definition();
+        $workflowDefinition->setArguments(['places', [$existingTransition]]);
+        $this->container->setDefinition('state_machine.sylius_order_payment.definition', $workflowDefinition);
+
+        $this->compilerPass->process($this->container);
+
+        $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
+        $transitions = $definition->getArgument(1);
+
+        $extra = self::isAuthorizedTransitionRequired() ? 1 : 0;
+        $this->assertCount(3 + $extra, $transitions);
+
+        $requestPaymentTransitionsCount = 0;
+        foreach ($transitions as $transition) {
+            if ($transition instanceof Definition && $transition->getArgument(0) === 'request_payment') {
+                ++$requestPaymentTransitionsCount;
+            }
+        }
+
+        $this->assertSame(2 + $extra, $requestPaymentTransitionsCount);
+    }
+
+    public function testItIgnoresReferenceToNonExistentDefinition(): void
+    {
+        $workflowDefinition = new Definition();
+        $workflowDefinition->setArguments(['places', [new Reference('non_existent_transition_service')]]);
+        $this->container->setDefinition('state_machine.sylius_order_payment.definition', $workflowDefinition);
+
+        $this->compilerPass->process($this->container);
+
+        $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
+        $transitions = $definition->getArgument(1);
+
+        $extra = self::isAuthorizedTransitionRequired() ? 1 : 0;
+        $this->assertCount(3 + $extra, $transitions);
+        $this->assertInstanceOf(Reference::class, $transitions[0]);
+
+        $this->assertTransitionExists($transitions, 'request_payment', ['paid'], ['awaiting_payment']);
+        $this->assertTransitionExists($transitions, 'cancel', ['paid'], ['cancelled']);
+
+        if ($extra > 0) {
+            $this->assertTransitionExists($transitions, 'request_payment', ['authorized'], ['awaiting_payment']);
+        }
+    }
+
     public function testItIgnoresNonDefinitionTransitions(): void
     {
         $workflowDefinition = new Definition();
@@ -93,7 +177,8 @@ final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
         $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
         $transitions = $definition->getArgument(1);
 
-        $this->assertCount(5, $transitions);
+        $extra = self::isAuthorizedTransitionRequired() ? 1 : 0;
+        $this->assertCount(4 + $extra, $transitions);
         $this->assertSame('not_a_definition', $transitions[0]);
         $this->assertNull($transitions[1]);
     }
@@ -112,7 +197,13 @@ final class AddOrderPaymentWorkflowTransitionPassTest extends TestCase
         $definition = $this->container->getDefinition('state_machine.sylius_order_payment.definition');
         $transitions = $definition->getArgument(1);
 
-        $this->assertCount(4, $transitions);
+        $extra = self::isAuthorizedTransitionRequired() ? 1 : 0;
+        $this->assertCount(3 + $extra, $transitions);
+    }
+
+    private static function isAuthorizedTransitionRequired(): bool
+    {
+        return version_compare(SyliusCoreBundle::VERSION, '2.2.7', '<');
     }
 
     private function assertTransitionExists(array $transitions, string $name, array $froms, array $tos): void

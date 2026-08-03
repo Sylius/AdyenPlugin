@@ -111,6 +111,9 @@ abstract class AdyenTestCase extends WebTestCase
         $this->purgeDatabase();
         $this->testOrder = $this->createTestOrder();
 
+        self::$sharedPaymentMethod->getChannels()->clear();
+        self::$sharedPaymentMethod->addChannel($this->testOrder->getChannel());
+
         $paymentMethodRepository = $container->get('sylius.repository.payment_method');
         $paymentMethodRepository->add(self::$sharedPaymentMethod);
 
