@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Api\OpenApi;
 
+use ApiPlatform\OpenApi\Model\MediaType;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\PathItem;
 use ApiPlatform\OpenApi\Model\Paths;
+use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use ApiPlatform\OpenApi\OpenApi;
 use Sylius\Bundle\ApiBundle\OpenApi\Documentation\DocumentationModifierInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -49,17 +51,17 @@ final readonly class AdyenThankYouDocumentationModifier implements Documentation
                 operationId: 'sylius_adyen_api_shop_custom_thank_you',
                 tags: ['Adyen'],
                 responses: [
-                    Response::HTTP_OK => [
-                        'description' => 'HTML Response with custom thank-you page',
-                        'content' => [
-                            'text/html' => [
-                                'schema' => [
+                    Response::HTTP_OK => new OpenApiResponse(
+                        description: 'HTML Response with custom thank-you page',
+                        content: new \ArrayObject([
+                            'text/html' => new MediaType(
+                                schema: new \ArrayObject([
                                     'type' => 'string',
                                     'example' => '<html><body><h1>Thank you for your purchase!</h1></body></html>',
-                                ],
-                            ],
-                        ],
-                    ],
+                                ]),
+                            ),
+                        ]),
+                    ),
                 ],
                 summary: 'Custom thank-you page, that needs to be intercepted.',
                 description: 'Returns a custom thank-you page HTML response that needs to be intercepted by the frontend',

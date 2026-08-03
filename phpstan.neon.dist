@@ -13,4 +13,4 @@ parameters:
 
     ignoreErrors:
         - '/.* no value type specified in iterable type array\./'
-        - '/Parameter \$responses of class ApiPlatform\\OpenApi\\Model\\Operation constructor expects array<ApiPlatform\\OpenApi\\Model\\Response>\|null/'
+        - identifier: missingType.generics

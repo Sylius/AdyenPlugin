@@ -13,10 +13,12 @@ declare(strict_types=1);
 
 namespace Sylius\AdyenPlugin\Api\OpenApi;
 
+use ApiPlatform\OpenApi\Model\MediaType;
 use ApiPlatform\OpenApi\Model\Operation;
 use ApiPlatform\OpenApi\Model\Parameter;
 use ApiPlatform\OpenApi\Model\PathItem;
 use ApiPlatform\OpenApi\Model\Paths;
+use ApiPlatform\OpenApi\Model\Response as OpenApiResponse;
 use ApiPlatform\OpenApi\OpenApi;
 use Sylius\Bundle\ApiBundle\OpenApi\Documentation\DocumentationModifierInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -165,16 +167,16 @@ final readonly class AdyenDropinConfigurationDocumentationModifier implements Do
                 operationId: 'sylius_adyen_api_shop_dropin_configuration',
                 tags: ['Adyen'],
                 responses: [
-                    Response::HTTP_OK => [
-                        'description' => 'Adyen Drop-in configuration',
-                        'content' => [
-                            'application/json' => [
-                                'schema' => [
+                    Response::HTTP_OK => new OpenApiResponse(
+                        description: 'Adyen Drop-in configuration',
+                        content: new \ArrayObject([
+                            'application/json' => new MediaType(
+                                schema: new \ArrayObject([
                                     '$ref' => '#/components/schemas/AdyenShopDropinConfiguration',
-                                ],
-                            ],
-                        ],
-                    ],
+                                ]),
+                            ),
+                        ]),
+                    ),
                 ],
                 summary: 'Retrieve Adyen Drop-in configuration for the shop',
                 description: 'Returns Adyen Drop-in configuration including payment methods, billing address, and other settings',
