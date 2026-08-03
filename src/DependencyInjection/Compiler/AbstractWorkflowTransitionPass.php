@@ -16,13 +16,10 @@ namespace Sylius\AdyenPlugin\DependencyInjection\Compiler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
-use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Workflow\Transition;
 
 abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
 {
-    private const WEIGHTED_ARC_CLASS = 'Symfony\\Component\\Workflow\\Arc';
-
     public function process(ContainerBuilder $container): void
     {
         $definitionId = $this->getWorkflowDefinitionId();
@@ -33,7 +30,7 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
         $definition = $container->getDefinition($definitionId);
         $transitions = $definition->getArgument(1);
 
-        $existingTransitions = $this->extractExistingTransitions($container, $transitions);
+        $existingTransitions = $this->extractExistingTransitions($transitions);
         $updatedTransitions = $this->addMissingTransitions($transitions, $existingTransitions);
 
         $definition->setArgument(1, $updatedTransitions);
@@ -45,17 +42,16 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
     abstract protected function getRequiredTransitions(): array;
 
     /**
-     * @param array<Definition|Reference> $transitions
+     * @param array<Definition> $transitions
      *
      * @return array<string>
      */
-    private function extractExistingTransitions(ContainerBuilder $container, array $transitions): array
+    private function extractExistingTransitions(array $transitions): array
     {
         $existingTransitions = [];
 
         foreach ($transitions as $transition) {
-            $transition = $this->resolveTransitionDefinition($container, $transition);
-            if (null === $transition) {
+            if (!$transition instanceof Definition) {
                 continue;
             }
 
@@ -65,18 +61,8 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
             }
 
             [$name, $froms, $tos] = $arguments;
-            foreach ((array) $froms as $from) {
-                $from = $this->resolvePlaceName($from);
-                if (null === $from) {
-                    continue;
-                }
-
-                foreach ((array) $tos as $to) {
-                    $to = $this->resolvePlaceName($to);
-                    if (null === $to) {
-                        continue;
-                    }
-
+            foreach ($froms as $from) {
+                foreach ($tos as $to) {
                     $existingTransitions[] = $this->createTransitionKey($name, $from, $to);
                 }
             }
@@ -85,38 +71,11 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
         return $existingTransitions;
     }
 
-    private function resolveTransitionDefinition(ContainerBuilder $container, mixed $transition): ?Definition
-    {
-        if ($transition instanceof Reference) {
-            $transitionId = (string) $transition;
-            if (!$container->hasDefinition($transitionId)) {
-                return null;
-            }
-
-            $transition = $container->getDefinition($transitionId);
-        }
-
-        return $transition instanceof Definition ? $transition : null;
-    }
-
-    private function resolvePlaceName(mixed $place): ?string
-    {
-        if (is_string($place)) {
-            return $place;
-        }
-
-        if ($place instanceof Definition && self::WEIGHTED_ARC_CLASS === $place->getClass()) {
-            return (string) $place->getArgument(0);
-        }
-
-        return null;
-    }
-
     /**
-     * @param array<Definition|Reference> $transitions
+     * @param array<Definition> $transitions
      * @param array<string> $existingTransitions
      *
-     * @return array<Definition|Reference>
+     * @return array<Definition>
      */
     private function addMissingTransitions(array $transitions, array $existingTransitions): array
     {
