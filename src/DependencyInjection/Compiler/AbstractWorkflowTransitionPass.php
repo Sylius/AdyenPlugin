@@ -16,6 +16,7 @@ namespace Sylius\AdyenPlugin\DependencyInjection\Compiler;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Workflow\Transition;
 
 abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
@@ -30,7 +31,7 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
         $definition = $container->getDefinition($definitionId);
         $transitions = $definition->getArgument(1);
 
-        $existingTransitions = $this->extractExistingTransitions($transitions);
+        $existingTransitions = $this->extractExistingTransitions($container, $transitions);
         $updatedTransitions = $this->addMissingTransitions($transitions, $existingTransitions);
 
         $definition->setArgument(1, $updatedTransitions);
@@ -42,16 +43,17 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
     abstract protected function getRequiredTransitions(): array;
 
     /**
-     * @param array<Definition> $transitions
+     * @param array<Definition|Reference> $transitions
      *
      * @return array<string>
      */
-    private function extractExistingTransitions(array $transitions): array
+    private function extractExistingTransitions(ContainerBuilder $container, array $transitions): array
     {
         $existingTransitions = [];
 
         foreach ($transitions as $transition) {
-            if (!$transition instanceof Definition) {
+            $transition = $this->resolveTransitionDefinition($container, $transition);
+            if (null === $transition) {
                 continue;
             }
 
@@ -61,8 +63,18 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
             }
 
             [$name, $froms, $tos] = $arguments;
-            foreach ($froms as $from) {
-                foreach ($tos as $to) {
+            foreach ((array) $froms as $from) {
+                $from = $this->resolvePlaceName($from);
+                if (null === $from) {
+                    continue;
+                }
+
+                foreach ((array) $tos as $to) {
+                    $to = $this->resolvePlaceName($to);
+                    if (null === $to) {
+                        continue;
+                    }
+
                     $existingTransitions[] = $this->createTransitionKey($name, $from, $to);
                 }
             }
@@ -71,11 +83,38 @@ abstract class AbstractWorkflowTransitionPass implements CompilerPassInterface
         return $existingTransitions;
     }
 
+    private function resolveTransitionDefinition(ContainerBuilder $container, mixed $transition): ?Definition
+    {
+        if ($transition instanceof Reference) {
+            $transitionId = (string) $transition;
+            if (!$container->hasDefinition($transitionId)) {
+                return null;
+            }
+
+            $transition = $container->getDefinition($transitionId);
+        }
+
+        return $transition instanceof Definition ? $transition : null;
+    }
+
+    private function resolvePlaceName(mixed $place): ?string
+    {
+        if (is_string($place)) {
+            return $place;
+        }
+
+        if ($place instanceof Definition) {
+            return (string) $place->getArgument(0);
+        }
+
+        return null;
+    }
+
     /**
-     * @param array<Definition> $transitions
+     * @param array<Definition|Reference> $transitions
      * @param array<string> $existingTransitions
      *
-     * @return array<Definition>
+     * @return array<Definition|Reference>
      */
     private function addMissingTransitions(array $transitions, array $existingTransitions): array
     {
