@@ -52,6 +52,7 @@ sylius_adyen:
         platform: Platform
         resend_payment_link: Resend payment link
         send_payment_link: Send payment link
+        suggested_description: A single platform for payments across channels and regions, built for high-volume merchants.
         test_platform: Test platform
 
 sylius:

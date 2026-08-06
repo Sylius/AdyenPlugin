@@ -92,6 +92,7 @@
             class="Sylius\AdyenPlugin\Twig\Extension\AdyenPaymentCheckerExtension"
         >
             <argument type="service" id="sylius_adyen.checker.adyen_payment_method" />
+            <argument type="service" id="sylius_adyen.checker.configured_adyen_payment_method" />
 
             <tag name="twig.extension" />
         </service>

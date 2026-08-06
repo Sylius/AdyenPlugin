@@ -1,0 +1,6 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.payment_method.index.content.grid.data_table#suggested':
+            adyen:
+                template: '@SyliusAdyenPlugin/admin/payment_method/index/content/grid/data_table/suggested/adyen.html.twig'
+                priority: 100

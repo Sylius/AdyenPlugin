@@ -41,6 +41,17 @@
         />
 
         <service
+            id="sylius_adyen.checker.configured_adyen_payment_method"
+            class="Sylius\AdyenPlugin\Checker\ConfiguredAdyenPaymentMethodChecker"
+        >
+            <argument type="service" id="sylius.repository.payment_method" />
+        </service>
+        <service
+            id="Sylius\AdyenPlugin\Checker\ConfiguredAdyenPaymentMethodCheckerInterface"
+            alias="sylius_adyen.checker.configured_adyen_payment_method"
+        />
+
+        <service
             id="sylius_adyen.checker.reverse_eligibility"
             class="Sylius\AdyenPlugin\Checker\ReverseEligibilityChecker"
         >

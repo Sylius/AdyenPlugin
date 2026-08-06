@@ -14,6 +14,7 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Twig\Extension;
 
 use Sylius\AdyenPlugin\Checker\AdyenPaymentMethodCheckerInterface;
+use Sylius\AdyenPlugin\Checker\ConfiguredAdyenPaymentMethodCheckerInterface;
 use Sylius\AdyenPlugin\PaymentCaptureMode;
 use Sylius\Component\Core\Model\PaymentInterface;
 use Twig\Extension\AbstractExtension;
@@ -23,6 +24,7 @@ final class AdyenPaymentCheckerExtension extends AbstractExtension
 {
     public function __construct(
         private readonly AdyenPaymentMethodCheckerInterface $adyenPaymentMethodChecker,
+        private readonly ConfiguredAdyenPaymentMethodCheckerInterface $configuredAdyenPaymentMethodChecker,
     ) {
     }
 
@@ -44,6 +46,10 @@ final class AdyenPaymentCheckerExtension extends AbstractExtension
                 'sylius_adyen_can_be_captured',
                 [$this, 'canBeCaptured'],
                 ['is_safe' => ['html']],
+            ),
+            new TwigFunction(
+                'sylius_adyen_is_configured',
+                $this->configuredAdyenPaymentMethodChecker->hasAdyenPaymentMethod(...),
             ),
         ];
     }
