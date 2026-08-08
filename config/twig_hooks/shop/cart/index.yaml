@@ -1,7 +1,7 @@
 sylius_twig_hooks:
     hooks:
         'sylius_shop.cart.index.content.form.sections.general#right':
-            express_checkout:
+            adyen_express_checkout:
                 template: '@SyliusAdyenPlugin/shop/cart/index/content/form/sections/general/express_checkout.html.twig'
                 priority: -100
 
