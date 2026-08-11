@@ -1,0 +1,8 @@
+sylius_twig_hooks:
+    hooks:
+        'sylius_admin.payment_method.index.content.grid.data_table#pre_header':
+            adyen:
+                template: '@SyliusAdyenPlugin/admin/payment_method/index/content/grid/data_table/pre_header/adyen.html.twig'
+                priority: 0
+                configuration:
+                    payment_methods: ['visa', 'master_card', 'amex', 'alipay', 'wechat_pay', 'klarna']
