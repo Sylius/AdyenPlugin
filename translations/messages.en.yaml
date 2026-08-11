@@ -20,6 +20,7 @@ sylius_adyen:
         capture_mode_automatic: Automatic
         capture_mode_manual: Manual
         client_key: Client key
+        configure: Configure
         esd: Enhanced Scheme Data
         esd_auto_detect: Auto-detect ESD Type
         esd_auto_detect_help: Automatically determine ESD type based on merchant category code
@@ -52,6 +53,8 @@ sylius_adyen:
         platform: Platform
         resend_payment_link: Resend payment link
         send_payment_link: Send payment link
+        suggested: Suggested
+        suggested_payment_method_description: Accept credit cards, digital wallets and local payment methods with a single integration.
         test_platform: Test platform
 
 sylius:
