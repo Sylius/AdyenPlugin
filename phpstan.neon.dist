@@ -5,12 +5,12 @@ parameters:
     level: 6
     paths:
         - src
-
-    excludePaths:
-        # Makes PHPStan crash
-        - 'src/DependencyInjection/Configuration.php'
-        - 'src/DependencyInjection/SyliusAdyenExtension.php'
+        - tests/TestApplication/src
 
     ignoreErrors:
-        - '/.* no value type specified in iterable type array\./'
+        - identifier: missingType.iterableValue
         - identifier: missingType.generics
+        # Doctrine assigns the identifier through reflection, so PHPStan never sees the write.
+        -
+            identifier: property.unusedType
+            path: src/Entity/PaymentLink.php
