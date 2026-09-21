@@ -45,19 +45,13 @@ final class ConfigurationType extends AbstractType
                 ],
                 'label' => 'sylius_adyen.ui.platform',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.environment.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.environment.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add('merchantAccount', TextType::class, [
                 'label' => 'sylius_adyen.ui.merchant_account',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.merchant_account.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.merchant_account.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add('liveEndpointUrlPrefix', TextType::class, [
@@ -66,46 +60,31 @@ final class ConfigurationType extends AbstractType
             ->add('apiKey', CredentialType::class, [
                 'label' => 'sylius_adyen.ui.api_key',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.api_key.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.api_key.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add('clientKey', CredentialType::class, [
                 'label' => 'sylius_adyen.ui.client_key',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.merchant_account.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.merchant_account.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add('hmacKey', CredentialType::class, [
                 'label' => 'sylius_adyen.ui.hmac_key',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.hmac_key.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.hmac_key.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add('authUser', CredentialType::class, [
                 'label' => 'sylius_adyen.ui.auth_user',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.auth_user.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.auth_user.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add('authPassword', CredentialType::class, [
                 'label' => 'sylius_adyen.ui.auth_password',
                 'constraints' => [
-                    new NotBlank([
-                        'message' => 'sylius_adyen.auth_password.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new NotBlank(message: 'sylius_adyen.auth_password.not_blank', groups: ['sylius']),
                 ],
             ])
             ->add(AdyenClientProviderInterface::FACTORY_NAME, HiddenType::class, [
@@ -135,11 +114,11 @@ final class ConfigurationType extends AbstractType
                 ],
                 'placeholder' => false,
                 'constraints' => [
-                    new Choice([
-                        'choices' => [PaymentCaptureMode::AUTOMATIC, PaymentCaptureMode::MANUAL],
-                        'message' => 'sylius_adyen.capture_mode.not_blank',
-                        'groups' => ['sylius'],
-                    ]),
+                    new Choice(
+                        choices: [PaymentCaptureMode::AUTOMATIC, PaymentCaptureMode::MANUAL],
+                        message: 'sylius_adyen.capture_mode.not_blank',
+                        groups: ['sylius'],
+                    ),
                 ],
                 'required' => false,
             ])
