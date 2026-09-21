@@ -34,7 +34,7 @@ final class AdyenTransportFactory implements AdyenTransportFactoryInterface
         $client->setHttpClient($this->adyenHttpClient);
 
         $client->setXApiKey($options['apiKey']);
-        if (AdyenClientInterface::TEST_ENVIRONMENT == $options['environment']) {
+        if (AdyenClientInterface::TEST_ENVIRONMENT === $options['environment']) {
             $client->setEnvironment(Environment::TEST);
         } else {
             /** @var string $prefix */
