@@ -29,7 +29,7 @@ final class RemoveCartAction
 
     public function __invoke(Request $request): Response
     {
-        $order = $this->orderRepository->findCartByTokenValue($request->get('tokenValue', ''));
+        $order = $this->orderRepository->findCartByTokenValue($request->attributes->getString('tokenValue'));
         if (null === $order) {
             return new JsonResponse([], Response::HTTP_NOT_FOUND);
         }

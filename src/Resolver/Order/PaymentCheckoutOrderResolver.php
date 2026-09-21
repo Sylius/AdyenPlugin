@@ -40,10 +40,7 @@ final class PaymentCheckoutOrderResolver implements PaymentCheckoutOrderResolver
 
     private function getCurrentOrder(): ?OrderInterface
     {
-        /**
-         * @var string|null $tokenValue
-         */
-        $tokenValue = $this->getCurrentRequest()->get('tokenValue');
+        $tokenValue = $this->resolveTokenValue($this->getCurrentRequest());
 
         if (null === $tokenValue) {
             return null;
@@ -53,6 +50,21 @@ final class PaymentCheckoutOrderResolver implements PaymentCheckoutOrderResolver
         $order = $this->orderRepository->findOneBy(['tokenValue' => $tokenValue]);
 
         return $order;
+    }
+
+    /**
+     * Symfony 8 removed Request::get(), which looked the key up in the attributes,
+     * then the query string and finally the request body - in that order.
+     */
+    private function resolveTokenValue(Request $request): ?string
+    {
+        foreach ([$request->attributes, $request->query, $request->request] as $parameters) {
+            if ($parameters->has('tokenValue')) {
+                return $parameters->getString('tokenValue');
+            }
+        }
+
+        return null;
     }
 
     private function getCurrentRequest(): Request
