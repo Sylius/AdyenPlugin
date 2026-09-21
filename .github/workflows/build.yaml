@@ -80,11 +80,11 @@ jobs:
                 uses: actions/checkout@v4
 
             -
-                name: Require RefundPlugin Symfony 8 branch
+                name: Require RefundPlugin Sylius 2.3 branch
                 # TODO: Drop this step once RefundPlugin tags a release containing
-                # https://github.com/Sylius/RefundPlugin/pull/504 - until then sylius/refund-plugin caps
-                # symfony/messenger at ^7.4 and the Symfony 8 row cannot be resolved.
-                if: "${{ matrix.symfony == '^8.0' }}"
+                # https://github.com/Sylius/RefundPlugin/pull/504. Until then v2.1.0 caps symfony/messenger
+                # at ^7.4 and configures knp_gaufrette, a bundle Sylius 2.3 no longer registers.
+                if: "${{ matrix.sylius == '~2.3.0@alpha' }}"
                 run: |
                     composer config repositories.refund-plugin vcs https://github.com/rust-le/RefundPlugin
                     composer require "sylius/refund-plugin:dev-feature/sylius-2.3-symfony-8 as 2.1.x-dev" --no-update --no-scripts --no-interaction
