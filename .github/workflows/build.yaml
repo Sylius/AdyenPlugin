@@ -34,7 +34,7 @@ jobs:
             matrix:
                 php: ["8.3"]
                 symfony: ["^6.4", "^7.4"]
-                sylius: ["~2.0.0", "~2.1.0", "~2.2.0"]
+                sylius: ["~2.2.0", "~2.3.0@alpha"]
                 node: ["22.x"]
                 database: ["mysql"]
                 database_version: ["8.4"]
@@ -44,7 +44,7 @@ jobs:
                     -
                         php: "8.2"
                         symfony: "^6.4"
-                        sylius: "~2.1.0"
+                        sylius: "~2.2.0"
                         node: "22.x"
                         database: "mysql"
                         database_version: "8.4"
@@ -53,10 +53,21 @@ jobs:
                     -
                         php: "8.3"
                         symfony: "^7.4"
-                        sylius: "~2.1.0"
+                        sylius: "~2.2.0"
                         node: "22.x"
                         database: "postgres"
                         database_version: "15.8"
+                        state_machine_adapter: "symfony_workflow"
+
+                    # Symfony 8 requires PHP >= 8.4.1 and is only supported by Sylius 2.3.
+                    # Note: there is no Symfony "^8.4" - the releases are 8.0/8.1/8.2, so "^8.0" is the constraint.
+                    -
+                        php: "8.4"
+                        symfony: "^8.0"
+                        sylius: "~2.3.0@alpha"
+                        node: "22.x"
+                        database: "mysql"
+                        database_version: "8.4"
                         state_machine_adapter: "symfony_workflow"
 
         env:
@@ -67,6 +78,16 @@ jobs:
         steps:
             -
                 uses: actions/checkout@v4
+
+            -
+                name: Require RefundPlugin Sylius 2.3 branch
+                # TODO: Drop this step once RefundPlugin tags a release containing
+                # https://github.com/Sylius/RefundPlugin/pull/504. Until then v2.1.0 caps symfony/messenger
+                # at ^7.4 and configures knp_gaufrette, a bundle Sylius 2.3 no longer registers.
+                if: "${{ matrix.sylius == '~2.3.0@alpha' }}"
+                run: |
+                    composer config repositories.refund-plugin vcs https://github.com/rust-le/RefundPlugin
+                    composer require "sylius/refund-plugin:dev-feature/sylius-2.3-symfony-8 as 2.1.x-dev" --no-update --no-scripts --no-interaction
 
             -
                 name: Require Winzou State Machine
@@ -88,6 +109,7 @@ jobs:
                     php_version: "${{ matrix.php }}"
                     sylius_version: "${{ matrix.sylius }}"
                     symfony_version: "${{ matrix.symfony }}"
+                    composer_prefer_stable: "yes"
 
             -
                 name: Setup Messenger transports

@@ -18,6 +18,8 @@ use Adyen\Service;
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
 use Behat\MinkExtension\Context\MinkContext;
+use Behat\Step\Given;
+use Behat\Step\When;
 use FriendsOfBehat\PageObjectExtension\Page\UnexpectedPageException;
 use Sylius\Behat\Service\Resolver\CurrentPageResolverInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -43,20 +45,15 @@ final class ManagingPaymentMethodAdyenContext extends MinkContext implements Con
         $this->kernel = $kernel;
     }
 
-    /**
-     * @Given I want to create a new Adyen payment method
-     * @Given I open
-     *
-     * @throws UnexpectedPageException
-     */
+    /** @throws UnexpectedPageException */
+    #[Given('I want to create a new Adyen payment method')]
+    #[Given('I open')]
     public function iWantToCreateANewAdyenPaymentMethod(): void
     {
         $this->createPage->open(['factory' => 'adyen']);
     }
 
-    /**
-     * @Given Adyen service will confirm merchantAccount :merchantAccount and apiKey :apiKey are valid
-     */
+    #[Given('Adyen service will confirm merchantAccount :merchantAccount and apiKey :apiKey are valid')]
     public function adyenServiceWillConfirmMerchantAccountAndApiKeyAreValid(string $merchantAccount, string $apiKey): void
     {
         $this->kernel
@@ -81,9 +78,7 @@ final class ManagingPaymentMethodAdyenContext extends MinkContext implements Con
             });
     }
 
-    /**
-     * @When /^I specify test configuration with:$/
-     */
+    #[When('/^I specify test configuration with:$/')]
     public function iSpecifyTestConfigurationWithMerchantAccountAndApiKey(TableNode $formValues): void
     {
         $this->resolveCurrentPage()->setAdyenPlatform('test');

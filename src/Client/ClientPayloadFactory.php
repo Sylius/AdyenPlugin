@@ -354,7 +354,7 @@ final class ClientPayloadFactory implements ClientPayloadFactoryInterface
     {
         if (
             isset($receivedPayload['paymentMethod']['type']) &&
-            'scheme' == $receivedPayload['paymentMethod']['type']
+            'scheme' === $receivedPayload['paymentMethod']['type']
         ) {
             $payload['additionalData'] = [
                 'allow3DS2' => true,

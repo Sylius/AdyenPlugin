@@ -24,7 +24,7 @@ use Webmozart\Assert\Assert;
 
 final class AdditionalDetailsNormalizer extends AbstractPaymentNormalizer implements NormalizerAwareInterface
 {
-    private ?NormalizerInterface $normalizer;
+    private ?NormalizerInterface $normalizer = null;
 
     public function __construct(
         private readonly RequestStack $requestStack,
