@@ -40,13 +40,6 @@ jobs:
                 database_version: ["8.4"]
                 state_machine_adapter: ["symfony_workflow"]
 
-                exclude:
-                    # sylius/test-application 2.3 sets framework.property_info.with_constructor_extractor,
-                    # an option Symfony 6.4 does not know.
-                    -
-                        sylius: "~2.3.0@alpha"
-                        symfony: "^6.4"
-
                 include:
                     -
                         php: "8.2"
