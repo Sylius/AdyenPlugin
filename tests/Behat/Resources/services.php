@@ -19,7 +19,6 @@ use Tests\Sylius\AdyenPlugin\Behat\Service\HttpClientStub;
 return static function (ContainerConfigurator $container) {
     $services = $container->services();
     $container->import('services/contexts.yml');
-    $container->import('services/mocker.yml');
     $container->import('services/pages.yml');
 
     $services->defaults()
