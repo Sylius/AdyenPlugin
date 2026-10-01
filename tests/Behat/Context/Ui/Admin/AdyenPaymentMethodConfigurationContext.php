@@ -15,8 +15,9 @@ namespace Tests\Sylius\AdyenPlugin\Behat\Context\Ui\Admin;
 
 use Behat\Behat\Context\Context;
 use Behat\Gherkin\Node\TableNode;
+use Behat\Step\Then;
 use Sylius\AdyenPlugin\Form\Type\CredentialType;
-use Sylius\Component\Payment\Model\PaymentMethodInterface;
+use Sylius\Component\Core\Model\PaymentMethodInterface;
 use Tests\Sylius\AdyenPlugin\Behat\Page\Admin\PaymentMethod\UpdatePageInterface;
 use Webmozart\Assert\Assert;
 
@@ -26,9 +27,7 @@ class AdyenPaymentMethodConfigurationContext implements Context
     {
     }
 
-    /**
-     * @Then I want fields :fieldNames to be filled as placeholder
-     */
+    #[Then('I want fields :fieldNames to be filled as placeholder')]
     public function iWantAFieldToBeFilledAsPlaceholder(string $fieldNames): void
     {
         $fieldNames = explode(',', $fieldNames);
@@ -38,11 +37,7 @@ class AdyenPaymentMethodConfigurationContext implements Context
         }
     }
 
-    /**
-     * @Then I want the payment method :paymentMethod configuration to be:
-     *
-     * @param \Sylius\Component\Core\Model\PaymentMethodInterface $paymentMethod
-     */
+    #[Then('I want the payment method :paymentMethod configuration to be:')]
     public function iWantThePaymentMethodConfigurationToBe(TableNode $table, PaymentMethodInterface $paymentMethod)
     {
         foreach ($table->getHash() as $row) {

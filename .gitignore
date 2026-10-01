@@ -8,6 +8,7 @@ composer.lock
 !/etc/build/.gitignore
 
 /.phpunit.result.cache
+/behat.php
 /behat.yml
 /phpunit.xml
 /phpstan.neon
