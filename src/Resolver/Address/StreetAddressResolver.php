@@ -37,10 +37,10 @@ final class StreetAddressResolver implements StreetAddressResolverInterface
         \preg_match(self::NUMBER_FIRST_REGEX, \trim($streetAddress), $numberFirstAddress);
 
         if (0 < \count($streetFirstAddress)) {
-            return $this->getAddress($streetFirstAddress['streetName'] ?? '', $streetFirstAddress['houseNumber'] ?? '');
+            return $this->getAddress($streetFirstAddress['streetName'], $streetFirstAddress['houseNumber']);
         }
         if (0 < \count($numberFirstAddress)) {
-            return $this->getAddress($numberFirstAddress['streetName'] ?? '', $numberFirstAddress['houseNumber'] ?? '');
+            return $this->getAddress($numberFirstAddress['streetName'], $numberFirstAddress['houseNumber']);
         }
 
         return $this->getAddress($streetAddress, 'N/A');

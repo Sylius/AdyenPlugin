@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Sylius\AdyenPlugin\SyliusAdyenPlugin;
 use Sylius\RefundPlugin\SyliusRefundPlugin;
+use Knp\Bundle\GaufretteBundle\KnpGaufretteBundle;
 use Knp\Bundle\SnappyBundle\KnpSnappyBundle;
 use winzou\Bundle\StateMachineBundle\winzouStateMachineBundle;
 
@@ -11,6 +12,7 @@ $bundles = [
     SyliusAdyenPlugin::class => ['all' => true],
     SyliusRefundPlugin::class => ['all' => true],
     KnpSnappyBundle::class => ['all' => true],
+    KnpGaufretteBundle::class => ['all' => true],
 ];
 
 if (class_exists(winzouStateMachineBundle::class)) {

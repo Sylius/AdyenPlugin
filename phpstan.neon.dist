@@ -5,12 +5,17 @@ parameters:
     level: 6
     paths:
         - src
+        - tests/TestApplication/src
 
     excludePaths:
-        # Makes PHPStan crash
+        # ArrayNodeDefinition is generic on Symfony 7.4 but not on Symfony 8,
+        # so no single @var annotation satisfies both matrix rows.
         - 'src/DependencyInjection/Configuration.php'
-        - 'src/DependencyInjection/SyliusAdyenExtension.php'
 
     ignoreErrors:
-        - '/.* no value type specified in iterable type array\./'
+        - identifier: missingType.iterableValue
         - identifier: missingType.generics
+        # Doctrine assigns the identifier through reflection, so PHPStan never sees the write.
+        -
+            identifier: property.unusedType
+            path: src/Entity/PaymentLink.php

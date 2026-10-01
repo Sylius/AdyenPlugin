@@ -16,7 +16,6 @@ namespace Sylius\AdyenPlugin\Collector;
 use Sylius\AdyenPlugin\Entity\CommodityCodeAwareInterface;
 use Sylius\Component\Core\Model\AdjustmentInterface;
 use Sylius\Component\Core\Model\OrderItemInterface;
-use Sylius\Component\Core\Model\ProductVariantInterface;
 
 final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
 {
@@ -25,7 +24,6 @@ final class ItemDetailLineCollector implements ItemDetailLineCollectorInterface
     public function collect(OrderItemInterface $orderItem, int $lineNumber): array
     {
         $data = [];
-        /** @var ProductVariantInterface|CommodityCodeAwareInterface $variant */
         $variant = $orderItem->getVariant();
         $product = $variant !== null ? $variant->getProduct() : null;
 
