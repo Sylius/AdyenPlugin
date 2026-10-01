@@ -47,6 +47,10 @@ winzou_state_machine:
                     on: ["cancel", "refund"]
                     do: ["@sylius_adyen.processor.order.update_order_payment_state", "process"]
                     args: ["object.getOrder()"]
+                    # winzou runs callbacks in ascending priority order, so this has to sit below
+                    # Sylius' own -100 callbacks: since 2.2 they re-resolve the order payment state
+                    # after a cancel and would otherwise overwrite the reversal outcome.
+                    priority: -200
             guard:
                 guard_manual_complete:
                     on: ["complete"]
