@@ -2,6 +2,7 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Sylius\AdyenPlugin\Processor\Order\OrderPaymentProcessor as AdyenOrderPaymentProcessor;
 use Sylius\AdyenPlugin\Processor\Order\ReverseOrderPaymentProcessor;
 use Sylius\AdyenPlugin\Processor\Order\UpdateOrderPaymentStateProcessor;
 use Sylius\AdyenPlugin\Processor\Payment\AuthorizationStateProcessor;
@@ -60,14 +61,14 @@ return static function (ContainerConfigurator $container) {
             'new',
         ]);
 
-    $services->set('sylius_adyen.order_processing.order_payment_processor.checkout', \Sylius\AdyenPlugin\Processor\Order\OrderPaymentProcessor::class)
+    $services->set('sylius_adyen.order_processing.order_payment_processor.checkout', AdyenOrderPaymentProcessor::class)
         ->decorate('sylius.order_processing.order_payment_processor.checkout')
         ->args([
             service('.inner'),
             service('sylius_adyen.checker.adyen_payment_method'),
         ]);
 
-    $services->set('sylius_adyen.order_processing.order_payment_processor.after_checkout', \Sylius\AdyenPlugin\Processor\Order\OrderPaymentProcessor::class)
+    $services->set('sylius_adyen.order_processing.order_payment_processor.after_checkout', AdyenOrderPaymentProcessor::class)
         ->decorate('sylius.order_processing.order_payment_processor.after_checkout')
         ->args([
             service('.inner'),

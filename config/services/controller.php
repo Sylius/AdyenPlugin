@@ -6,9 +6,13 @@ use Sylius\AdyenPlugin\Controller\Admin\CaptureOrderPaymentAction;
 use Sylius\AdyenPlugin\Controller\Admin\GeneratePayLinkAction;
 use Sylius\AdyenPlugin\Controller\Admin\ReverseOrderPaymentAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\AddToNewCartAction;
+use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay\CheckoutAction as ApplePayCheckoutAction;
+use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay\ShippingAddressChangeAction as ApplePayShippingAddressChangeAction;
+use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay\ShippingOptionsChangeAction as ApplePayShippingOptionsChangeAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\CartConfigurationAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay\CheckoutAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\GooglePay\ShippingOptionsAction;
+use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\CheckoutAction as PayPalCheckoutAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\InitializeAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\ShippingAddressChangeAction;
 use Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\ShippingOptionsChangeAction;
@@ -124,7 +128,7 @@ return static function (ContainerConfigurator $container) {
             service('sylius.command_bus'),
         ]);
 
-    $services->set('sylius_adyen.controller.shop.express_checkout.paypal.checkout', \Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\PayPal\CheckoutAction::class)
+    $services->set('sylius_adyen.controller.shop.express_checkout.paypal.checkout', PayPalCheckoutAction::class)
         ->args([
             service('sylius_adyen.resolver.order.payment_checkout_order'),
             service('sylius_adyen.modifier.express_checkout.paypal.order_address'),
@@ -133,7 +137,7 @@ return static function (ContainerConfigurator $container) {
             service('sylius_adyen.checker.order_checkout_complete_integrity'),
         ]);
 
-    $services->set('sylius_adyen.controller.shop.express_checkout.apple_pay.shipping_address_change', \Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay\ShippingAddressChangeAction::class)
+    $services->set('sylius_adyen.controller.shop.express_checkout.apple_pay.shipping_address_change', ApplePayShippingAddressChangeAction::class)
         ->args([
             service('sylius_adyen.resolver.order.payment_checkout_order'),
             service('sylius.manager.order'),
@@ -143,7 +147,7 @@ return static function (ContainerConfigurator $container) {
             service('sylius_adyen.provider.express_checkout.apple_pay.shipping_methods'),
         ]);
 
-    $services->set('sylius_adyen.controller.shop.express_checkout.apple_pay.shipping_options_change', \Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay\ShippingOptionsChangeAction::class)
+    $services->set('sylius_adyen.controller.shop.express_checkout.apple_pay.shipping_options_change', ApplePayShippingOptionsChangeAction::class)
         ->args([
             service('sylius_adyen.resolver.order.payment_checkout_order'),
             service('sylius.manager.order'),
@@ -153,7 +157,7 @@ return static function (ContainerConfigurator $container) {
             service('sylius_adyen.provider.express_checkout.apple_pay.shipping_methods'),
         ]);
 
-    $services->set('sylius_adyen.controller.shop.express_checkout.apple_pay.checkout', \Sylius\AdyenPlugin\Controller\Shop\ExpressCheckout\ApplePay\CheckoutAction::class)
+    $services->set('sylius_adyen.controller.shop.express_checkout.apple_pay.checkout', ApplePayCheckoutAction::class)
         ->args([
             service('sylius_adyen.resolver.order.payment_checkout_order'),
             service('sylius_adyen.modifier.express_checkout.apple_pay.order_address'),

@@ -4,6 +4,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProvider;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\ShippingMethodsProviderInterface;
+use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProvider as ApplePayTransactionInfoProvider;
+use Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProviderInterface as ApplePayTransactionInfoProviderInterface;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\ApplePayConfigurationProvider;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\GooglePayConfigurationProvider;
 use Sylius\AdyenPlugin\Provider\ExpressCheckout\Cart\PaypalConfigurationProvider;
@@ -46,10 +48,10 @@ return static function (ContainerConfigurator $container) {
 
     $services->alias(ShippingOptionParametersProviderInterface::class, 'sylius_adyen.provider.express_checkout.google_pay.shipping_option_parameters');
 
-    $services->set('sylius_adyen.provider.express_checkout.apple_pay.transaction_info', \Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProvider::class)
+    $services->set('sylius_adyen.provider.express_checkout.apple_pay.transaction_info', ApplePayTransactionInfoProvider::class)
         ->args([service('translator')]);
 
-    $services->alias(\Sylius\AdyenPlugin\Provider\ExpressCheckout\ApplePay\TransactionInfoProviderInterface::class, 'sylius_adyen.provider.express_checkout.apple_pay.transaction_info');
+    $services->alias(ApplePayTransactionInfoProviderInterface::class, 'sylius_adyen.provider.express_checkout.apple_pay.transaction_info');
 
     $services->set('sylius_adyen.provider.express_checkout.apple_pay.shipping_methods', ShippingMethodsProvider::class)
         ->args([
