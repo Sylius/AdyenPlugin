@@ -10,8 +10,8 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "composer-runtime-api": "^2.0",
         "adyen/php-api-library": "^28.0",
-        "composer/package-versions-deprecated": "^1.11",
         "sylius/refund-plugin": "^2.2",
         "sylius/sylius": "^2.0",
         "sylius/telemetry": "^1.0",

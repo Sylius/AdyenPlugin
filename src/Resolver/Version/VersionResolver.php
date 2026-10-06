@@ -14,7 +14,6 @@ declare(strict_types=1);
 namespace Sylius\AdyenPlugin\Resolver\Version;
 
 use Composer\InstalledVersions;
-use PackageVersions\FallbackVersions;
 use Sylius\Bundle\CoreBundle\SyliusCoreBundle;
 
 final class VersionResolver implements VersionResolverInterface
@@ -54,11 +53,7 @@ final class VersionResolver implements VersionResolverInterface
     private function getPluginVersion(): string
     {
         try {
-            if (class_exists(InstalledVersions::class)) {
-                return InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) ?? self::TEST_APPLICATION_VERSION;
-            }
-
-            return substr(FallbackVersions::getVersion(self::PACKAGE_NAME), 0, -1);
+            return InstalledVersions::getPrettyVersion(self::PACKAGE_NAME) ?? self::TEST_APPLICATION_VERSION;
         } catch (\Exception) {
             return self::TEST_APPLICATION_VERSION;
         }
